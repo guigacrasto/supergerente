@@ -1,16 +1,31 @@
 import { Router } from "express";
 import { KommoService } from "../../services/kommo.js";
-import { ALLOWED_PIPELINE_IDS } from "../../config.js";
+import { TeamKey, TEAMS } from "../../config.js";
+import { requireAuth, AuthRequest } from "../middleware/requireAuth.js";
 
-export function pipelinesRouter(service: KommoService) {
+export function pipelinesRouter(services: Record<TeamKey, KommoService>) {
   const router = Router();
+  router.use(requireAuth as any);
 
-  // GET /api/pipelines — retorna apenas os funis permitidos (Tryvion, Matriz, Axion)
-  router.get("/", async (req, res) => {
+  // GET /api/pipelines — pipelines from all authorized teams
+  router.get("/", async (req: AuthRequest, res) => {
+    const userTeams = req.userTeams || [];
     try {
-      const pipelines = await service.getPipelines();
-      const filtered = pipelines.filter(p => ALLOWED_PIPELINE_IDS.includes(p.id));
-      res.json(filtered.map(p => ({ id: p.id, name: p.name })));
+      const results: Array<{ id: number; name: string; team: TeamKey }> = [];
+
+      for (const team of userTeams) {
+        const service = services[team];
+        if (!service || !TEAMS[team].subdomain) continue;
+
+        const excludeNames = TEAMS[team].excludePipelineNames;
+        const pipelines = await service.getPipelines();
+        const filtered = pipelines.filter(
+          (p: any) => !excludeNames.some((ex) => p.name.toUpperCase().includes(ex.toUpperCase()))
+        );
+        filtered.forEach((p: any) => results.push({ id: p.id, name: p.name, team }));
+      }
+
+      res.json(results);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
