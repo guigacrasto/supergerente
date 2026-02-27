@@ -1,0 +1,43 @@
+{
+  "name": "kommo-mcp-agent",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "MCP server for Kommo CRM integration",
+  "main": "build/api/index.js",
+  "scripts": {
+    "build": "tsc",
+    "build:all": "npm install --prefix web && npm run build --prefix web && npm run build",
+    "start": "node build/api/index.js",
+    "web": "node build/api/index.js",
+    "mcp": "node build/mcp/index.js",
+    "dev:web": "tsx watch src/api/index.ts",
+    "dev:mcp": "tsx watch src/mcp/index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@modelcontextprotocol/sdk": "^0.6.0",
+    "axios": "^1.6.0",
+    "concurrently": "^9.2.1",
+    "cors": "^2.8.6",
+    "dotenv": "^16.3.1",
+    "express": "^5.2.1",
+    "qs": "^6.15.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^20.0.0",
+    "@types/qs": "^6.14.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  },
+  "bin": {
+    "kommo-mcp-agent": "./build/mcp/index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
