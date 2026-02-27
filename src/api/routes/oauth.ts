@@ -11,10 +11,11 @@ export function oauthRouter(service: KommoService): Router {
   // GET /api/oauth/start — returns the Kommo authorization URL for the admin to visit
   router.get("/start", (_req, res) => {
     const authUrl =
-      `https://${kommoConfig.subdomain}.kommo.com/oauth?` +
+      `https://www.kommo.com/oauth/?` +
       `client_id=${kommoConfig.clientId}` +
       `&state=renew` +
-      `&mode=post_message`;
+      `&redirect_uri=${encodeURIComponent(kommoConfig.redirectUri)}` +
+      `&response_type=code`;
     res.json({ authUrl });
   });
 
