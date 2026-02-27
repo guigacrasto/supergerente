@@ -1,9 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import { supabase } from "../supabase.js";
+import { TeamKey } from "../../config.js";
 
 export interface AuthRequest extends Request {
   userId?: string;
   userRole?: string;
+  userTeams?: TeamKey[];
 }
 
 export async function requireAuth(
@@ -25,7 +27,7 @@ export async function requireAuth(
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("status, role")
+    .select("status, role, teams")
     .eq("id", user.id)
     .single();
 
@@ -36,6 +38,7 @@ export async function requireAuth(
 
   req.userId = user.id;
   req.userRole = profile.role;
+  req.userTeams = (profile.teams || []) as TeamKey[];
   next();
 }
 
