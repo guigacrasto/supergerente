@@ -683,3 +683,13 @@ tr:hover td {
 
 .team-label.azul { color: #3b82f6; }
 .team-label.amarela { color: #f59e0b; }
+.team-label.accordion-label {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+.team-label.accordion-label:hover {
+  opacity: 0.8;
+}

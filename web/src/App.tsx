@@ -6,6 +6,7 @@ import {
     Settings,
     LogOut,
     ChevronRight,
+    ChevronDown,
     Send,
     CheckCircle2,
     XCircle,
@@ -148,6 +149,7 @@ function App() {
     const [oauthCode, setOauthCode] = useState<Record<'azul' | 'amarela', string>>({ azul: '', amarela: '' });
     const [oauthMsg, setOauthMsg] = useState<Record<'azul' | 'amarela', string>>({ azul: '', amarela: '' });
     const [approveTeams, setApproveTeams] = useState<Record<string, { azul: boolean; amarela: boolean }>>({});
+    const [expandedTeams, setExpandedTeams] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         const token = localStorage.getItem('kommo_token');
@@ -657,10 +659,20 @@ function App() {
                         .filter(team => pipelines.some(p => p.team === team))
                         .map(team => (
                             <div className="group" key={team}>
-                                <label className={`team-label ${team}`}>
+                                <label
+                                    className={`team-label ${team} accordion-label`}
+                                    onClick={() => setExpandedTeams(prev => {
+                                        const next = new Set(prev);
+                                        next.has(team) ? next.delete(team) : next.add(team);
+                                        return next;
+                                    })}
+                                >
+                                    {expandedTeams.has(team)
+                                        ? <ChevronDown size={14} />
+                                        : <ChevronRight size={14} />}
                                     {team === 'azul' ? 'Equipe Azul' : 'Equipe Amarela'}
                                 </label>
-                                {pipelines.filter(p => p.team === team).map(p => (
+                                {expandedTeams.has(team) && pipelines.filter(p => p.team === team).map(p => (
                                     <button
                                         key={p.id}
                                         className={activeTab === `brand-${p.id}` && page !== 'admin' ? 'active' : ''}
