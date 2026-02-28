@@ -304,6 +304,11 @@ function App() {
                     headers: { Authorization: `Bearer ${authToken}` }
                 });
                 setTabData(res.data);
+            } else if (tab === 'summary') {
+                res = await axios.get('/api/reports/summary', {
+                    headers: { Authorization: `Bearer ${authToken}` }
+                });
+                setTabData(res.data);
             } else if (tab.startsWith('brand-')) {
                 const pid = tab.replace('brand-', '');
                 console.log(`App: loading brand report for ${pid}...`);
@@ -511,6 +516,68 @@ function App() {
             );
         }
 
+        if (activeTab === 'summary') {
+            const teams = ['azul', 'amarela'] as const;
+            return (
+                <div className="tab-view">
+                    <header className="view-header">
+                        <div className="title-area">
+                            <h1>Resumo Geral</h1>
+                        </div>
+                    </header>
+                    <section className="view-body">
+                        {loading ? (
+                            <div className="loading">
+                                <RefreshCw className="spin" />
+                                <span>Processando dados...</span>
+                            </div>
+                        ) : tabData ? (
+                            <div className="summary-content">
+                                {teams
+                                    .filter(team => (tabData as any[]).some((f: any) => f.team === team))
+                                    .map(team => (
+                                        <div key={team} className="summary-team-section">
+                                            <h2 className={`summary-team-title ${team}`}>
+                                                {team === 'azul' ? 'Equipe Azul' : 'Equipe Amarela'}
+                                            </h2>
+                                            <div className="summary-grid">
+                                                {(tabData as any[])
+                                                    .filter((f: any) => f.team === team)
+                                                    .map((funil: any, i: number) => (
+                                                        <div key={i} className={`summary-card glass team-border-${team}`}>
+                                                            <div className="summary-card-name">
+                                                                {funil.nome.replace('FUNIL ', '')}
+                                                            </div>
+                                                            <div className="summary-stats">
+                                                                <div className="summary-stat">
+                                                                    <span className="summary-value highlight">{funil.novosHoje}</span>
+                                                                    <span className="summary-label">hoje</span>
+                                                                </div>
+                                                                <div className="summary-stat">
+                                                                    <span className="summary-value">{funil.novosMes}</span>
+                                                                    <span className="summary-label">este mês</span>
+                                                                </div>
+                                                                <div className="summary-stat">
+                                                                    <span className="summary-value">{funil.ativos}</span>
+                                                                    <span className="summary-label">ativos</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                }
+                                            </div>
+                                        </div>
+                                    ))
+                                }
+                            </div>
+                        ) : (
+                            <div className="empty">Nenhum dado disponível.</div>
+                        )}
+                    </section>
+                </div>
+            );
+        }
+
         const currentPipe = pipelines.find(p => `brand-${p.id}` === activeTab);
         const title = activeTab === 'agents' ? 'Relatório de Performance' : `Novos Leads: ${currentPipe?.name.replace('FUNIL ', '') || 'Marca'}`;
 
@@ -647,6 +714,12 @@ function App() {
                             onClick={() => { setPage('app'); setActiveTab('chat'); }}
                         >
                             <MessageSquare size={18} /> Chat Atual
+                        </button>
+                        <button
+                            className={activeTab === 'summary' && page !== 'admin' ? 'active' : ''}
+                            onClick={() => { setPage('app'); loadTabData('summary'); }}
+                        >
+                            <PieChart size={18} /> Resumo Geral
                         </button>
                         <button
                             className={activeTab === 'agents' && page !== 'admin' ? 'active' : ''}

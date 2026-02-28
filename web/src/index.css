@@ -693,3 +693,66 @@ tr:hover td {
 .team-label.accordion-label:hover {
   opacity: 0.8;
 }
+
+/* ── Summary Tab ──────────────────────────────────── */
+.summary-content {
+  padding: 24px;
+}
+.summary-team-section {
+  margin-bottom: 32px;
+}
+.summary-team-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 12px;
+}
+.summary-team-title.azul   { color: #60a5fa; }
+.summary-team-title.amarela { color: #fbbf24; }
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 14px;
+}
+.summary-card {
+  padding: 16px 20px;
+  border-radius: 10px;
+  border-left: 3px solid transparent;
+}
+.summary-card.team-border-azul    { border-left-color: #3b82f6; }
+.summary-card.team-border-amarela { border-left-color: #f59e0b; }
+
+.summary-card-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin-bottom: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.summary-stats {
+  display: flex;
+  gap: 20px;
+}
+.summary-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.summary-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  line-height: 1;
+}
+.summary-value.highlight { color: #a78bfa; }
+.summary-label {
+  font-size: 0.62rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
