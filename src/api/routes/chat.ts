@@ -16,6 +16,18 @@ interface ChatSession {
 const SESSION_TTL_MS = 30 * 60 * 1000;
 const sessions = new Map<string, ChatSession>();
 
+function buildMentorInstruction(mentor: {
+  name: string;
+  system_prompt: string;
+  methodology_text: string;
+}): string {
+  let instruction = `## VOCÊ É O MENTOR: ${mentor.name.toUpperCase()}\n${mentor.system_prompt}`;
+  if (mentor.methodology_text?.trim()) {
+    instruction += `\n\n## METODOLOGIA DE REFERÊNCIA (${mentor.name})\n${mentor.methodology_text}`;
+  }
+  return instruction;
+}
+
 function buildSystemPrompt(
   allMetrics: Array<{ team: string; label: string; metrics: CrmMetrics }>,
   allActivity: Array<{ team: string; activity: ActivityMetrics }>
@@ -110,7 +122,7 @@ export function chatRouter(services: Record<TeamKey, KommoService>) {
   });
 
   router.post("/", async (req: AuthRequest, res) => {
-    const { message, sessionId: incomingSessionId } = req.body;
+    const { message, sessionId: incomingSessionId, mentorIds }: { message: string; sessionId?: string; mentorIds?: string[] } = req.body;
 
     if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === "SUA_CHAVE_AQUI") {
       return res.json({
@@ -141,6 +153,22 @@ export function chatRouter(services: Record<TeamKey, KommoService>) {
       }));
       const systemPrompt = buildSystemPrompt(allMetrics, allActivity);
 
+      // Fetch mentor data if mentorIds provided
+      let mentors: Array<{ id: string; name: string; system_prompt: string; methodology_text: string }> = [];
+      if (mentorIds && mentorIds.length > 0) {
+        const { data } = await supabase
+          .from("mentors")
+          .select("id, name, system_prompt, methodology_text")
+          .in("id", mentorIds)
+          .eq("is_active", true);
+        mentors = data || [];
+      }
+
+      const finalSystemPrompt =
+        mentors.length === 1
+          ? buildMentorInstruction(mentors[0]) + "\n\n---\n\n" + systemPrompt
+          : systemPrompt;
+
       const sessionId = incomingSessionId || randomUUID();
       const now = Date.now();
 
@@ -150,31 +178,61 @@ export function chatRouter(services: Record<TeamKey, KommoService>) {
 
       const session: ChatSession = sessions.get(sessionId) ?? { history: [], lastActivity: now };
 
-      const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
-        systemInstruction: systemPrompt,
-      });
+      let responseText: string;
+      let usageMeta: any;
 
-      const chat = model.startChat({
-        history: session.history,
-      });
+      if (mentors.length > 1) {
+        // Council mode: parallel calls, one per mentor
+        const mentorResponses = await Promise.all(
+          mentors.map(async (mentor) => {
+            const mentorPrompt = buildMentorInstruction(mentor) + "\n\n---\n\n" + systemPrompt;
+            const mentorModel = genAI.getGenerativeModel({
+              model: "gemini-2.5-flash",
+              systemInstruction: mentorPrompt,
+            });
+            const mentorChat = mentorModel.startChat({ history: [] });
+            const r = await mentorChat.sendMessage(message);
+            return { name: mentor.name, response: r.response.text() };
+          })
+        );
 
-      const result = await chat.sendMessage(message);
-      const responseText = result.response.text();
+        // Synthesis call
+        const synthesisPrompt = `Você é um moderador de conselho de mentores. Os seguintes mentores responderam à pergunta do gerente.
+Apresente a opinião de cada mentor claramente (com o nome como título), depois sintetize um **VEREDITO FINAL** consolidado.
 
-        // Log token usage
-        const usage = result.response.usageMetadata;
-        if (usage && req.userId) {
-          await supabase.from("token_logs").insert({
-            user_id: req.userId,
-            session_id: sessionId,
-            prompt_tokens: usage.promptTokenCount ?? 0,
-            completion_tokens: usage.candidatesTokenCount ?? 0,
-            total_tokens: usage.totalTokenCount ?? 0,
-          }).then(({ error }) => {
-            if (error) console.error("[TokenLog] Erro ao salvar tokens:", error.message);
-          });
-        }
+Pergunta do gerente: ${message}
+
+${mentorResponses.map((m) => `## Mentor: ${m.name}\n${m.response}`).join("\n\n---\n\n")}`;
+
+        const synthModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const synthChat = synthModel.startChat({ history: [] });
+        const synthResult = await synthChat.sendMessage(synthesisPrompt);
+        responseText = synthResult.response.text();
+        usageMeta = synthResult.response.usageMetadata;
+      } else {
+        // Single mentor or no mentor — standard flow
+        const model = genAI.getGenerativeModel({
+          model: "gemini-2.5-flash",
+          systemInstruction: finalSystemPrompt,
+        });
+        const chat = model.startChat({ history: session.history });
+        const result = await chat.sendMessage(message);
+        responseText = result.response.text();
+        usageMeta = result.response.usageMetadata;
+      }
+
+      // Log token usage
+      if (usageMeta && req.userId) {
+        await supabase.from("token_logs").insert({
+          user_id: req.userId,
+          session_id: sessionId,
+          prompt_tokens: usageMeta.promptTokenCount ?? 0,
+          completion_tokens: usageMeta.candidatesTokenCount ?? 0,
+          total_tokens: usageMeta.totalTokenCount ?? 0,
+        }).then(({ error }) => {
+          if (error) console.error("[TokenLog] Erro ao salvar tokens:", error.message);
+        });
+      }
 
       session.history.push(
         { role: "user", parts: [{ text: message }] },
