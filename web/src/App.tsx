@@ -518,6 +518,7 @@ function App() {
 
         if (activeTab === 'summary') {
             const teams = ['azul', 'amarela'] as const;
+            const summaryItems: any[] = Array.isArray(tabData) ? tabData : [];
             return (
                 <div className="tab-view">
                     <header className="view-header">
@@ -531,20 +532,20 @@ function App() {
                                 <RefreshCw className="spin" />
                                 <span>Processando dados...</span>
                             </div>
-                        ) : tabData ? (
+                        ) : summaryItems.length > 0 ? (
                             <div className="summary-content">
                                 {teams
-                                    .filter(team => (tabData as any[]).some((f: any) => f.team === team))
+                                    .filter(team => summaryItems.some((f: any) => f.team === team))
                                     .map(team => (
                                         <div key={team} className="summary-team-section">
                                             <h2 className={`summary-team-title ${team}`}>
                                                 {team === 'azul' ? 'Equipe Azul' : 'Equipe Amarela'}
                                             </h2>
                                             <div className="summary-grid">
-                                                {(tabData as any[])
+                                                {summaryItems
                                                     .filter((f: any) => f.team === team)
-                                                    .map((funil: any, i: number) => (
-                                                        <div key={i} className={`summary-card glass team-border-${team}`}>
+                                                    .map((funil: any) => (
+                                                        <div key={`${funil.team}-${funil.nome}`} className={`summary-card glass team-border-${team}`}>
                                                             <div className="summary-card-name">
                                                                 {funil.nome.replace('FUNIL ', '')}
                                                             </div>
