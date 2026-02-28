@@ -17,13 +17,15 @@ export class KommoService {
         this.client = axios.create({
             baseURL: `https://${config.subdomain}.kommo.com/api/v4`,
             headers: {
-                Authorization: `Bearer ${config.accessToken}`,
                 "Content-Type": "application/json",
             },
             paramsSerializer: {
                 serialize: (params) => qs.stringify(params, { arrayFormat: 'brackets' })
             }
         });
+
+        // Set initial token via the canonical channel so loadStoredToken() always overrides it
+        this.setAccessToken(this.currentAccessToken);
 
         this.client.interceptors.response.use(
             (response) => response,
