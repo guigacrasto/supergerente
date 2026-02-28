@@ -1042,3 +1042,36 @@ tr:hover td {
   border-color: var(--accent-color);
   font-weight: 700;
 }
+
+/* ── Conselho Completo chip ────────────────────────────── */
+.mentor-chip.council {
+  background: linear-gradient(135deg, var(--accent-color), #8b5cf6);
+  border-color: transparent;
+  color: white;
+}
+
+/* ── Sortable Table Headers ────────────────────────────── */
+.sortable-th { cursor: pointer; user-select: none; }
+.sortable-th:hover { color: var(--accent-color); }
+.sort-indicator { font-size: 0.8em; margin-left: 2px; color: var(--accent-color); }
+
+/* ── Alert Filters ────────────────────────────── */
+.alert-filter-bar {
+  display: flex; gap: 20px; flex-wrap: wrap;
+  padding: 10px 16px; border-radius: 10px; margin-bottom: 16px; align-items: center;
+}
+.alert-filter-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.alert-filter-label {
+  font-size: 11px; font-weight: 700; color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap;
+}
+.alert-filter-chip {
+  font-size: 11px; padding: 4px 12px; border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.12); background: transparent;
+  color: var(--text-secondary); cursor: pointer; transition: all 0.15s;
+}
+.alert-filter-chip:hover { border-color: var(--accent-color); color: var(--text-primary); }
+.alert-filter-chip.active {
+  background: var(--accent-color); color: var(--bg-dark);
+  border-color: var(--accent-color); font-weight: 700;
+}

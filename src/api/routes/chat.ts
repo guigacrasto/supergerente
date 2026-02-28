@@ -64,7 +64,14 @@ ALERTAS DE ATIVIDADE (${activity.atualizadoEm}):
   Tarefas vencidas: ${tarefas.length}${tarefas.length > 0 ? " — " + tarefas.slice(0, 5).map((t) => `${t.texto} (${t.vendedor}, ${t.diasVencida}d vencida)`).join(", ") + (tarefas.length > 5 ? ` e mais ${tarefas.length - 5}` : "") : ""}`;
     }
 
-    return `## ${label.toUpperCase()} — ATUALIZADO EM: ${metrics.atualizadoEm}
+    return `## ${label.toUpperCase()} — DADOS ATUALIZADOS EM: ${metrics.atualizadoEm}
+
+⚠️ COBERTURA DOS DADOS DISPONÍVEIS:
+- "novosHoje" = leads criados nas últimas 24h (janela rolante, NÃO dia calendário)
+- "novosSemana" = leads criados nos últimos 7 dias (janela rolante, NÃO semana seg-dom)
+- "novosMes" = leads criados nos últimos 30 dias (janela rolante, NÃO mês calendário)
+- "total/ativos/ganhos/perdidos" = acumulado histórico completo do funil
+- NÃO há dados de "semana passada" ou períodos anteriores específicos — apenas janelas rolantes.
 
 RESUMO GERAL: ${geral.total} leads | ganhos: ${geral.ganhos} | perdidos: ${geral.perdidos} | ativos: ${geral.ativos} | conversão: ${geral.conversao} | novos hoje: ${geral.novosHoje}
 
@@ -101,7 +108,12 @@ ${sections.join("\n\n---\n\n")}
 - Sempre que houver métricas numéricas, use tabela Markdown: | coluna | valor |
 - Separe seções com linha horizontal: ---
 - Máximo 3 bullet points por seção — seja conciso
-- Nunca escreva parágrafos longos sem estrutura visual`;
+- Nunca escreva parágrafos longos sem estrutura visual
+
+## METADADOS OBRIGATÓRIOS
+- Ao citar dados, SEMPRE inclua ao final: 📡 Fonte: Kommo CRM | ⏱️ Dados de: [cite o atualizadoEm]
+- Se dados vierem zerados: explique que o funil pode não ter atividade no período. NÃO assuma erro de sistema.
+- Se o usuário perguntar sobre "semana passada": esclareça que só há janelas rolantes de 7/30 dias e ofereça os dados disponíveis.`;
 }
 
 export function chatRouter(services: Record<TeamKey, KommoService>) {

@@ -161,6 +161,10 @@ function App() {
     const [mentorEditing, setMentorEditing] = useState(false);
     const [availableMentors, setAvailableMentors] = useState<Array<{id:string;name:string;description:string}>>([]);
     const [selectedMentorIds, setSelectedMentorIds] = useState<string[]>([]);
+    const [sortCol, setSortCol] = useState<string | null>(null);
+    const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+    const [alertFilter, setAlertFilter] = useState<'todos' | 'risco48h' | 'risco7d' | 'tarefas'>('todos');
+    const [alertEquipeFilter, setAlertEquipeFilter] = useState<'todas' | 'azul' | 'amarela'>('todas');
 
     useEffect(() => {
         const token = localStorage.getItem('kommo_token');
@@ -383,6 +387,20 @@ function App() {
                 return true;
             })
             : [];
+
+        const sortedRows = (sortCol && filteredRows.length > 0)
+            ? [...filteredRows].sort((a, b) => {
+                const parse = (v: any) => {
+                    const s = String(v ?? '').replace(/\s*\(.*?\)/g, '').replace('%', '').trim();
+                    const n = parseFloat(s);
+                    return isNaN(n) ? s.toLowerCase() : n;
+                };
+                const an = parse(a[sortCol]), bn = parse(b[sortCol]);
+                if (an < bn) return sortDir === 'asc' ? -1 : 1;
+                if (an > bn) return sortDir === 'asc' ? 1 : -1;
+                return 0;
+            })
+            : filteredRows;
 
         if (page === 'admin') {
             return (
@@ -656,6 +674,21 @@ function App() {
                             >
                                 🤖 Padrão
                             </button>
+                            {availableMentors.length > 1 && (
+                                <button
+                                    type="button"
+                                    className={`mentor-chip ${selectedMentorIds.length === availableMentors.length && availableMentors.length > 0 ? 'active council' : ''}`}
+                                    title="Consultar todos os mentores simultaneamente"
+                                    onClick={() => {
+                                        const allIds = availableMentors.map(m => m.id);
+                                        setSelectedMentorIds(allIds);
+                                        setMessages([{role:'assistant',content:`⚖️ Conselho completo ativado — ${availableMentors.length} mentores vão responder em paralelo. Faça sua pergunta.`}]);
+                                        setSessionId(null);
+                                    }}
+                                >
+                                    ⚖️ Conselho Completo
+                                </button>
+                            )}
                             {availableMentors.map(m => (
                                 <button
                                     key={m.id}
@@ -772,10 +805,14 @@ function App() {
                 };
             }> = Array.isArray(tabData) ? tabData : [];
 
-            const totalAlertas = alertsData.reduce(
-                (sum, t) => sum + t.activity.leadsAbandonados48h.length + t.activity.leadsEmRisco7d.length + t.activity.tarefasVencidas.length,
-                0
-            );
+            const totalAlertas = alertsData
+                .filter(t => alertEquipeFilter === 'todas' || t.team === alertEquipeFilter)
+                .reduce((sum, t) => {
+                    const ab = alertFilter === 'todos' || alertFilter === 'risco48h' ? t.activity.leadsAbandonados48h.length : 0;
+                    const risco = alertFilter === 'todos' || alertFilter === 'risco7d' ? t.activity.leadsEmRisco7d.length : 0;
+                    const tar = alertFilter === 'todos' || alertFilter === 'tarefas' ? t.activity.tarefasVencidas.length : 0;
+                    return sum + ab + risco + tar;
+                }, 0);
 
             return (
                 <div className="tab-view">
@@ -785,6 +822,26 @@ function App() {
                         </div>
                     </header>
                     <section className="view-body">
+                        <div className="alert-filter-bar glass">
+                            <div className="alert-filter-group">
+                                <span className="alert-filter-label">Tipo:</span>
+                                {(['todos', 'risco48h', 'risco7d', 'tarefas'] as const).map(f => (
+                                    <button key={f} className={`alert-filter-chip ${alertFilter === f ? 'active' : ''}`}
+                                        onClick={() => setAlertFilter(f)}>
+                                        {f === 'todos' ? 'Todos' : f === 'risco48h' ? '⚠️ +48h' : f === 'risco7d' ? '🔴 +7 dias' : '📋 Tarefas'}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="alert-filter-group">
+                                <span className="alert-filter-label">Equipe:</span>
+                                {(['todas', 'azul', 'amarela'] as const).map(e => (
+                                    <button key={e} className={`alert-filter-chip ${alertEquipeFilter === e ? 'active' : ''}`}
+                                        onClick={() => setAlertEquipeFilter(e)}>
+                                        {e === 'todas' ? 'Todas' : e === 'azul' ? 'Equipe Azul' : 'Equipe Amarela'}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                         {loading ? (
                             <div className="loading">
                                 <RefreshCw className="spin" />
@@ -799,11 +856,11 @@ function App() {
                             </div>
                         ) : (
                             <div className="alerts-content">
-                                {alertsData.map(({ team, label, activity }) => (
+                                {alertsData.filter(({ team }) => alertEquipeFilter === 'todas' || team === alertEquipeFilter).map(({ team, label, activity }) => (
                                     <div key={team} className="alerts-team-section">
                                         <h2 className={`alerts-team-title ${team}`}>{label}</h2>
 
-                                        {activity.leadsAbandonados48h.length > 0 && (
+                                        {(alertFilter === 'todos' || alertFilter === 'risco48h') && activity.leadsAbandonados48h.length > 0 && (
                                             <div className="alert-section alert-red">
                                                 <div className="alert-section-header">
                                                     <AlertTriangle size={16} />
@@ -825,7 +882,7 @@ function App() {
                                             </div>
                                         )}
 
-                                        {activity.leadsEmRisco7d.length > 0 && (
+                                        {(alertFilter === 'todos' || alertFilter === 'risco7d') && activity.leadsEmRisco7d.length > 0 && (
                                             <div className="alert-section alert-yellow">
                                                 <div className="alert-section-header">
                                                     <Clock size={16} />
@@ -847,7 +904,7 @@ function App() {
                                             </div>
                                         )}
 
-                                        {activity.tarefasVencidas.length > 0 && (
+                                        {(alertFilter === 'todos' || alertFilter === 'tarefas') && activity.tarefasVencidas.length > 0 && (
                                             <div className="alert-section alert-orange">
                                                 <div className="alert-section-header">
                                                     <XCircle size={16} />
@@ -955,11 +1012,18 @@ function App() {
                                     <table>
                                         <thead>
                                             <tr>
-                                                {Object.keys(tabData[0] || {}).map(k => <th key={k}>{k}</th>)}
+                                                {Object.keys(tabData[0] || {}).map(k => (
+                                                    <th key={k} className="sortable-th" onClick={() => {
+                                                        if (sortCol === k) setSortDir(d => d === 'desc' ? 'asc' : 'desc');
+                                                        else { setSortCol(k); setSortDir('desc'); }
+                                                    }}>
+                                                        {k}{sortCol === k && <span className="sort-indicator">{sortDir === 'desc' ? ' ↓' : ' ↑'}</span>}
+                                                    </th>
+                                                ))}
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {filteredRows.map((row: any, i: number) => (
+                                            {sortedRows.map((row: any, i: number) => (
                                                 <tr key={i}>
                                                     {Object.entries(row).map(([key, v]: [string, any], j) => (
                                                         <td key={j} className={key === 'Ticket Médio' ? 'highlight-cell' : ''}>
