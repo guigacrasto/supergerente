@@ -81,11 +81,35 @@ export class KommoService {
             }
         );
 
-        const { access_token, refresh_token } = response.data;
-        await saveTokens(this.team, { accessToken: access_token, refreshToken: refresh_token });
+        const { access_token, refresh_token, expires_in, server_time } = response.data;
+        const expiresAt = (server_time || Math.floor(Date.now() / 1000)) + (expires_in || 86400);
+        await saveTokens(this.team, { accessToken: access_token, refreshToken: refresh_token, expiresAt });
         this.setAccessToken(access_token);
-        console.log(`[KommoService:${this.team}] Token refreshed and saved.`);
+        console.log(`[KommoService:${this.team}] Token refreshed and saved. Expires at ${new Date(expiresAt * 1000).toISOString()}`);
         return access_token;
+    }
+
+    /** Refresh the token proactively if it expires within 2 hours (or has no recorded expiry) */
+    public async proactiveRefresh(): Promise<void> {
+        try {
+            const stored = await loadTokens(this.team);
+            if (!stored?.refreshToken) {
+                console.warn(`[KommoService:${this.team}] Proactive refresh skipped: no refresh token stored`);
+                return;
+            }
+            const now = Math.floor(Date.now() / 1000);
+            const twoHours = 2 * 60 * 60;
+            if (!stored.expiresAt || stored.expiresAt - now < twoHours) {
+                const hoursLeft = stored.expiresAt ? Math.round((stored.expiresAt - now) / 3600) : NaN;
+                console.log(`[KommoService:${this.team}] Proactive refresh triggered (${isNaN(hoursLeft) ? 'expiry unknown' : `${hoursLeft}h left`})`);
+                await this.refreshAccessToken();
+            } else {
+                const hoursLeft = Math.round((stored.expiresAt - now) / 3600);
+                console.log(`[KommoService:${this.team}] Token healthy — ~${hoursLeft}h remaining, no refresh needed`);
+            }
+        } catch (e: any) {
+            console.error(`[KommoService:${this.team}] Proactive refresh failed:`, e.message);
+        }
     }
 
     /** Exchange an authorization code for access_token + refresh_token (OAuth step 2) */
@@ -101,10 +125,11 @@ export class KommoService {
             }
         );
 
-        const { access_token, refresh_token } = response.data;
-        await saveTokens(this.team, { accessToken: access_token, refreshToken: refresh_token });
+        const { access_token, refresh_token, expires_in, server_time } = response.data;
+        const expiresAt = (server_time || Math.floor(Date.now() / 1000)) + (expires_in || 86400);
+        await saveTokens(this.team, { accessToken: access_token, refreshToken: refresh_token, expiresAt });
         this.setAccessToken(access_token);
-        console.log(`[KommoService:${this.team}] Authorization code exchanged, tokens saved.`);
+        console.log(`[KommoService:${this.team}] Authorization code exchanged, tokens saved. Expires at ${new Date(expiresAt * 1000).toISOString()}`);
         return { accessToken: access_token, refreshToken: refresh_token };
     }
 
