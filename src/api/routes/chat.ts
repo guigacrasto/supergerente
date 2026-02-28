@@ -98,6 +98,17 @@ export function chatRouter(services: Record<TeamKey, KommoService>) {
 
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
+  // GET /api/chat/mentors — list of active mentors for the selector
+  router.get("/mentors", async (_req, res) => {
+    const { data, error } = await supabase
+      .from("mentors")
+      .select("id, name, description")
+      .eq("is_active", true)
+      .order("name");
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
+  });
+
   router.post("/", async (req: AuthRequest, res) => {
     const { message, sessionId: incomingSessionId } = req.body;
 

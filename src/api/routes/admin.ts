@@ -98,5 +98,50 @@ export function adminRouter(): Router {
     res.json(result);
   });
 
+  // GET /api/admin/mentors
+  router.get("/mentors", async (_req, res) => {
+    const { data, error } = await supabase
+      .from("mentors")
+      .select("id, name, description, system_prompt, methodology_text, is_active, created_at")
+      .order("created_at", { ascending: false });
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
+  });
+
+  // POST /api/admin/mentors
+  router.post("/mentors", async (req, res) => {
+    const { name, description, system_prompt, methodology_text, is_active } = req.body;
+    if (!name || !system_prompt) return res.status(400).json({ error: "name e system_prompt são obrigatórios" });
+    const { data, error } = await supabase
+      .from("mentors")
+      .insert({ name, description, system_prompt, methodology_text, is_active: is_active ?? true })
+      .select()
+      .single();
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
+  });
+
+  // PUT /api/admin/mentors/:id
+  router.put("/mentors/:id", async (req, res) => {
+    const { id } = req.params;
+    const { name, description, system_prompt, methodology_text, is_active } = req.body;
+    const { data, error } = await supabase
+      .from("mentors")
+      .update({ name, description, system_prompt, methodology_text, is_active })
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
+  });
+
+  // DELETE /api/admin/mentors/:id
+  router.delete("/mentors/:id", async (req, res) => {
+    const { id } = req.params;
+    const { error } = await supabase.from("mentors").delete().eq("id", id);
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ ok: true });
+  });
+
   return router;
 }
