@@ -27,6 +27,14 @@ export interface FunilMetrics {
   novosMes: number;
 }
 
+export interface ActiveLead {
+  id: number;
+  titulo: string;
+  responsibleUserId: number;
+  responsibleUserName: string;
+  updatedAt: number; // Unix timestamp (seconds)
+}
+
 export interface CrmMetrics {
   funis: Record<string, FunilMetrics>;
   vendedores: VendedorMetrics[];
@@ -40,6 +48,7 @@ export interface CrmMetrics {
     novosSemana: number;
     novosMes: number;
   };
+  activeLeads: ActiveLead[];
   atualizadoEm: string;
 }
 
@@ -86,6 +95,7 @@ async function fetchAndCompute(team: TeamKey, service: KommoService): Promise<Cr
       funis: {},
       vendedores: [],
       geral: { total: 0, ganhos: 0, perdidos: 0, ativos: 0, conversao: "0.0%", novosHoje: 0, novosSemana: 0, novosMes: 0 },
+      activeLeads: [],
       atualizadoEm: new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }),
     };
   }
@@ -159,12 +169,24 @@ async function fetchAndCompute(team: TeamKey, service: KommoService): Promise<Cr
     novosMes: countPeriod(allLeads, 30),
   };
 
+  const userMap = new Map<number, string>(users.map((u: any) => [u.id, u.name]));
+  const activeLeads: ActiveLead[] = allLeads
+    .filter((l) => l.status_id !== STATUS.WON && l.status_id !== STATUS.LOST)
+    .map((l) => ({
+      id: l.id,
+      titulo: l.name || `Lead ${l.id}`,
+      responsibleUserId: l.responsible_user_id,
+      responsibleUserName: userMap.get(l.responsible_user_id) || "Desconhecido",
+      updatedAt: l.updated_at ?? 0,
+    }));
+
   console.log(`[CrmCache:${team}] Pronto — ${allLeads.length} leads, ${vendedores.length} entradas de vendedor`);
 
   return {
     funis,
     vendedores,
     geral,
+    activeLeads,
     atualizadoEm: new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }),
   };
 }
