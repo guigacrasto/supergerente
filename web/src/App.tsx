@@ -151,6 +151,9 @@ function App() {
     const [oauthMsg, setOauthMsg] = useState<Record<'azul' | 'amarela', string>>({ azul: '', amarela: '' });
     const [approveTeams, setApproveTeams] = useState<Record<string, { azul: boolean; amarela: boolean }>>({});
     const [expandedTeams, setExpandedTeams] = useState<Set<string>>(new Set());
+    const [filterAgente, setFilterAgente] = useState('');
+    const [filterFunil, setFilterFunil] = useState('');
+    const [filterEquipe, setFilterEquipe] = useState('');
 
     useEffect(() => {
         const token = localStorage.getItem('kommo_token');
@@ -305,6 +308,9 @@ function App() {
                     headers: { Authorization: `Bearer ${authToken}` }
                 });
                 setTabData(res.data);
+                setFilterAgente('');
+                setFilterFunil('');
+                setFilterEquipe('');
             } else if (tab === 'summary') {
                 res = await axios.get('/api/reports/summary', {
                     headers: { Authorization: `Bearer ${authToken}` }
@@ -340,6 +346,28 @@ function App() {
     };
 
     const renderContent = () => {
+        const FIXED_COLS = ['Agente', 'Total Leads', 'Venda Ganha', 'Venda Perdida', 'Conversão %'];
+        const funilCols: string[] = (activeTab === 'agents' && Array.isArray(tabData) && tabData.length > 0)
+            ? Object.keys(tabData[0]).filter((k: string) => !FIXED_COLS.includes(k))
+            : [];
+        const agentOptions: string[] = (activeTab === 'agents' && Array.isArray(tabData))
+            ? [...new Set<string>(tabData.map((r: any) => r.Agente as string))].sort()
+            : [];
+        const funilToTeam = new Map<string, string>(
+            pipelines.map(p => [p.name.replace('FUNIL ', '').trim(), p.team])
+        );
+        const filteredRows = (activeTab === 'agents' && Array.isArray(tabData))
+            ? tabData.filter((row: any) => {
+                if (filterAgente && row.Agente !== filterAgente) return false;
+                if (filterFunil && !row[filterFunil]) return false;
+                if (filterEquipe) {
+                    const teamFunils = funilCols.filter(col => funilToTeam.get(col) === filterEquipe);
+                    if (!teamFunils.some(col => row[col])) return false;
+                }
+                return true;
+            })
+            : [];
+
         if (page === 'admin') {
             return (
                 <div className="admin-panel">
@@ -714,11 +742,34 @@ function App() {
                                 <Clock size={14} /> <span>Atualizado em: {tabData.fetchedAt}</span>
                             </div>
                         )}
-                        {!tabData?.fetchedAt && !loading && tabData && (
-                            <div className="timestamp" style={{ color: 'red' }}>Timestamp missing in data!</div>
-                        )}
                     </div>
                     <div className="filter-controls glass">
+                        {activeTab === 'agents' && (
+                            <>
+                                <div className="field">
+                                    <span>Agente</span>
+                                    <select value={filterAgente} onChange={e => setFilterAgente(e.target.value)}>
+                                        <option value="">Todos</option>
+                                        {agentOptions.map(a => <option key={a} value={a}>{a}</option>)}
+                                    </select>
+                                </div>
+                                <div className="field">
+                                    <span>Funil</span>
+                                    <select value={filterFunil} onChange={e => setFilterFunil(e.target.value)}>
+                                        <option value="">Todos</option>
+                                        {funilCols.map(f => <option key={f} value={f}>{f}</option>)}
+                                    </select>
+                                </div>
+                                <div className="field">
+                                    <span>Equipe</span>
+                                    <select value={filterEquipe} onChange={e => setFilterEquipe(e.target.value)}>
+                                        <option value="">Todas</option>
+                                        <option value="azul">Equipe Azul</option>
+                                        <option value="amarela">Equipe Amarela</option>
+                                    </select>
+                                </div>
+                            </>
+                        )}
                         <div className="field">
                             <span>De</span>
                             <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
@@ -760,7 +811,7 @@ function App() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {tabData.map((row: any, i: number) => (
+                                            {filteredRows.map((row: any, i: number) => (
                                                 <tr key={i}>
                                                     {Object.entries(row).map(([key, v]: [string, any], j) => (
                                                         <td key={j} className={key === 'Ticket Médio' ? 'highlight-cell' : ''}>
