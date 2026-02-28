@@ -597,7 +597,7 @@ function App() {
             }> = Array.isArray(tabData) ? tabData : [];
 
             const totalAlertas = alertsData.reduce(
-                (sum, t) => sum + t.activity.leadsAbandonados48h.length + t.activity.tarefasVencidas.length,
+                (sum, t) => sum + t.activity.leadsAbandonados48h.length + t.activity.leadsEmRisco7d.length + t.activity.tarefasVencidas.length,
                 0
             );
 
