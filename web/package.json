@@ -10,18 +10,23 @@
     },
     "dependencies": {
         "axios": "^1.6.7",
-        "lodash": "^4.17.21",
+        "class-variance-authority": "^0.7.1",
+        "clsx": "^2.1.1",
         "lucide-react": "^0.344.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-markdown": "^10.1.0",
-        "remark-gfm": "^4.0.1"
+        "react-router-dom": "^7.13.1",
+        "remark-gfm": "^4.0.1",
+        "tailwind-merge": "^3.5.0",
+        "zustand": "^5.0.11"
     },
     "devDependencies": {
-        "@types/lodash": "^4.14.202",
+        "@tailwindcss/vite": "^4.2.1",
         "@types/react": "^18.2.66",
         "@types/react-dom": "^18.2.22",
         "@vitejs/plugin-react": "^4.2.1",
+        "tailwindcss": "^4.2.1",
         "typescript": "^5.2.2",
         "vite": "^5.2.0"
     }
