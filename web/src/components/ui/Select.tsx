@@ -32,7 +32,6 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
               'h-10 w-full appearance-none rounded-input border bg-surface-secondary px-3 pr-9 text-body-md text-[#E0E3E9]',
               'border-glass-border focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30',
               'transition-colors duration-150',
-              'light:bg-surface-light light:text-[#23272C] light:border-glass-border-light',
               className
             )}
             {...props}

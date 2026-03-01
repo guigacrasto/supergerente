@@ -15,5 +15,4 @@ export const ALERT_TYPE_LABELS: Record<string, string> = {
 export const STORAGE_KEYS = {
   token: 'kommo_token',
   user: 'kommo_user',
-  theme: 'ak_theme',
 } as const;

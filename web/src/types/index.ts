@@ -52,7 +52,7 @@ export interface TokenUsage {
   promptTokens: number;
   completionTokens: number;
   totalTokens: number;
-  estimatedCostUSD: number;
+  estimatedCostUSD: string | number;
 }
 
 export interface TokenStatus {

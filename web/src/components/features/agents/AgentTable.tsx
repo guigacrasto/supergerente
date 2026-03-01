@@ -25,7 +25,7 @@ export function AgentTable({ rows, funnelCols }: AgentTableProps) {
   const allCols = [...FIXED_COLS, ...funnelCols];
 
   return (
-    <div className="rounded-card border border-glass-border bg-surface light:bg-surface-light light:border-glass-border-light overflow-hidden">
+    <div className="rounded-card border border-glass-border bg-surface overflow-hidden">
       <div className="overflow-x-auto max-h-[70vh]">
         <table className="w-full border-collapse text-body-md">
           <thead>
@@ -36,8 +36,7 @@ export function AgentTable({ rows, funnelCols }: AgentTableProps) {
                   onClick={() => setSort(col)}
                   className={cn(
                     'sticky top-0 z-10 cursor-pointer select-none whitespace-nowrap border-b border-glass-border bg-surface-secondary px-4 py-3 text-left font-heading text-body-sm font-semibold text-muted-light transition-colors hover:text-[#E0E3E9]',
-                    'light:bg-surface-light-secondary light:border-glass-border-light light:hover:text-[#23272C]',
-                    sortCol === col && 'text-primary light:text-primary'
+                    sortCol === col && 'text-primary'
                   )}
                 >
                   {col}
@@ -54,7 +53,7 @@ export function AgentTable({ rows, funnelCols }: AgentTableProps) {
             {rows.map((row, i) => (
               <tr
                 key={i}
-                className="border-b border-glass-border transition-colors hover:bg-surface-secondary/50 light:border-glass-border-light light:hover:bg-surface-light-secondary/50"
+                className="border-b border-glass-border transition-colors hover:bg-surface-secondary/50"
               >
                 {allCols.map((col) => {
                   const value = row[col];

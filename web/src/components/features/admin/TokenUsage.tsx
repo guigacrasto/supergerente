@@ -9,13 +9,6 @@ export function TokenUsage({ data }: TokenUsageProps) {
   const formatNumber = (n: number) =>
     new Intl.NumberFormat('pt-BR').format(n);
 
-  const formatCurrency = (n: number) =>
-    new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 4,
-    }).format(n);
-
   return (
     <Card>
       <div className="overflow-x-auto">
@@ -44,7 +37,7 @@ export function TokenUsage({ data }: TokenUsageProps) {
                 <td className="px-5 py-3 text-right">{formatNumber(row.completionTokens)}</td>
                 <td className="px-5 py-3 text-right font-medium">{formatNumber(row.totalTokens)}</td>
                 <td className="px-5 py-3 text-right font-medium text-primary">
-                  {formatCurrency(row.estimatedCostUSD)}
+                  {row.estimatedCostUSD}
                 </td>
               </tr>
             ))}

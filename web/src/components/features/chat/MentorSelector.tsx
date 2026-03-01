@@ -6,7 +6,8 @@ export function MentorSelector() {
   const selectedMentorIds = useChatStore((s) => s.selectedMentorIds);
   const setSelectedMentorIds = useChatStore((s) => s.setSelectedMentorIds);
 
-  const activeMentors = availableMentors.filter((m) => m.is_active);
+  // Os mentores em availableMentors ja vem filtrados por is_active=true do backend
+  const activeMentors = availableMentors;
   const isDefault = selectedMentorIds.length === 0;
   const isCouncil =
     activeMentors.length > 0 &&
@@ -32,7 +33,7 @@ export function MentorSelector() {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2 border-b border-glass-border px-4 py-3 light:border-glass-border-light">
+    <div className="flex flex-wrap items-center gap-2 border-b border-glass-border px-4 py-3">
       <Chip active={isDefault} onClick={handleDefault}>
         Padrao
       </Chip>

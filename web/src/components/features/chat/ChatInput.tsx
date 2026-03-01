@@ -37,7 +37,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
   };
 
   return (
-    <div className="flex items-end gap-3 border-t border-glass-border bg-surface px-4 py-3 light:bg-surface-light light:border-glass-border-light">
+    <div className="flex items-end gap-3 border-t border-glass-border bg-surface px-4 py-3">
       <textarea
         ref={textareaRef}
         value={value}
@@ -49,7 +49,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
         placeholder="Ex: Quantos leads ativos hoje? Quem fechou mais essa semana?"
         rows={1}
         disabled={disabled}
-        className="flex-1 resize-none rounded-input border border-glass-border bg-surface-secondary px-3 py-2.5 text-body-md text-[#E0E3E9] placeholder:text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors light:bg-surface-light-secondary light:text-[#23272C] light:border-glass-border-light disabled:opacity-50"
+        className="flex-1 resize-none rounded-input border border-glass-border bg-surface-secondary px-3 py-2.5 text-body-md text-[#E0E3E9] placeholder:text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors disabled:opacity-50"
       />
       <Button
         onClick={handleSend}

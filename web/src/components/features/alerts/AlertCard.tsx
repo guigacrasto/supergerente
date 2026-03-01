@@ -34,7 +34,7 @@ export function AlertCard({
       href={kommoUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center gap-3 rounded-button border border-glass-border bg-surface px-4 py-3 transition-colors hover:bg-surface-secondary light:bg-surface-light light:border-glass-border-light light:hover:bg-surface-light-secondary"
+      className="flex items-center gap-3 rounded-button border border-glass-border bg-surface px-4 py-3 transition-colors hover:bg-surface-secondary"
     >
       <Icon className="h-4 w-4 flex-shrink-0 text-muted" />
       <div className="flex flex-1 items-center justify-between gap-2 min-w-0">

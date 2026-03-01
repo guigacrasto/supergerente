@@ -36,12 +36,11 @@ export function KPICard({
     <div
       className={cn(
         'flex items-center gap-4 rounded-card border border-glass-border bg-surface p-5 border-l-4',
-        'light:bg-surface-light light:border-glass-border-light',
         accentColors[accent],
         className
       )}
     >
-      <div className="flex-shrink-0 rounded-card bg-surface-secondary p-3 light:bg-surface-light-secondary">
+      <div className="flex-shrink-0 rounded-card bg-surface-secondary p-3">
         <Icon className={cn('h-5 w-5', iconBgColors[accent])} />
       </div>
       <div className="flex flex-col">

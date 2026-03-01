@@ -5,6 +5,8 @@ import { stripFunilPrefix } from '@/lib/utils';
 import { TEAM_LABELS } from '@/lib/constants';
 import { PageSpinner, Card, CardHeader, CardTitle } from '@/components/ui';
 import { KPICard } from '@/components/features/dashboard/KPICard';
+import { TeamPieChart } from '@/components/features/dashboard/TeamPieChart';
+import { SalesRanking } from '@/components/features/dashboard/SalesRanking';
 import { RecentAlerts } from '@/components/features/dashboard/RecentAlerts';
 
 interface SummaryItem {
@@ -45,9 +47,16 @@ interface ActivityTeam {
   };
 }
 
+interface AgentRow {
+  Agente?: string;
+  'Venda Ganha'?: string | number;
+  [key: string]: string | number | undefined;
+}
+
 export function DashboardPage() {
   const [summary, setSummary] = useState<SummaryItem[]>([]);
   const [activity, setActivity] = useState<ActivityTeam[]>([]);
+  const [agents, setAgents] = useState<AgentRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -55,13 +64,15 @@ export function DashboardPage() {
 
     const fetchData = async () => {
       try {
-        const [summaryRes, activityRes] = await Promise.all([
+        const [summaryRes, activityRes, agentsRes] = await Promise.all([
           api.get<SummaryItem[]>('/reports/summary'),
           api.get<ActivityTeam[]>('/reports/activity'),
+          api.get<AgentRow[]>('/reports/agents'),
         ]);
         if (!cancelled) {
           setSummary(summaryRes.data);
           setActivity(activityRes.data);
+          setAgents(agentsRes.data);
         }
       } catch (err) {
         console.error('[DashboardPage] Erro ao carregar dados:', err);
@@ -108,6 +119,12 @@ export function DashboardPage() {
   const allAlerts7d = activity.flatMap((t) => t.activity.leadsEmRisco7d);
   const allTarefas = activity.flatMap((t) => t.activity.tarefasVencidas);
 
+  // Preparar dados de vendas para os rankings
+  const salesData = agents.map((row) => ({
+    agente: String(row.Agente ?? ''),
+    vendaGanha: Number(row['Venda Ganha'] ?? 0),
+  }));
+
   return (
     <div className="flex flex-col gap-6">
       {/* KPI Cards */}
@@ -138,56 +155,66 @@ export function DashboardPage() {
         />
       </div>
 
-      {/* Team Summary */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {teamSummaries.map(({ team, label, pipelines: pipes }) => (
-          <Card key={team}>
-            <CardHeader>
-              <CardTitle
-                className={
-                  team === 'azul' ? 'text-accent-blue' : 'text-warning'
-                }
-              >
-                {label}
-              </CardTitle>
-            </CardHeader>
-            <div className="flex flex-col gap-3 p-5">
-              {pipes.map((p) => (
-                <div
-                  key={`${p.team}-${p.nome}`}
-                  className="flex items-center justify-between rounded-button border border-glass-border bg-surface-secondary p-4 light:bg-surface-light-secondary light:border-glass-border-light"
+      {/* Team Summary + Pie Chart */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2 grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {teamSummaries.map(({ team, label, pipelines: pipes }) => (
+            <Card key={team}>
+              <CardHeader>
+                <CardTitle
+                  className={
+                    team === 'azul' ? 'text-accent-blue' : 'text-warning'
+                  }
                 >
-                  <span className="font-heading text-heading-sm">
-                    {stripFunilPrefix(p.nome)}
-                  </span>
-                  <div className="flex items-center gap-6">
-                    <div className="flex flex-col items-center">
-                      <span className="font-heading text-heading-sm text-primary">
-                        {p.novosHoje}
-                      </span>
-                      <span className="text-body-sm text-muted">hoje</span>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <span className="font-heading text-heading-sm">
-                        {p.novosMes}
-                      </span>
-                      <span className="text-body-sm text-muted">mes</span>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <span className="font-heading text-heading-sm">
-                        {p.ativos}
-                      </span>
-                      <span className="text-body-sm text-muted">ativos</span>
+                  {label}
+                </CardTitle>
+              </CardHeader>
+              <div className="flex flex-col gap-3 p-5">
+                {pipes.map((p) => (
+                  <div
+                    key={`${p.team}-${p.nome}`}
+                    className="flex items-center justify-between rounded-button border border-glass-border bg-surface-secondary p-4"
+                  >
+                    <span className="font-heading text-heading-sm">
+                      {stripFunilPrefix(p.nome)}
+                    </span>
+                    <div className="flex items-center gap-6">
+                      <div className="flex flex-col items-center">
+                        <span className="font-heading text-heading-sm text-primary">
+                          {p.novosHoje}
+                        </span>
+                        <span className="text-body-sm text-muted">hoje</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <span className="font-heading text-heading-sm">
+                          {p.novosMes}
+                        </span>
+                        <span className="text-body-sm text-muted">mes</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <span className="font-heading text-heading-sm">
+                          {p.ativos}
+                        </span>
+                        <span className="text-body-sm text-muted">ativos</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-        ))}
+                ))}
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        <TeamPieChart data={summary} />
       </div>
 
-      {/* Recent Alerts */}
+      {/* Top Vendas */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <SalesRanking title="Top Vendas — Hoje" data={salesData} />
+        <SalesRanking title="Top Vendas — Semana" data={salesData} />
+      </div>
+
+      {/* Alertas Recentes */}
       <RecentAlerts
         alerts48h={allAlerts48h}
         alerts7d={allAlerts7d}

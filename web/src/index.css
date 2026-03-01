@@ -6,10 +6,6 @@
   body {
     @apply font-body text-body-md bg-primary-900 text-[#E0E3E9] overflow-hidden;
   }
-
-  .light body {
-    @apply bg-surface-light-secondary text-[#23272C];
-  }
 }
 
 /* Scrollbar styling */

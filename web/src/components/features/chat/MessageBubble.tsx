@@ -19,7 +19,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           'max-w-[80%] px-4 py-3 text-body-md',
           isUser
             ? 'rounded-t-card rounded-bl-card bg-gradient-to-br from-primary to-accent-blue text-white'
-            : 'rounded-t-card rounded-br-card bg-surface-secondary light:bg-surface-light-secondary'
+            : 'rounded-t-card rounded-br-card bg-surface-secondary'
         )}
       >
         {isUser ? (

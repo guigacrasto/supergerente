@@ -101,7 +101,7 @@ export function MentorForm({ mentor, onSave, onCancel }: MentorFormProps) {
             required
             rows={5}
             placeholder="Instrucoes de comportamento do mentor..."
-            className="w-full rounded-input border border-glass-border bg-surface-secondary px-3 py-2 text-body-md text-[#E0E3E9] placeholder:text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors duration-150 light:bg-surface-light light:text-[#23272C] light:border-glass-border-light resize-y"
+            className="w-full rounded-input border border-glass-border bg-surface-secondary px-3 py-2 text-body-md text-[#E0E3E9] placeholder:text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors duration-150 resize-y"
           />
         </div>
 

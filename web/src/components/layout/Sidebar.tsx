@@ -5,8 +5,6 @@ import {
   MessageSquare,
   BarChart3,
   AlertTriangle,
-  Sun,
-  Moon,
   LogOut,
   Settings,
   ChevronRight,
@@ -14,7 +12,6 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/authStore';
-import { useTheme } from '@/hooks/useTheme';
 import { usePipelines } from '@/hooks/usePipelines';
 import { TEAM_LABELS } from '@/lib/constants';
 import { stripFunilPrefix } from '@/lib/utils';
@@ -28,7 +25,6 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   const { user, logout } = useAuthStore();
-  const { theme, toggleTheme } = useTheme();
   const { byTeam } = usePipelines();
   const navigate = useNavigate();
   const [expandedTeams, setExpandedTeams] = useState<Record<string, boolean>>({});
@@ -116,19 +112,6 @@ export function Sidebar() {
 
       {/* Footer */}
       <div className="border-t border-white/10 px-3 py-3 space-y-1">
-        {/* Theme toggle */}
-        <button
-          onClick={toggleTheme}
-          className="flex w-full items-center gap-3 rounded-button px-3 py-2 text-body-md text-white/70 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
-        >
-          {theme === 'dark' ? (
-            <Sun className="h-5 w-5" />
-          ) : (
-            <Moon className="h-5 w-5" />
-          )}
-          {theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
-        </button>
-
         {/* Admin link */}
         {user?.role === 'admin' && (
           <NavLink

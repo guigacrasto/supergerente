@@ -80,7 +80,7 @@ export function ChatPanel() {
       <div ref={scrollRef} className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
         {showWelcome && (
           <div className="flex justify-start">
-            <div className="max-w-[80%] rounded-t-card rounded-br-card bg-surface-secondary px-4 py-3 text-body-md light:bg-surface-light-secondary">
+            <div className="max-w-[80%] rounded-t-card rounded-br-card bg-surface-secondary px-4 py-3 text-body-md ">
               <p>{getWelcomeMessage(selectedMentorIds, mentorNames)}</p>
             </div>
           </div>
@@ -92,7 +92,7 @@ export function ChatPanel() {
 
         {loading && (
           <div className="flex justify-start">
-            <div className="max-w-[80%] rounded-t-card rounded-br-card bg-surface-secondary px-4 py-3 text-body-md light:bg-surface-light-secondary animate-pulse">
+            <div className="max-w-[80%] rounded-t-card rounded-br-card bg-surface-secondary px-4 py-3 text-body-md  animate-pulse">
               ...
             </div>
           </div>

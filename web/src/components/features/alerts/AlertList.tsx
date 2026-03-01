@@ -125,9 +125,9 @@ export function AlertList({ alerts48h, alerts7d, tarefas }: AlertListProps) {
           return (
             <div
               key={config.severity}
-              className={`rounded-card border border-glass-border bg-surface border-l-4 ${config.borderColor} light:bg-surface-light light:border-glass-border-light`}
+              className={`rounded-card border border-glass-border bg-surface border-l-4 ${config.borderColor}`}
             >
-              <div className="flex items-center gap-2 border-b border-glass-border px-5 py-4 light:border-glass-border-light">
+              <div className="flex items-center gap-2 border-b border-glass-border px-5 py-4">
                 <Icon className="h-5 w-5 text-muted" />
                 <span className="font-heading text-heading-sm">
                   {config.title}
