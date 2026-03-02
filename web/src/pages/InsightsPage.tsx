@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Brain, Loader2 } from 'lucide-react';
+import { Brain, Loader2, RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api';
-import { PageSpinner, EmptyState } from '@/components/ui';
+import { PageSpinner, EmptyState, Button } from '@/components/ui';
 import { AgentScoreCard } from '@/components/features/insights/AgentScoreCard';
 import { ConversationCard } from '@/components/features/insights/ConversationCard';
 
@@ -38,6 +38,7 @@ export function InsightsPage() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchData = useCallback(async (isInitial: boolean) => {
     try {
@@ -67,6 +68,23 @@ export function InsightsPage() {
     return () => clearInterval(timer);
   }, [processing, fetchData]);
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const res = await api.post<InsightsResponse>('/insights/refresh');
+      const { insights, processing: isProcessing } = res.data;
+      setData(insights);
+      setProcessing(isProcessing);
+      if (insights.length > 0 && !selectedAgent) {
+        setSelectedAgent(insights[0].nome);
+      }
+    } catch (err) {
+      console.error('[InsightsPage] Erro ao atualizar:', err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   if (loading) {
     return <PageSpinner />;
   }
@@ -74,11 +92,22 @@ export function InsightsPage() {
   if (data.length === 0 && !processing) {
     return (
       <div className="flex flex-col gap-6">
-        <h1 className="font-heading text-heading-lg">Insights de Atendimento</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="font-heading text-heading-lg">Insights de Atendimento</h1>
+          <Button
+            variant="secondary"
+            size="sm"
+            loading={refreshing}
+            onClick={handleRefresh}
+          >
+            <RefreshCw className="h-4 w-4" />
+            Atualizar Insights
+          </Button>
+        </div>
         <EmptyState
           icon={Brain}
           title="Nenhuma analise disponivel"
-          description="As conversas dos atendentes serao analisadas automaticamente. Aguarde a proxima atualizacao."
+          description="Clique em 'Atualizar Insights' para analisar as conversas dos atendentes."
         />
       </div>
     );
@@ -87,7 +116,18 @@ export function InsightsPage() {
   if (data.length === 0 && processing) {
     return (
       <div className="flex flex-col gap-6">
-        <h1 className="font-heading text-heading-lg">Insights de Atendimento</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="font-heading text-heading-lg">Insights de Atendimento</h1>
+          <Button
+            variant="secondary"
+            size="sm"
+            loading={true}
+            onClick={handleRefresh}
+          >
+            <RefreshCw className="h-4 w-4" />
+            Atualizar Insights
+          </Button>
+        </div>
         <div className="flex flex-col items-center gap-4 py-16">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
           <p className="text-body-md text-muted text-center max-w-md">
@@ -108,12 +148,15 @@ export function InsightsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-3">
         <h1 className="font-heading text-heading-lg">Insights de Atendimento</h1>
-        {processing && (
-          <div className="flex items-center gap-2 rounded-badge bg-primary/10 px-3 py-1">
-            <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
-            <span className="text-body-sm text-primary">Atualizando...</span>
-          </div>
-        )}
+        <Button
+          variant="secondary"
+          size="sm"
+          loading={refreshing || processing}
+          onClick={handleRefresh}
+        >
+          <RefreshCw className="h-4 w-4" />
+          Atualizar Insights
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr]">
