@@ -8,13 +8,27 @@ interface AuthState {
   isAuthenticated: boolean;
   login: (token: string, user: User) => void;
   logout: () => void;
-  restore: () => boolean;
 }
 
+function readStoredAuth(): { token: string; user: User } | null {
+  const token = localStorage.getItem(STORAGE_KEYS.token);
+  const userStr = localStorage.getItem(STORAGE_KEYS.user);
+  if (token && userStr) {
+    try {
+      return { token, user: JSON.parse(userStr) as User };
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+const stored = readStoredAuth();
+
 export const useAuthStore = create<AuthState>((set) => ({
-  token: null,
-  user: null,
-  isAuthenticated: false,
+  token: stored?.token ?? null,
+  user: stored?.user ?? null,
+  isAuthenticated: !!stored,
 
   login: (token, user) => {
     localStorage.setItem(STORAGE_KEYS.token, token);
@@ -26,20 +40,5 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.removeItem(STORAGE_KEYS.token);
     localStorage.removeItem(STORAGE_KEYS.user);
     set({ token: null, user: null, isAuthenticated: false });
-  },
-
-  restore: () => {
-    const token = localStorage.getItem(STORAGE_KEYS.token);
-    const userStr = localStorage.getItem(STORAGE_KEYS.user);
-    if (token && userStr) {
-      try {
-        const user = JSON.parse(userStr) as User;
-        set({ token, user, isAuthenticated: true });
-        return true;
-      } catch {
-        return false;
-      }
-    }
-    return false;
   },
 }));

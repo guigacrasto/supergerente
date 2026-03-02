@@ -3,10 +3,9 @@ import { TrendingUp, Users, Target, AlertTriangle } from 'lucide-react';
 import { api } from '@/lib/api';
 import { stripFunilPrefix } from '@/lib/utils';
 import { TEAM_LABELS } from '@/lib/constants';
-import { PageSpinner, Card, CardHeader, CardTitle } from '@/components/ui';
+import { PageSpinner, Card, CardHeader, CardTitle, Chip } from '@/components/ui';
 import { KPICard } from '@/components/features/dashboard/KPICard';
 import { TeamBarChart } from '@/components/features/dashboard/TeamBarChart';
-import { TeamKPICard } from '@/components/features/dashboard/TeamKPICard';
 import { SalesRanking } from '@/components/features/dashboard/SalesRanking';
 import { RecentAlerts } from '@/components/features/dashboard/RecentAlerts';
 
@@ -66,11 +65,14 @@ const TEAM_COLORS: Record<string, string> = {
   amarela: '#F9AA3C',
 };
 
+type TeamFilter = '' | 'azul' | 'amarela';
+
 export function DashboardPage() {
   const [summary, setSummary] = useState<SummaryItem[]>([]);
   const [activity, setActivity] = useState<ActivityTeam[]>([]);
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [teamFilter, setTeamFilter] = useState<TeamFilter>('');
 
   useEffect(() => {
     let cancelled = false;
@@ -104,11 +106,19 @@ export function DashboardPage() {
     return <PageSpinner />;
   }
 
-  // KPI calculations
-  const totalNovosHoje = summary.reduce((sum, s) => sum + s.novosHoje, 0);
-  const totalAtivos = summary.reduce((sum, s) => sum + s.ativos, 0);
-  const totalNovosMes = summary.reduce((sum, s) => sum + s.novosMes, 0);
-  const totalAlertas = activity.reduce(
+  // Apply team filter to data sources
+  const filteredSummary = teamFilter
+    ? summary.filter((s) => s.team === teamFilter)
+    : summary;
+  const filteredActivity = teamFilter
+    ? activity.filter((t) => t.team === teamFilter)
+    : activity;
+
+  // KPI calculations (filtered)
+  const totalNovosHoje = filteredSummary.reduce((sum, s) => sum + s.novosHoje, 0);
+  const totalAtivos = filteredSummary.reduce((sum, s) => sum + s.ativos, 0);
+  const totalNovosMes = filteredSummary.reduce((sum, s) => sum + s.novosMes, 0);
+  const totalAlertas = filteredActivity.reduce(
     (sum, t) =>
       sum +
       t.activity.leadsAbandonados48h.length +
@@ -119,42 +129,31 @@ export function DashboardPage() {
 
   // Group summary by team
   const teams = ['azul', 'amarela'] as const;
+  const visibleTeams = teamFilter ? [teamFilter] as const : teams;
 
-  // Per-team KPI totals
-  const teamKPIs = teams
-    .map((team) => {
-      const pipes = summary.filter((s) => s.team === team);
-      return {
-        team,
-        label: TEAM_LABELS[team] || team,
-        novosHoje: pipes.reduce((sum, p) => sum + p.novosHoje, 0),
-        ativos: pipes.reduce((sum, p) => sum + p.ativos, 0),
-        novosMes: pipes.reduce((sum, p) => sum + p.novosMes, 0),
-      };
-    })
-    .filter((tk) => tk.novosHoje > 0 || tk.ativos > 0 || tk.novosMes > 0);
-  const teamSummaries = teams
+  const teamSummaries = visibleTeams
     .map((team) => ({
       team,
       label: TEAM_LABELS[team] || team,
-      pipelines: summary.filter((s) => s.team === team),
+      pipelines: filteredSummary.filter((s) => s.team === team),
     }))
     .filter((ts) => ts.pipelines.length > 0);
 
-  // Flatten alerts for RecentAlerts
-  const allAlerts48h = activity.flatMap((t) => t.activity.leadsAbandonados48h);
-  const allAlerts7d = activity.flatMap((t) => t.activity.leadsEmRisco7d);
-  const allTarefas = activity.flatMap((t) => t.activity.tarefasVencidas);
+  // Flatten alerts for RecentAlerts (filtered)
+  const allAlerts48h = filteredActivity.flatMap((t) => t.activity.leadsAbandonados48h);
+  const allAlerts7d = filteredActivity.flatMap((t) => t.activity.leadsEmRisco7d);
+  const allTarefas = filteredActivity.flatMap((t) => t.activity.tarefasVencidas);
 
-  // Dashboard data per team
+  // Dashboard data per team (filtered)
   const agentsByTeam = dashboard?.agentsByTeam ?? {};
-  const availableTeams = Object.keys(agentsByTeam);
-  const hasBothTeams = availableTeams.length >= 2;
+  const filteredAgentTeams = teamFilter
+    ? Object.keys(agentsByTeam).filter((t) => t === teamFilter)
+    : Object.keys(agentsByTeam);
 
-  // Rankings: agregar vendas de todas as equipes por agente
+  // Rankings: agregar vendas (filtrado por equipe)
   const allAgentsMap: Record<string, { nome: string; ganhosHoje: number; ganhosSemana: number }> = {};
-  for (const agents of Object.values(agentsByTeam)) {
-    for (const a of agents) {
+  for (const team of filteredAgentTeams) {
+    for (const a of agentsByTeam[team] ?? []) {
       if (!allAgentsMap[a.nome]) {
         allAgentsMap[a.nome] = { nome: a.nome, ganhosHoje: 0, ganhosSemana: 0 };
       }
@@ -175,6 +174,19 @@ export function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Team filter tabs */}
+      <div className="flex items-center gap-2">
+        <Chip active={teamFilter === ''} onClick={() => setTeamFilter('')}>
+          Todas as Equipes
+        </Chip>
+        <Chip active={teamFilter === 'azul'} onClick={() => setTeamFilter('azul')}>
+          Equipe Azul
+        </Chip>
+        <Chip active={teamFilter === 'amarela'} onClick={() => setTeamFilter('amarela')}>
+          Equipe Amarela
+        </Chip>
+      </div>
+
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KPICard
@@ -203,75 +215,61 @@ export function DashboardPage() {
         />
       </div>
 
-      {/* Per-team KPI Cards */}
-      {teamKPIs.length > 1 && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {teamKPIs.map((tk) => (
-            <TeamKPICard
-              key={tk.team}
-              label={tk.label}
-              team={tk.team}
-              novosHoje={tk.novosHoje}
-              ativos={tk.ativos}
-              novosMes={tk.novosMes}
-            />
+      {/* Team Summary Cards */}
+      {teamSummaries.length > 0 && (
+        <div className={teamSummaries.length > 1 ? 'grid grid-cols-1 gap-6 sm:grid-cols-2' : ''}>
+          {teamSummaries.map(({ team, label, pipelines: pipes }) => (
+            <Card key={team}>
+              <CardHeader>
+                <CardTitle
+                  className={
+                    team === 'azul' ? 'text-accent-blue' : 'text-warning'
+                  }
+                >
+                  {label}
+                </CardTitle>
+              </CardHeader>
+              <div className="flex flex-col gap-3 p-5">
+                {pipes.map((p) => (
+                  <div
+                    key={`${p.team}-${p.nome}`}
+                    className="flex items-center justify-between rounded-button border border-glass-border bg-surface-secondary p-4"
+                  >
+                    <span className="font-heading text-heading-sm">
+                      {stripFunilPrefix(p.nome)}
+                    </span>
+                    <div className="flex items-center gap-6">
+                      <div className="flex flex-col items-center">
+                        <span className="font-heading text-heading-sm text-primary">
+                          {p.novosHoje}
+                        </span>
+                        <span className="text-body-sm text-muted">hoje</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <span className="font-heading text-heading-sm">
+                          {p.novosMes}
+                        </span>
+                        <span className="text-body-sm text-muted">mes</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <span className="font-heading text-heading-sm">
+                          {p.ativos}
+                        </span>
+                        <span className="text-body-sm text-muted">ativos</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
           ))}
         </div>
       )}
 
-      {/* Team Summary Cards */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        {teamSummaries.map(({ team, label, pipelines: pipes }) => (
-          <Card key={team}>
-            <CardHeader>
-              <CardTitle
-                className={
-                  team === 'azul' ? 'text-accent-blue' : 'text-warning'
-                }
-              >
-                {label}
-              </CardTitle>
-            </CardHeader>
-            <div className="flex flex-col gap-3 p-5">
-              {pipes.map((p) => (
-                <div
-                  key={`${p.team}-${p.nome}`}
-                  className="flex items-center justify-between rounded-button border border-glass-border bg-surface-secondary p-4"
-                >
-                  <span className="font-heading text-heading-sm">
-                    {stripFunilPrefix(p.nome)}
-                  </span>
-                  <div className="flex items-center gap-6">
-                    <div className="flex flex-col items-center">
-                      <span className="font-heading text-heading-sm text-primary">
-                        {p.novosHoje}
-                      </span>
-                      <span className="text-body-sm text-muted">hoje</span>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <span className="font-heading text-heading-sm">
-                        {p.novosMes}
-                      </span>
-                      <span className="text-body-sm text-muted">mes</span>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <span className="font-heading text-heading-sm">
-                        {p.ativos}
-                      </span>
-                      <span className="text-body-sm text-muted">ativos</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-        ))}
-      </div>
-
       {/* Bar Charts — full width per team */}
-      {hasBothTeams && (
+      {filteredAgentTeams.length > 0 && (
         <div className="flex flex-col gap-6">
-          {availableTeams.map((team) => (
+          {filteredAgentTeams.map((team) => (
             <TeamBarChart
               key={team}
               team={team}

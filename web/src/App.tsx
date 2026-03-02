@@ -1,6 +1,4 @@
-import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { useAuthStore } from '@/stores/authStore';
 import { AppShell } from '@/components/layout/AppShell';
 import { AuthLayout } from '@/components/layout/AuthLayout';
 import { LoginPage } from '@/pages/LoginPage';
@@ -13,12 +11,6 @@ import { InsightsPage } from '@/pages/InsightsPage';
 import { AdminPage } from '@/pages/AdminPage';
 
 export default function App() {
-  const restore = useAuthStore((s) => s.restore);
-
-  useEffect(() => {
-    restore();
-  }, [restore]);
-
   return (
     <BrowserRouter>
       <Routes>
