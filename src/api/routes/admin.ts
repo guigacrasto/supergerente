@@ -13,7 +13,7 @@ export function adminRouter(services: Record<TeamKey, KommoService>): Router {
     const { data, error } = await supabase
       .from("profiles")
       .select("id, name, email, status, role, teams, created_at")
-      .eq("role", "user")
+      .neq("role", "admin")
       .order("created_at", { ascending: false });
 
     if (error) {

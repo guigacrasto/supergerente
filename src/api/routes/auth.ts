@@ -24,7 +24,8 @@ export function authRouter(): Router {
       return;
     }
 
-    // Garante que o perfil exista na tabela profiles (trigger pode falhar/não existir)
+    // Garante que o perfil exista na tabela profiles com role/status corretos
+    // Nao usa ignoreDuplicates — se trigger criou o perfil antes, o upsert atualiza
     const { error: profileError } = await supabase
       .from("profiles")
       .upsert(
@@ -35,7 +36,7 @@ export function authRouter(): Router {
           role: "user",
           status: "pending",
         },
-        { onConflict: "id", ignoreDuplicates: true }
+        { onConflict: "id" }
       );
 
     if (profileError) {
