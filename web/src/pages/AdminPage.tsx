@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Bot, KeyRound, BarChart3, Plus } from 'lucide-react';
+import { Users, Bot, KeyRound, BarChart3, Plus, RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
 import { PageSpinner, EmptyState, Chip, Button } from '@/components/ui';
@@ -39,6 +39,8 @@ export function AdminPage() {
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [tokenStatus, setTokenStatus] = useState<Record<Team, TokenStatus> | null>(null);
   const [tokenUsage, setTokenUsage] = useState<TokenUsageType[]>([]);
+
+  const [refreshingUsers, setRefreshingUsers] = useState(false);
 
   // Mentor form state
   const [showMentorForm, setShowMentorForm] = useState(false);
@@ -104,6 +106,12 @@ export function AdminPage() {
     fetchAll();
   }, [user, fetchUsers, fetchMentors, fetchTokenStatus, fetchTokenUsage]);
 
+  const handleRefreshUsers = async () => {
+    setRefreshingUsers(true);
+    await fetchUsers();
+    setRefreshingUsers(false);
+  };
+
   const handleEditMentor = (mentor: Mentor) => {
     setEditingMentor({
       id: mentor.id,
@@ -163,6 +171,17 @@ export function AdminPage() {
       {/* Usuarios */}
       {activeTab === 'usuarios' && (
         <>
+          <div className="flex justify-end">
+            <Button
+              variant="secondary"
+              size="sm"
+              loading={refreshingUsers}
+              onClick={handleRefreshUsers}
+            >
+              <RefreshCw className="h-4 w-4" />
+              Atualizar
+            </Button>
+          </div>
           {users.length === 0 ? (
             <EmptyState
               icon={Users}
