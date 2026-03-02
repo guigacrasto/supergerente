@@ -308,3 +308,17 @@ export async function getConversationInsights(
 
   return { data: [], processing: true };
 }
+
+/**
+ * Clears cached insights for a specific team or all teams.
+ * After clearing, next call to getConversationInsights will trigger a fresh fetch.
+ */
+export function clearInsightsCache(team?: TeamKey): void {
+  const teams = team ? [team] : (Object.keys(caches) as TeamKey[]);
+  for (const t of teams) {
+    caches[t].data = null;
+    caches[t].expiresAt = 0;
+    // Don't clear fetchPromise — if a fetch is in-flight, let it finish
+  }
+  console.log(`[InsightsCache] Cache cleared for: ${teams.join(", ")}`);
+}

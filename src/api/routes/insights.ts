@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { KommoService } from "../../services/kommo.js";
 import { TeamKey } from "../../config.js";
 import { requireAuth, AuthRequest } from "../middleware/requireAuth.js";
-import { getConversationInsights } from "../cache/conversation-cache.js";
+import { getConversationInsights, clearInsightsCache } from "../cache/conversation-cache.js";
 
 export function insightsRouter(services: Record<TeamKey, KommoService>) {
   const router = Router();
@@ -42,6 +42,50 @@ export function insightsRouter(services: Record<TeamKey, KommoService>) {
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       console.error("[Insights] Error:", error);
+      res.status(500).json({ error: message });
+    }
+  });
+
+  router.post("/refresh", async (req: AuthRequest, res) => {
+    const userTeams = req.userTeams || [];
+
+    if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === "SUA_CHAVE_AQUI") {
+      res.status(400).json({ error: "GEMINI_API_KEY nao configurada" });
+      return;
+    }
+
+    try {
+      // Clear cache for user's teams
+      for (const team of userTeams) {
+        if (services[team]) {
+          clearInsightsCache(team);
+        }
+      }
+
+      // Trigger fresh fetch (returns immediately with processing: true)
+      const allInsights = [];
+      let anyProcessing = false;
+
+      const teamResults = await Promise.all(
+        userTeams.filter((t) => !!services[t]).map(async (team) => {
+          try {
+            return await getConversationInsights(team, services[team], genAI);
+          } catch (teamErr: any) {
+            console.error(`[Insights] Erro ao refresh equipe ${team}:`, teamErr.message);
+            return { data: [], processing: false };
+          }
+        })
+      );
+
+      for (const result of teamResults) {
+        allInsights.push(...result.data);
+        if (result.processing) anyProcessing = true;
+      }
+
+      res.json({ insights: allInsights, processing: anyProcessing });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error("[Insights] Refresh error:", error);
       res.status(500).json({ error: message });
     }
   });
