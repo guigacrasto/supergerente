@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Bot, KeyRound, BarChart3, Plus, RefreshCw } from 'lucide-react';
+import { Users, Bot, KeyRound, BarChart3, Plus, RefreshCw, Eye } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
 import { PageSpinner, EmptyState, Chip, Button } from '@/components/ui';
@@ -9,6 +9,7 @@ import { MentorList } from '@/components/features/admin/MentorList';
 import { MentorForm } from '@/components/features/admin/MentorForm';
 import { TokenPanel } from '@/components/features/admin/TokenPanel';
 import { TokenUsage } from '@/components/features/admin/TokenUsage';
+import { PipelineVisibility } from '@/components/features/admin/PipelineVisibility';
 import type {
   AdminUser,
   Mentor,
@@ -18,13 +19,14 @@ import type {
   Team,
 } from '@/types';
 
-type AdminTab = 'usuarios' | 'mentores' | 'tokens' | 'uso';
+type AdminTab = 'usuarios' | 'mentores' | 'tokens' | 'uso' | 'visibilidade';
 
 const TABS: { key: AdminTab; label: string; icon: typeof Users }[] = [
   { key: 'usuarios', label: 'Usuarios', icon: Users },
   { key: 'mentores', label: 'Mentores', icon: Bot },
   { key: 'tokens', label: 'Tokens', icon: KeyRound },
   { key: 'uso', label: 'Uso IA', icon: BarChart3 },
+  { key: 'visibilidade', label: 'Visibilidade', icon: Eye },
 ];
 
 export function AdminPage() {
@@ -249,6 +251,9 @@ export function AdminPage() {
           )}
         </>
       )}
+
+      {/* Visibilidade */}
+      {activeTab === 'visibilidade' && <PipelineVisibility />}
     </div>
   );
 }
