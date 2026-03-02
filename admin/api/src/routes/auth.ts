@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createSupabaseClient } from "@sg/shared";
+import { createSupabaseClient } from "../shared/index.js";
 
 export function authRouter(): Router {
   const router = Router();

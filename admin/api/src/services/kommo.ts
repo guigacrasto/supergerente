@@ -1,7 +1,7 @@
 import axios, { AxiosInstance } from "axios";
 import qs from "qs";
-import { loadTokens, saveTokens } from "@sg/shared";
-import type { TeamConfig, TeamKey } from "@sg/shared";
+import { loadTokens, saveTokens } from "../shared/index.js";
+import type { TeamConfig, TeamKey } from "../shared/index.js";
 
 export class KommoService {
   public client: AxiosInstance;

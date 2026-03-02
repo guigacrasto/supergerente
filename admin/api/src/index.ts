@@ -1,4 +1,4 @@
-import { TEAMS, PORT } from "@sg/shared";
+import { TEAMS, PORT } from "./shared/index.js";
 import { KommoService } from "./services/kommo.js";
 import { createServer } from "./server.js";
 

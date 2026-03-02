@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { createSupabaseClient, ALL_CONFIGURED_TEAMS } from "@sg/shared";
-import type { TeamKey } from "@sg/shared";
+import { createSupabaseClient, ALL_CONFIGURED_TEAMS } from "../shared/index.js";
+import type { TeamKey } from "../shared/index.js";
 
 export interface AuthRequest extends Request {
   userId?: string;

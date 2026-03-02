@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { loadTokens, TEAMS } from "@sg/shared";
-import type { TeamKey } from "@sg/shared";
+import { loadTokens, TEAMS } from "../shared/index.js";
+import type { TeamKey } from "../shared/index.js";
 import { requireAdmin } from "../middleware/requireAuth.js";
 import { KommoService } from "../services/kommo.js";
 

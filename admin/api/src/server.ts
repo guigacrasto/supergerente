@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { TeamKey } from "@sg/shared";
+import type { TeamKey } from "./shared/index.js";
 import { adminRouter } from "./routes/admin.js";
 import { oauthRouter } from "./routes/oauth.js";
 import { authRouter } from "./routes/auth.js";
