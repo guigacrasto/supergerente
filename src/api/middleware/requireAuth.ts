@@ -88,17 +88,3 @@ export async function requireAuth(
   req.userTeams = teams;
   next();
 }
-
-export async function requireAdmin(
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
-  await requireAuth(req, res, async () => {
-    if (req.userRole !== "admin") {
-      res.status(403).json({ error: "Acesso restrito a administradores." });
-      return;
-    }
-    next();
-  });
-}

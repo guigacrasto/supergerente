@@ -9,8 +9,6 @@ import { leadsRouter } from "./routes/leads.js";
 import { reportsRouter } from "./routes/reports.js";
 import { chatRouter } from "./routes/chat.js";
 import { authRouter } from "./routes/auth.js";
-import { adminRouter } from "./routes/admin.js";
-import { oauthRouter } from "./routes/oauth.js";
 import { insightsRouter } from "./routes/insights.js";
 import { isCacheReady } from "./readiness.js";
 
@@ -38,8 +36,6 @@ export function createServer(services: Record<TeamKey, KommoService>) {
   app.use("/api/chat", chatRouter(services));
   app.use("/api/insights", insightsRouter(services));
   app.use("/api/auth", authRouter());
-  app.use("/api/admin", adminRouter(services));
-  app.use("/api/oauth", oauthRouter(services));
 
   const webPath = join(__dirname, "../../web/dist");
   app.use(express.static(webPath));
