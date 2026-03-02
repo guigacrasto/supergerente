@@ -46,11 +46,12 @@ export function TokenPanel({ tokenStatus, onRefresh }: TokenPanelProps) {
       }));
       setCodes((prev) => ({ ...prev, [team]: '' }));
       onRefresh();
-    } catch (err) {
-      console.error('[TokenPanel] Erro ao trocar codigo:', err);
+    } catch (err: any) {
+      const detail = err?.response?.data?.error || 'Erro desconhecido';
+      console.error('[TokenPanel] Erro ao trocar codigo:', detail);
       setMessages((prev) => ({
         ...prev,
-        [team]: { type: 'error', text: 'Erro ao trocar codigo. Verifique e tente novamente.' },
+        [team]: { type: 'error', text: `Erro: ${detail}` },
       }));
     } finally {
       setLoadingTeam(null);

@@ -42,8 +42,10 @@ export function oauthRouter(services: Record<TeamKey, KommoService>): Router {
       const tokens = await service.exchangeAuthCode(code);
       res.json({ message: "Token renovado com sucesso!", accessToken: tokens.accessToken.slice(0, 20) + "..." });
     } catch (err: any) {
-      console.error(`[OAuth:${team}] Exchange failed:`, err.response?.data || err.message);
-      res.status(500).json({ error: err.response?.data?.hint || err.message });
+      const kommoError = err.response?.data;
+      console.error(`[OAuth:${team}] Exchange failed:`, kommoError || err.message);
+      const detail = kommoError?.hint || kommoError?.detail || kommoError?.title || (typeof kommoError === "string" ? kommoError : err.message);
+      res.status(500).json({ error: detail });
     }
   });
 
