@@ -1,0 +1,9 @@
+[build]
+buildCommand = "cd ../.. && npm install && cd admin/api && npm run build"
+
+[deploy]
+startCommand = "node dist/index.js"
+healthcheckPath = "/health"
+healthcheckTimeout = 120
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
