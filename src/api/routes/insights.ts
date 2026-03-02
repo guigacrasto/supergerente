@@ -21,16 +21,18 @@ export function insightsRouter(services: Record<TeamKey, KommoService>) {
 
     try {
       const allInsights = [];
+      let anyProcessing = false;
 
       for (const team of userTeams) {
         const service = services[team];
         if (!service) continue;
 
-        const insights = await getConversationInsights(team, service, genAI);
-        allInsights.push(...insights);
+        const result = await getConversationInsights(team, service, genAI);
+        allInsights.push(...result.data);
+        if (result.processing) anyProcessing = true;
       }
 
-      res.json(allInsights);
+      res.json({ insights: allInsights, processing: anyProcessing });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       console.error("[Insights] Error:", error);

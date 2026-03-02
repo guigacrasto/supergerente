@@ -46,19 +46,37 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        'flex h-screen flex-col bg-sidebar text-white transition-[width] duration-200 ease-out',
+        'relative flex h-screen flex-col bg-sidebar text-white transition-[width] duration-200 ease-out',
         collapsed ? 'w-[68px]' : 'w-[260px]'
       )}
     >
-      {/* Logo */}
+      {/* Logo + collapse toggle */}
       <div className={cn('flex items-center px-5 py-5', collapsed ? 'justify-center' : 'gap-3')}>
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-button bg-gradient-to-br from-primary to-accent-blue font-heading text-heading-sm text-white">
           {APP_SHORT_NAME}
         </div>
         {!collapsed && (
-          <span className="font-heading text-heading-sm text-white truncate">
-            {APP_NAME}
-          </span>
+          <>
+            <span className="font-heading text-heading-sm text-white truncate flex-1">
+              {APP_NAME}
+            </span>
+            <button
+              onClick={toggle}
+              title="Recolher menu"
+              className="flex items-center justify-center rounded-button p-1.5 text-white/50 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
+            >
+              <ChevronsLeft className="h-4 w-4" />
+            </button>
+          </>
+        )}
+        {collapsed && (
+          <button
+            onClick={toggle}
+            title="Expandir menu"
+            className="absolute left-[68px] top-6 -translate-x-1/2 flex h-6 w-6 items-center justify-center rounded-full bg-sidebar border border-white/10 text-white/70 hover:text-white transition-colors cursor-pointer z-10"
+          >
+            <ChevronsRight className="h-3.5 w-3.5" />
+          </button>
         )}
       </div>
 
@@ -129,25 +147,6 @@ export function Sidebar() {
 
       {/* Footer */}
       <div className="border-t border-white/10 px-3 py-3 space-y-1">
-        {/* Collapse toggle */}
-        <button
-          onClick={toggle}
-          title={collapsed ? 'Expandir menu' : 'Recolher menu'}
-          className={cn(
-            'flex w-full items-center rounded-button px-3 py-2 text-body-md text-white/70 hover:bg-white/10 hover:text-white transition-colors cursor-pointer',
-            collapsed ? 'justify-center' : 'gap-3'
-          )}
-        >
-          {collapsed ? (
-            <ChevronsRight className="h-5 w-5" />
-          ) : (
-            <>
-              <ChevronsLeft className="h-5 w-5" />
-              Recolher
-            </>
-          )}
-        </button>
-
         {/* Admin link */}
         {user?.role === 'admin' && (
           <NavLink

@@ -35,6 +35,7 @@ export interface ActiveLead {
   responsibleUserId: number;
   responsibleUserName: string;
   updatedAt: number; // Unix timestamp (seconds)
+  price: number; // Deal value (potential)
 }
 
 export interface CrmMetrics {
@@ -187,6 +188,7 @@ async function fetchAndCompute(team: TeamKey, service: KommoService): Promise<Cr
       responsibleUserId: l.responsible_user_id,
       responsibleUserName: userMap.get(l.responsible_user_id) || "Desconhecido",
       updatedAt: l.updated_at ?? 0,
+      price: l.price ?? 0,
     }));
 
   console.log(`[CrmCache:${team}] Pronto — ${allLeads.length} leads, ${vendedores.length} entradas de vendedor`);

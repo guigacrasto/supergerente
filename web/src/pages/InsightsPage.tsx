@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Brain } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { Brain, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { PageSpinner, EmptyState } from '@/components/ui';
 import { AgentScoreCard } from '@/components/features/insights/AgentScoreCard';
@@ -26,39 +26,52 @@ interface AgentInsightSummary {
   insights: ConversationInsight[];
 }
 
+interface InsightsResponse {
+  insights: AgentInsightSummary[];
+  processing: boolean;
+}
+
+const POLL_INTERVAL_MS = 15_000; // 15 seconds
+
 export function InsightsPage() {
   const [data, setData] = useState<AgentInsightSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchData = async () => {
-      try {
-        const res = await api.get<AgentInsightSummary[]>('/insights/conversations');
-        if (!cancelled) {
-          setData(res.data);
-          if (res.data.length > 0) {
-            setSelectedAgent(res.data[0].nome);
-          }
-        }
-      } catch (err) {
-        console.error('[InsightsPage] Erro ao carregar dados:', err);
-      } finally {
-        if (!cancelled) setLoading(false);
+  const fetchData = useCallback(async (isInitial: boolean) => {
+    try {
+      const res = await api.get<InsightsResponse>('/insights/conversations');
+      const { insights, processing: isProcessing } = res.data;
+      setData(insights);
+      setProcessing(isProcessing);
+      if (isInitial && insights.length > 0) {
+        setSelectedAgent(insights[0].nome);
       }
-    };
-
-    fetchData();
-    return () => { cancelled = true; };
+    } catch (err) {
+      console.error('[InsightsPage] Erro ao carregar dados:', err);
+    } finally {
+      if (isInitial) setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchData(true);
+  }, [fetchData]);
+
+  // Poll while processing
+  useEffect(() => {
+    if (!processing) return;
+
+    const timer = setInterval(() => fetchData(false), POLL_INTERVAL_MS);
+    return () => clearInterval(timer);
+  }, [processing, fetchData]);
 
   if (loading) {
     return <PageSpinner />;
   }
 
-  if (data.length === 0) {
+  if (data.length === 0 && !processing) {
     return (
       <div className="flex flex-col gap-6">
         <h1 className="font-heading text-heading-lg">Insights de Atendimento</h1>
@@ -71,12 +84,37 @@ export function InsightsPage() {
     );
   }
 
+  if (data.length === 0 && processing) {
+    return (
+      <div className="flex flex-col gap-6">
+        <h1 className="font-heading text-heading-lg">Insights de Atendimento</h1>
+        <div className="flex flex-col items-center gap-4 py-16">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="text-body-md text-muted text-center max-w-md">
+            Analisando conversas dos atendentes com IA... Isso pode levar alguns minutos na primeira vez.
+          </p>
+          <p className="text-body-sm text-muted/60">
+            A pagina atualiza automaticamente quando estiver pronto.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const selected = data.find((a) => a.nome === selectedAgent);
   const conversations = selected?.insights ?? [];
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="font-heading text-heading-lg">Insights de Atendimento</h1>
+      <div className="flex items-center gap-3">
+        <h1 className="font-heading text-heading-lg">Insights de Atendimento</h1>
+        {processing && (
+          <div className="flex items-center gap-2 rounded-badge bg-primary/10 px-3 py-1">
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+            <span className="text-body-sm text-primary">Atualizando...</span>
+          </div>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr]">
         {/* Agent list */}

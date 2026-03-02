@@ -100,6 +100,45 @@ async function analyzeConversation(
   }
 }
 
+/**
+ * Score leads for analysis priority.
+ * Considers: deal value (price), recency (updated_at), and ensures diversity across agents.
+ * Returns the top N leads sorted by score.
+ */
+function scoreAndSelectLeads(allLeads: ActiveLead[], maxLeads: number): ActiveLead[] {
+  if (allLeads.length === 0) return [];
+
+  const now = Date.now() / 1000;
+  const maxPrice = Math.max(...allLeads.map((l) => l.price), 1);
+  const maxAge = Math.max(...allLeads.map((l) => now - l.updatedAt), 1);
+
+  // Score each lead: 40% price potential + 60% recency
+  const scored = allLeads.map((lead) => {
+    const priceScore = lead.price / maxPrice; // 0-1, higher price = higher
+    const recencyScore = 1 - (now - lead.updatedAt) / maxAge; // 0-1, more recent = higher
+    const score = priceScore * 0.4 + recencyScore * 0.6;
+    return { lead, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+
+  // Select top leads ensuring diversity across agents (max 8 per agent in the pool)
+  const MAX_PER_AGENT = 8;
+  const agentCounts = new Map<string, number>();
+  const selected: ActiveLead[] = [];
+
+  for (const { lead } of scored) {
+    const agent = lead.responsibleUserName;
+    const count = agentCounts.get(agent) || 0;
+    if (count >= MAX_PER_AGENT) continue;
+    agentCounts.set(agent, count + 1);
+    selected.push(lead);
+    if (selected.length >= maxLeads) break;
+  }
+
+  return selected;
+}
+
 async function fetchInsights(
   team: TeamKey,
   service: KommoService,
@@ -108,17 +147,14 @@ async function fetchInsights(
   console.log(`[ConversationCache:${team}] Fetching conversation insights...`);
 
   const metrics = await getCrmMetrics(team, service);
-  const users = await service.getUsers();
-  const _userMap = new Map<number, string>(users.map((u: { id: number; name: string }) => [u.id, u.name]));
 
-  const cutoff7d = Date.now() / 1000 - 7 * 86400;
-  const recentLeads = metrics.activeLeads
-    .filter((l: ActiveLead) => l.updatedAt >= cutoff7d)
-    .sort((a: ActiveLead, b: ActiveLead) => b.updatedAt - a.updatedAt)
-    .slice(0, MAX_LEADS_SAMPLE);
+  // Score ALL active leads by price + recency, pick top 50
+  const topLeads = scoreAndSelectLeads(metrics.activeLeads, MAX_LEADS_SAMPLE);
+  console.log(`[ConversationCache:${team}] Selected ${topLeads.length} leads from ${metrics.activeLeads.length} active (scored by price + recency)`);
 
+  // Group by agent
   const leadsByAgent = new Map<string, ActiveLead[]>();
-  for (const lead of recentLeads) {
+  for (const lead of topLeads) {
     const agentName = lead.responsibleUserName;
     if (!leadsByAgent.has(agentName)) {
       leadsByAgent.set(agentName, []);
@@ -134,13 +170,18 @@ async function fetchInsights(
 
     for (const lead of sampled) {
       const notes = await service.getLeadNotesAll(lead.id);
-      if (notes.length === 0) continue;
+
+      // Skip leads with no real messages (only analyze conversations with actual content)
+      const messageNotes = notes.filter(
+        (n) => (n.params?.text || n.text || "").trim().length > 0
+      );
+      if (messageNotes.length < 2) continue; // need at least 2 messages for a conversation
 
       const analysis = await analyzeConversation(
         genAI,
         lead.titulo,
         agentName,
-        notes.map((n) => ({
+        messageNotes.map((n) => ({
           text: n.params?.text || n.text || "",
           created_at: n.created_at,
           note_type: n.note_type,
@@ -178,16 +219,25 @@ async function fetchInsights(
   return agentSummaries;
 }
 
+/**
+ * Returns cached insights immediately if available.
+ * On cold cache (first call), starts background processing and returns empty array
+ * so the frontend doesn't hang waiting for Gemini to analyze all conversations.
+ */
 export async function getConversationInsights(
   team: TeamKey,
   service: KommoService,
   genAI: GoogleGenerativeAI
-): Promise<AgentInsightSummary[]> {
+): Promise<{ data: AgentInsightSummary[]; processing: boolean }> {
   const entry = caches[team];
   const now = Date.now();
 
-  if (entry.data && now < entry.expiresAt) return entry.data;
+  // Cache hit — return immediately
+  if (entry.data && now < entry.expiresAt) {
+    return { data: entry.data, processing: false };
+  }
 
+  // Stale cache — return stale data and refresh in background
   if (entry.data && !entry.fetchPromise) {
     entry.fetchPromise = fetchInsights(team, service, genAI)
       .then((data) => {
@@ -200,9 +250,10 @@ export async function getConversationInsights(
         return entry.data!;
       })
       .finally(() => { entry.fetchPromise = null; });
-    return entry.data;
+    return { data: entry.data, processing: true };
   }
 
+  // Cold cache — start background fetch, return empty immediately
   if (!entry.fetchPromise) {
     entry.fetchPromise = fetchInsights(team, service, genAI)
       .then((data) => {
@@ -212,10 +263,10 @@ export async function getConversationInsights(
       })
       .catch((err) => {
         console.error(`[ConversationCache:${team}] Initial fetch error:`, err);
-        throw err;
+        return [];
       })
       .finally(() => { entry.fetchPromise = null; });
   }
 
-  return entry.fetchPromise;
+  return { data: [], processing: true };
 }
