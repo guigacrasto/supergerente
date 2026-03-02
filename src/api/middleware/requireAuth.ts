@@ -1,6 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import { supabase } from "../supabase.js";
-import { TeamKey } from "../../config.js";
+import { TeamKey, TEAMS } from "../../config.js";
+
+// All configured teams (those with a subdomain set)
+const ALL_CONFIGURED_TEAMS = (Object.keys(TEAMS) as TeamKey[]).filter(
+  (k) => TEAMS[k].subdomain
+);
 
 export interface AuthRequest extends Request {
   userId?: string;
@@ -65,8 +70,12 @@ export async function requireAuth(
     return;
   }
 
+  // Admins always see all configured teams
+  const teams: TeamKey[] = profile.role === "admin"
+    ? ALL_CONFIGURED_TEAMS
+    : (profile.teams || []) as TeamKey[];
+
   // Cache the result
-  const teams = (profile.teams || []) as TeamKey[];
   authCache.set(token, {
     userId: user.id,
     role: profile.role,
