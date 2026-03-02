@@ -7,17 +7,23 @@ Este documento mapeia o futuro do **Kommo MCP Agent** para permitir o uso descen
 - [x] Mapeamento de agentes vs funis.
 - [x] Documentação base (README, Manual).
 
-## ☁️ Fase 2: Cloud e Interface (Próximo Passo)
-- [ ] **Hospedagem do Servidor**: Migrar o servidor MCP para um ambiente Node.js na nuvem (ex: Railway, Vercel ou VPS).
-- [ ] **Interface de Chat Web**: Criar um site simples (Next.js/React) que se conecte ao agente para que os gerentes possam perguntar via browser.
+## ☁️ Fase 2: Cloud e Interface (Concluido)
+- [x] **Hospedagem do Servidor**: Deploy no Railway com auto-deploy on push.
+- [x] **Interface de Chat Web**: PWA React com chat IA integrado (Gemini 2.5 Flash).
 - [ ] **Integração Automação**: Criar webhooks no Kommo para alertar o agente sobre novos leads "quentes".
 
 ## 📈 Fase 3: Inteligência Avançada
-- [ ] **Análise de Sentimento**: Integrar com LLM para ler o histórico de notas e dizer se o atendimento está "positivo" ou "negativo".
+- [x] **Análise de Sentimento**: Analise automatica de conversas via Gemini (score de sentimento + qualidade + resumo).
 - [ ] **Predictive Sales**: Calcular probabilidade de fechamento com base no histórico do lead.
-- [ ] **Dashboard em Tempo Real**: Transformar os scripts de terminal em gráficos visuais.
+- [x] **Dashboard em Tempo Real**: Graficos de barras por agente, KPIs por equipe, rankings de vendas.
+
+## 🔍 Fase 4: Dashboard Aprimorado (Concluido)
+- [x] **KPIs por Equipe**: Cards separados com totais de leads por equipe (Azul/Amarela).
+- [x] **Graficos de Barras**: Barras horizontais por agente substituindo pie charts.
+- [x] **Pagina de Insights**: Analise de conversas com IA por atendente (sentimento + qualidade + resumo).
+- [x] **Tabela de Agentes**: Conversao exibida sem cores (texto simples).
 
 ## ⚙️ Melhorias Técnicas
-- [ ] Implementar paginação completa (atualmente limitada a amostras de ~1000 leads).
-- [ ] Cache de usuários e pipelines para reduzir chamadas de API.
+- [x] Paginacao completa de leads e notas na API Kommo.
+- [x] Cache de metricas CRM e atividade (TTL 30min) + cache de insights (TTL 1h).
 - [ ] Log de auditoria de consultas dos gerentes.

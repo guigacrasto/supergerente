@@ -9,6 +9,7 @@ import { DashboardPage } from '@/pages/DashboardPage';
 import { ChatPage } from '@/pages/ChatPage';
 import { AgentsPage } from '@/pages/AgentsPage';
 import { AlertsPage } from '@/pages/AlertsPage';
+import { InsightsPage } from '@/pages/InsightsPage';
 import { AdminPage } from '@/pages/AdminPage';
 
 export default function App() {
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/agents" element={<AgentsPage />} />
           <Route path="/alerts" element={<AlertsPage />} />
+          <Route path="/insights" element={<InsightsPage />} />
           <Route path="/admin" element={<AdminPage />} />
         </Route>
       </Routes>

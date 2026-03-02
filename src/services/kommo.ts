@@ -265,4 +265,40 @@ export class KommoService {
             return [];
         }
     }
+
+    /**
+     * Get all notes for a lead with pagination.
+     * Kommo stores chat messages as notes of type "message_cashier" or text notes.
+     * Returns all notes sorted by created_at ascending.
+     */
+    public async getLeadNotesAll(leadId: number): Promise<Array<{
+      id: number;
+      note_type: string;
+      text: string;
+      created_at: number;
+      responsible_user_id: number;
+      params?: { text?: string };
+    }>> {
+      try {
+        const allNotes: any[] = [];
+        let page = 1;
+
+        while (true) {
+          const response = await this.client.get(`/leads/${leadId}/notes`, {
+            params: { page, limit: 250 },
+          });
+          const notes = response.data?._embedded?.notes || [];
+          if (notes.length === 0) break;
+          allNotes.push(...notes);
+          if (notes.length < 250) break;
+          if (page > 10) break; // safety
+          page++;
+        }
+
+        return allNotes.sort((a: any, b: any) => a.created_at - b.created_at);
+      } catch (error) {
+        console.error(`Error fetching notes for lead ${leadId}:`, error);
+        return [];
+      }
+    }
 }

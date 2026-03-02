@@ -11,6 +11,7 @@ import { chatRouter } from "./routes/chat.js";
 import { authRouter } from "./routes/auth.js";
 import { adminRouter } from "./routes/admin.js";
 import { oauthRouter } from "./routes/oauth.js";
+import { insightsRouter } from "./routes/insights.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -27,6 +28,7 @@ export function createServer(services: Record<TeamKey, KommoService>) {
   app.use("/api/leads", leadsRouter(services));
   app.use("/api/reports", reportsRouter(services));
   app.use("/api/chat", chatRouter(services));
+  app.use("/api/insights", insightsRouter(services));
   app.use("/api/auth", authRouter());
   app.use("/api/admin", adminRouter());
   app.use("/api/oauth", oauthRouter(services));

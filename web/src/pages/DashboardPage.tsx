@@ -5,7 +5,8 @@ import { stripFunilPrefix } from '@/lib/utils';
 import { TEAM_LABELS } from '@/lib/constants';
 import { PageSpinner, Card, CardHeader, CardTitle } from '@/components/ui';
 import { KPICard } from '@/components/features/dashboard/KPICard';
-import { TeamPieChart } from '@/components/features/dashboard/TeamPieChart';
+import { TeamBarChart } from '@/components/features/dashboard/TeamBarChart';
+import { TeamKPICard } from '@/components/features/dashboard/TeamKPICard';
 import { SalesRanking } from '@/components/features/dashboard/SalesRanking';
 import { RecentAlerts } from '@/components/features/dashboard/RecentAlerts';
 
@@ -118,6 +119,20 @@ export function DashboardPage() {
 
   // Group summary by team
   const teams = ['azul', 'amarela'] as const;
+
+  // Per-team KPI totals
+  const teamKPIs = teams
+    .map((team) => {
+      const pipes = summary.filter((s) => s.team === team);
+      return {
+        team,
+        label: TEAM_LABELS[team] || team,
+        novosHoje: pipes.reduce((sum, p) => sum + p.novosHoje, 0),
+        ativos: pipes.reduce((sum, p) => sum + p.ativos, 0),
+        novosMes: pipes.reduce((sum, p) => sum + p.novosMes, 0),
+      };
+    })
+    .filter((tk) => tk.novosHoje > 0 || tk.ativos > 0 || tk.novosMes > 0);
   const teamSummaries = teams
     .map((team) => ({
       team,
@@ -188,6 +203,22 @@ export function DashboardPage() {
         />
       </div>
 
+      {/* Per-team KPI Cards */}
+      {teamKPIs.length > 1 && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {teamKPIs.map((tk) => (
+            <TeamKPICard
+              key={tk.team}
+              label={tk.label}
+              team={tk.team}
+              novosHoje={tk.novosHoje}
+              ativos={tk.ativos}
+              novosMes={tk.novosMes}
+            />
+          ))}
+        </div>
+      )}
+
       {/* Team Summary Cards */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         {teamSummaries.map(({ team, label, pipelines: pipes }) => (
@@ -237,11 +268,11 @@ export function DashboardPage() {
         ))}
       </div>
 
-      {/* Pie Charts — 2 graficos por equipe (so mostra se tem acesso a 2 equipes) */}
+      {/* Bar Charts — full width per team */}
       {hasBothTeams && (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="flex flex-col gap-6">
           {availableTeams.map((team) => (
-            <TeamPieChart
+            <TeamBarChart
               key={team}
               team={team}
               label={TEAM_LABELS[team] || team}

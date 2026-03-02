@@ -5,6 +5,7 @@ import {
   MessageSquare,
   BarChart3,
   AlertTriangle,
+  Brain,
   LogOut,
   Settings,
   ChevronRight,
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
   { to: '/chat', label: 'Chat IA', icon: MessageSquare },
   { to: '/agents', label: 'Agentes', icon: BarChart3 },
   { to: '/alerts', label: 'Alertas', icon: AlertTriangle },
+  { to: '/insights', label: 'Insights', icon: Brain },
 ] as const;
 
 export function Sidebar() {

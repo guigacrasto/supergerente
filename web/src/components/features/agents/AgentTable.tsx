@@ -1,4 +1,3 @@
-import { Badge } from '@/components/ui';
 import { useFilterStore } from '@/stores/filterStore';
 import { cn } from '@/lib/utils';
 
@@ -7,14 +6,6 @@ const FIXED_COLS = ['Agente', 'Total Leads', 'Venda Ganha', 'Venda Perdida', 'Co
 interface AgentTableProps {
   rows: Record<string, string | number | undefined>[];
   funnelCols: string[];
-}
-
-function getConversionVariant(value: string | number | undefined): 'success' | 'warning' | 'danger' {
-  const numStr = String(value ?? '0').replace('%', '').trim();
-  const num = parseFloat(numStr);
-  if (num >= 50) return 'success';
-  if (num >= 30) return 'warning';
-  return 'danger';
 }
 
 export function AgentTable({ rows, funnelCols }: AgentTableProps) {
@@ -60,10 +51,8 @@ export function AgentTable({ rows, funnelCols }: AgentTableProps) {
 
                   if (col === 'Conversão %') {
                     return (
-                      <td key={col} className="px-4 py-3 whitespace-nowrap">
-                        <Badge variant={getConversionVariant(value)}>
-                          {value ?? '0%'}
-                        </Badge>
+                      <td key={col} className="px-4 py-3 whitespace-nowrap font-heading font-medium">
+                        {value ?? '0%'}
                       </td>
                     );
                   }

@@ -8,6 +8,8 @@ Agente inteligente de análise e relatórios para Kommo CRM, utilizando o protoc
 - **Relatórios Customizados**: Scripts prontos para análise de funis específicos (Tryvion, Matriz, etc).
 - **Métricas de Marketing**: Cálculo de taxa de conversão, ticket médio e volume financeiro.
 - **Análise de Agente**: Distribuição de leads e performance individual.
+- **Dashboard Aprimorado**: KPIs por equipe, graficos de barras horizontais por agente, rankings de vendas.
+- **Insights de Atendimento**: Analise automatica de conversas com IA (sentimento + qualidade + resumo).
 - **MCP Server**: Pronto para ser usado com o Claude Desktop ou qualquer cliente MCP.
 
 ## 🛠️ Instalação
