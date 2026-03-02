@@ -85,10 +85,11 @@ export function adminRouter(
     for (const row of data || []) {
       const uid = row.user_id;
       if (!byUser[uid]) {
+        const profile = row.profiles as unknown as Record<string, unknown>;
         byUser[uid] = {
           userId: uid,
-          name: (row.profiles as Record<string, unknown>).name,
-          email: (row.profiles as Record<string, unknown>).email,
+          name: profile.name,
+          email: profile.email,
           totalTokens: 0,
           promptTokens: 0,
           completionTokens: 0,
