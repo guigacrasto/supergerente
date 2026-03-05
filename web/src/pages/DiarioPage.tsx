@@ -2,8 +2,9 @@ import { useEffect, useState, useCallback } from 'react';
 import { CalendarDays, Users, TrendingUp, Target, Percent } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
-import { Chip } from '@/components/ui';
+import { Chip, LiveTimestamp } from '@/components/ui';
 import { KPICard } from '@/components/features/dashboard/KPICard';
+import { TagFilter } from '@/components/features/filters/TagFilter';
 
 interface DailyMetrics {
   team: string;
@@ -27,6 +28,7 @@ export function DiarioPage() {
     new Date().toISOString().slice(0, 10)
   );
   const [teamFilter, setTeamFilter] = useState<TeamFilter>('');
+  const [lastFetchTime, setLastFetchTime] = useState('');
 
   const userTeams = user?.teams ?? [];
   const hasMultipleTeams = userTeams.length > 1;
@@ -36,6 +38,7 @@ export function DiarioPage() {
       setLoading(true);
       const res = await api.get<DailyMetrics[]>(`/reports/daily?date=${date}`);
       setData(res.data);
+      setLastFetchTime(new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
     } catch (err) {
       console.error('[DiarioPage] Erro ao carregar dados:', err);
     } finally {
@@ -72,6 +75,8 @@ export function DiarioPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      <LiveTimestamp timestamp={lastFetchTime} />
+
       {/* Date picker + Team filter */}
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2">
@@ -101,6 +106,8 @@ export function DiarioPage() {
             )}
           </div>
         )}
+
+        <TagFilter />
       </div>
 
       {/* 6 KPI Cards — Grid 3x2 (desktop) / 2x3 (mobile) */}

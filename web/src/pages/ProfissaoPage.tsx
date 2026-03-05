@@ -2,7 +2,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { CalendarDays } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
-import { Chip, Skeleton } from '@/components/ui';
+import { Chip, Skeleton, LiveTimestamp } from '@/components/ui';
+import { TagFilter } from '@/components/features/filters/TagFilter';
 
 interface ProfessionRow {
   profissao: string;
@@ -35,6 +36,7 @@ export function ProfissaoPage() {
   const [from, setFrom] = useState(getDefaultFrom);
   const [to, setTo] = useState(getToday);
   const [teamFilter, setTeamFilter] = useState<TeamFilter>('');
+  const [lastFetchTime, setLastFetchTime] = useState('');
 
   const userTeams = user?.teams ?? [];
   const hasMultipleTeams = userTeams.length > 1;
@@ -46,6 +48,7 @@ export function ProfissaoPage() {
         params: { from: fromDate, to: toDate },
       });
       setData(res.data);
+      setLastFetchTime(new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
     } catch (err) {
       console.error('[ProfissaoPage] Erro ao carregar dados:', err);
     } finally {
@@ -61,6 +64,8 @@ export function ProfissaoPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      <LiveTimestamp timestamp={lastFetchTime} />
+
       {/* Date range + Team filter */}
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2">
@@ -97,6 +102,8 @@ export function ProfissaoPage() {
             )}
           </div>
         )}
+
+        <TagFilter />
       </div>
 
       {/* Table */}

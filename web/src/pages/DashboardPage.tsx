@@ -11,6 +11,7 @@ import { KPICard } from '@/components/features/dashboard/KPICard';
 import { TeamBarChart } from '@/components/features/dashboard/TeamBarChart';
 import { SalesRanking } from '@/components/features/dashboard/SalesRanking';
 import { RecentAlerts } from '@/components/features/dashboard/RecentAlerts';
+import { TagFilter } from '@/components/features/filters/TagFilter';
 
 interface SummaryItem {
   nome: string;
@@ -182,24 +183,28 @@ export function DashboardPage() {
       {/* Live timestamp indicator */}
       <LiveTimestamp timestamp={lastFetchTime} />
 
-      {/* Team filter tabs — only show when user has multiple teams */}
-      {hasMultipleTeams && (
-        <div className="flex items-center gap-2">
-          <Chip active={teamFilter === ''} onClick={() => setTeamFilter('')}>
-            Todas as Equipes
-          </Chip>
-          {userTeams.includes('azul') && (
-            <Chip active={teamFilter === 'azul'} onClick={() => setTeamFilter('azul')}>
-              Equipe Azul
+      {/* Team filter tabs + Tag filter */}
+      <div className="flex flex-wrap items-center gap-4">
+        {hasMultipleTeams && (
+          <div className="flex items-center gap-2">
+            <Chip active={teamFilter === ''} onClick={() => setTeamFilter('')}>
+              Todas as Equipes
             </Chip>
-          )}
-          {userTeams.includes('amarela') && (
-            <Chip active={teamFilter === 'amarela'} onClick={() => setTeamFilter('amarela')}>
-              Equipe Amarela
-            </Chip>
-          )}
-        </div>
-      )}
+            {userTeams.includes('azul') && (
+              <Chip active={teamFilter === 'azul'} onClick={() => setTeamFilter('azul')}>
+                Equipe Azul
+              </Chip>
+            )}
+            {userTeams.includes('amarela') && (
+              <Chip active={teamFilter === 'amarela'} onClick={() => setTeamFilter('amarela')}>
+                Equipe Amarela
+              </Chip>
+            )}
+          </div>
+        )}
+
+        <TagFilter />
+      </div>
 
       {/* KPI Cards — show skeleton during loading */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

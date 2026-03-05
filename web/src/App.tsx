@@ -14,6 +14,7 @@ import { LossReasonsPage } from '@/pages/LossReasonsPage';
 import { RendaPage } from '@/pages/RendaPage';
 import { ProfissaoPage } from '@/pages/ProfissaoPage';
 import { TeamDashboardPage } from '@/pages/TeamDashboardPage';
+import { AdminPage } from '@/pages/AdminPage';
 
 export default function App() {
   return (
@@ -35,6 +36,7 @@ export default function App() {
           <Route path="/agents" element={<AgentsPage />} />
           <Route path="/alerts" element={<AlertsPage />} />
           <Route path="/insights" element={<InsightsPage />} />
+          <Route path="/admin" element={<AdminPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

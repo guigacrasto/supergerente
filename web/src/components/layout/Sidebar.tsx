@@ -11,6 +11,7 @@ import {
   BarChart3,
   AlertTriangle,
   Brain,
+  Settings,
   LogOut,
   ChevronRight,
   ChevronDown,
@@ -38,6 +39,7 @@ const NAV_ITEMS = [
 ] as const;
 
 export function Sidebar() {
+  const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const { collapsed, toggle } = useSidebarStore();
   const { byTeam } = usePipelines();
@@ -113,6 +115,28 @@ export function Sidebar() {
               </NavLink>
             </li>
           ))}
+
+          {/* Admin link — only for admins */}
+          {user?.role === 'admin' && (
+            <li>
+              <NavLink
+                to="/admin"
+                title={collapsed ? 'Admin' : undefined}
+                className={({ isActive }) =>
+                  cn(
+                    'flex items-center rounded-button px-3 py-2.5 text-body-md font-medium transition-colors duration-150',
+                    collapsed ? 'justify-center' : 'gap-3',
+                    isActive
+                      ? 'border-l-2 border-primary bg-primary/20 text-white'
+                      : 'text-white/70 hover:bg-white/10 hover:text-white'
+                  )
+                }
+              >
+                <Settings className="h-5 w-5 shrink-0" />
+                {!collapsed && 'Admin'}
+              </NavLink>
+            </li>
+          )}
         </ul>
 
         {/* Team accordion sections — hidden when collapsed */}

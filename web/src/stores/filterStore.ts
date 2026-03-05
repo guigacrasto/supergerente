@@ -11,11 +11,14 @@ interface FilterState {
   toDate: string;
   alertFilter: AlertFilter;
   alertEquipeFilter: AlertEquipeFilter;
+  selectedTags: number[];
   setAgentFilter: (key: 'filterAgente' | 'filterFunil' | 'filterEquipe', value: string) => void;
   setSort: (col: string) => void;
   setDateRange: (from: string, to: string) => void;
   setAlertFilter: (filter: AlertFilter) => void;
   setAlertEquipeFilter: (filter: AlertEquipeFilter) => void;
+  setSelectedTags: (tags: number[]) => void;
+  clearTags: () => void;
   clearAgentFilters: () => void;
   clearDateRange: () => void;
 }
@@ -38,6 +41,7 @@ export const useFilterStore = create<FilterState>((set) => ({
   ...getDefaultDates(),
   alertFilter: 'todos',
   alertEquipeFilter: 'todas',
+  selectedTags: [],
 
   setAgentFilter: (key, value) => set({ [key]: value }),
 
@@ -52,6 +56,10 @@ export const useFilterStore = create<FilterState>((set) => ({
   setAlertFilter: (alertFilter) => set({ alertFilter }),
 
   setAlertEquipeFilter: (alertEquipeFilter) => set({ alertEquipeFilter }),
+
+  setSelectedTags: (selectedTags) => set({ selectedTags }),
+
+  clearTags: () => set({ selectedTags: [] }),
 
   clearAgentFilters: () =>
     set({ filterAgente: '', filterFunil: '', filterEquipe: '' }),
