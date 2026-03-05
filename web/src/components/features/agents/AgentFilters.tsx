@@ -1,6 +1,7 @@
 import { Filter, X } from 'lucide-react';
 import { Card, Select, Button } from '@/components/ui';
 import { useFilterStore } from '@/stores/filterStore';
+import { useAuthStore } from '@/stores/authStore';
 
 interface AgentFiltersProps {
   agentOptions: string[];
@@ -18,6 +19,10 @@ export function AgentFilters({
   const filterEquipe = useFilterStore((s) => s.filterEquipe);
   const setAgentFilter = useFilterStore((s) => s.setAgentFilter);
   const clearAgentFilters = useFilterStore((s) => s.clearAgentFilters);
+  const user = useAuthStore((s) => s.user);
+
+  const userTeams = user?.teams ?? [];
+  const hasMultipleTeams = userTeams.length > 1;
 
   return (
     <Card className="p-4">
@@ -44,18 +49,20 @@ export function AgentFilters({
             ]}
           />
         </div>
-        <div className="flex-1 min-w-[160px]">
-          <Select
-            label="Equipe"
-            value={filterEquipe}
-            onChange={(e) => setAgentFilter('filterEquipe', e.target.value)}
-            options={[
-              { value: '', label: 'Todas' },
-              { value: 'azul', label: 'Equipe Azul' },
-              { value: 'amarela', label: 'Equipe Amarela' },
-            ]}
-          />
-        </div>
+        {hasMultipleTeams && (
+          <div className="flex-1 min-w-[160px]">
+            <Select
+              label="Equipe"
+              value={filterEquipe}
+              onChange={(e) => setAgentFilter('filterEquipe', e.target.value)}
+              options={[
+                { value: '', label: 'Todas' },
+                { value: 'azul', label: 'Equipe Azul' },
+                { value: 'amarela', label: 'Equipe Amarela' },
+              ]}
+            />
+          </div>
+        )}
         <div className="flex items-center gap-2">
           <Button onClick={onFilter} size="md">
             <Filter className="h-4 w-4" />

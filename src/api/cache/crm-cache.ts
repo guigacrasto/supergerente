@@ -38,6 +38,12 @@ export interface ActiveLead {
   price: number; // Deal value (potential)
 }
 
+export interface LeadSnapshot {
+  created_at: number;
+  closed_at: number;
+  status_id: number;
+}
+
 export interface CrmMetrics {
   funis: Record<string, FunilMetrics>;
   vendedores: VendedorMetrics[];
@@ -52,6 +58,7 @@ export interface CrmMetrics {
     novosMes: number;
   };
   activeLeads: ActiveLead[];
+  leadSnapshots: LeadSnapshot[];
   atualizadoEm: string;
 }
 
@@ -104,6 +111,7 @@ async function fetchAndCompute(team: TeamKey, service: KommoService): Promise<Cr
       vendedores: [],
       geral: { total: 0, ganhos: 0, perdidos: 0, ativos: 0, conversao: "0.0%", novosHoje: 0, novosSemana: 0, novosMes: 0 },
       activeLeads: [],
+      leadSnapshots: [],
       atualizadoEm: new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }),
     };
   }
@@ -191,6 +199,12 @@ async function fetchAndCompute(team: TeamKey, service: KommoService): Promise<Cr
       price: l.price ?? 0,
     }));
 
+  const leadSnapshots: LeadSnapshot[] = allLeads.map((l) => ({
+    created_at: l.created_at ?? 0,
+    closed_at: l.closed_at ?? 0,
+    status_id: l.status_id ?? 0,
+  }));
+
   console.log(`[CrmCache:${team}] Pronto — ${allLeads.length} leads, ${vendedores.length} entradas de vendedor`);
 
   return {
@@ -198,6 +212,7 @@ async function fetchAndCompute(team: TeamKey, service: KommoService): Promise<Cr
     vendedores,
     geral,
     activeLeads,
+    leadSnapshots,
     atualizadoEm: new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }),
   };
 }

@@ -8,6 +8,8 @@ import { ChatPage } from '@/pages/ChatPage';
 import { AgentsPage } from '@/pages/AgentsPage';
 import { AlertsPage } from '@/pages/AlertsPage';
 import { InsightsPage } from '@/pages/InsightsPage';
+import { DiarioPage } from '@/pages/DiarioPage';
+import { TeamDashboardPage } from '@/pages/TeamDashboardPage';
 
 export default function App() {
   return (
@@ -19,6 +21,8 @@ export default function App() {
         </Route>
         <Route element={<AppShell />}>
           <Route path="/" element={<DashboardPage />} />
+          <Route path="/diario" element={<DiarioPage />} />
+          <Route path="/team/:team" element={<TeamDashboardPage />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/agents" element={<AgentsPage />} />
           <Route path="/alerts" element={<AlertsPage />} />

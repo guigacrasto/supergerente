@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TrendingUp, Users, Target, AlertTriangle } from 'lucide-react';
 import { api } from '@/lib/api';
 import { stripFunilPrefix } from '@/lib/utils';
 import { TEAM_LABELS } from '@/lib/constants';
 import { useFilterStore } from '@/stores/filterStore';
-import { PageSpinner, Card, CardHeader, CardTitle, Chip } from '@/components/ui';
+import { useAuthStore } from '@/stores/authStore';
+import { Card, CardHeader, CardTitle, Chip, Skeleton } from '@/components/ui';
 import { KPICard } from '@/components/features/dashboard/KPICard';
 import { TeamBarChart } from '@/components/features/dashboard/TeamBarChart';
 import { SalesRanking } from '@/components/features/dashboard/SalesRanking';
@@ -67,48 +68,46 @@ const TEAM_COLORS: Record<string, string> = {
   amarela: '#F9AA3C',
 };
 
+const REFRESH_INTERVAL_MS = 2 * 60 * 1000;
+
 type TeamFilter = '' | 'azul' | 'amarela';
 
 export function DashboardPage() {
   const navigate = useNavigate();
   const setAgentFilter = useFilterStore((s) => s.setAgentFilter);
+  const user = useAuthStore((s) => s.user);
   const [summary, setSummary] = useState<SummaryItem[]>([]);
   const [activity, setActivity] = useState<ActivityTeam[]>([]);
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [teamFilter, setTeamFilter] = useState<TeamFilter>('');
 
-  useEffect(() => {
-    let cancelled = false;
+  const userTeams = user?.teams ?? [];
+  const hasMultipleTeams = userTeams.length > 1;
 
-    const fetchData = async () => {
-      try {
-        const [summaryRes, activityRes, dashboardRes] = await Promise.all([
-          api.get<SummaryItem[]>('/reports/summary'),
-          api.get<ActivityTeam[]>('/reports/activity'),
-          api.get<DashboardData>('/reports/dashboard'),
-        ]);
-        if (!cancelled) {
-          setSummary(summaryRes.data);
-          setActivity(activityRes.data);
-          setDashboard(dashboardRes.data);
-        }
-      } catch (err) {
-        console.error('[DashboardPage] Erro ao carregar dados:', err);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
-    fetchData();
-    return () => {
-      cancelled = true;
-    };
+  const fetchData = useCallback(async (isBackground = false) => {
+    try {
+      if (!isBackground) setLoading(true);
+      const [summaryRes, activityRes, dashboardRes] = await Promise.all([
+        api.get<SummaryItem[]>('/reports/summary'),
+        api.get<ActivityTeam[]>('/reports/activity'),
+        api.get<DashboardData>('/reports/dashboard'),
+      ]);
+      setSummary(summaryRes.data);
+      setActivity(activityRes.data);
+      setDashboard(dashboardRes.data);
+    } catch (err) {
+      console.error('[DashboardPage] Erro ao carregar dados:', err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  if (loading) {
-    return <PageSpinner />;
-  }
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(() => fetchData(true), REFRESH_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [fetchData]);
 
   // Apply team filter to data sources
   const filteredSummary = teamFilter
@@ -178,49 +177,74 @@ export function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Team filter tabs */}
-      <div className="flex items-center gap-2">
-        <Chip active={teamFilter === ''} onClick={() => setTeamFilter('')}>
-          Todas as Equipes
-        </Chip>
-        <Chip active={teamFilter === 'azul'} onClick={() => setTeamFilter('azul')}>
-          Equipe Azul
-        </Chip>
-        <Chip active={teamFilter === 'amarela'} onClick={() => setTeamFilter('amarela')}>
-          Equipe Amarela
-        </Chip>
-      </div>
+      {/* Team filter tabs — only show when user has multiple teams */}
+      {hasMultipleTeams && (
+        <div className="flex items-center gap-2">
+          <Chip active={teamFilter === ''} onClick={() => setTeamFilter('')}>
+            Todas as Equipes
+          </Chip>
+          {userTeams.includes('azul') && (
+            <Chip active={teamFilter === 'azul'} onClick={() => setTeamFilter('azul')}>
+              Equipe Azul
+            </Chip>
+          )}
+          {userTeams.includes('amarela') && (
+            <Chip active={teamFilter === 'amarela'} onClick={() => setTeamFilter('amarela')}>
+              Equipe Amarela
+            </Chip>
+          )}
+        </div>
+      )}
 
-      {/* KPI Cards */}
+      {/* KPI Cards — show skeleton during loading */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KPICard
           label="Leads Novos Hoje"
           value={totalNovosHoje}
           icon={TrendingUp}
           accent="primary"
+          loading={loading}
         />
         <KPICard
           label="Leads Ativos"
           value={totalAtivos}
           icon={Users}
           accent="info"
+          loading={loading}
         />
         <KPICard
           label="Novos no Mes"
           value={totalNovosMes}
           icon={Target}
           accent="success"
+          loading={loading}
         />
         <KPICard
           label="Alertas Ativos"
           value={totalAlertas}
           icon={AlertTriangle}
           accent={totalAlertas > 0 ? 'danger' : 'success'}
+          loading={loading}
         />
       </div>
 
       {/* Team Summary Cards */}
-      {teamSummaries.length > 0 && (
+      {loading ? (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {[1, 2].map((i) => (
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-5 w-28" />
+              </CardHeader>
+              <div className="flex flex-col gap-3 p-5">
+                {[1, 2, 3].map((j) => (
+                  <Skeleton key={j} className="h-16 w-full rounded-button" />
+                ))}
+              </div>
+            </Card>
+          ))}
+        </div>
+      ) : teamSummaries.length > 0 ? (
         <div className={teamSummaries.length > 1 ? 'grid grid-cols-1 gap-6 sm:grid-cols-2' : ''}>
           {teamSummaries.map(({ team, label, pipelines: pipes }) => (
             <Card key={team}>
@@ -273,10 +297,15 @@ export function DashboardPage() {
             </Card>
           ))}
         </div>
-      )}
+      ) : null}
 
-      {/* Bar Charts — full width per team */}
-      {filteredAgentTeams.length > 0 && (
+      {/* Bar Charts */}
+      {loading ? (
+        <Card className="p-6">
+          <Skeleton className="h-5 w-32 mb-4" />
+          <Skeleton className="h-48 w-full" />
+        </Card>
+      ) : filteredAgentTeams.length > 0 ? (
         <div className="flex flex-col gap-6">
           {filteredAgentTeams.map((team) => (
             <TeamBarChart
@@ -288,20 +317,35 @@ export function DashboardPage() {
             />
           ))}
         </div>
+      ) : null}
+
+      {/* Top Vendas */}
+      {loading ? (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {[1, 2].map((i) => (
+            <Card key={i} className="p-5">
+              <Skeleton className="h-5 w-40 mb-4" />
+              {[1, 2, 3].map((j) => (
+                <Skeleton key={j} className="h-8 w-full mb-2" />
+              ))}
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <SalesRanking title="Top Vendas — Hoje" data={rankingHoje} />
+          <SalesRanking title="Top Vendas — Semana" data={rankingSemana} />
+        </div>
       )}
 
-      {/* Top Vendas — dados reais */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <SalesRanking title="Top Vendas — Hoje" data={rankingHoje} />
-        <SalesRanking title="Top Vendas — Semana" data={rankingSemana} />
-      </div>
-
       {/* Alertas Recentes */}
-      <RecentAlerts
-        alerts48h={allAlerts48h}
-        alerts7d={allAlerts7d}
-        tarefas={allTarefas}
-      />
+      {!loading && (
+        <RecentAlerts
+          alerts48h={allAlerts48h}
+          alerts7d={allAlerts7d}
+          tarefas={allTarefas}
+        />
+      )}
     </div>
   );
 }

@@ -183,5 +183,70 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
     }
   });
 
+  // GET /api/reports/daily?date=YYYY-MM-DD — métricas diárias por equipe
+  router.get("/daily", async (req: AuthRequest, res) => {
+    const userTeams = req.userTeams || [];
+    const dateStr = typeof req.query.date === "string" ? req.query.date : "";
+    const dateMatch = dateStr.match(/^\d{4}-\d{2}-\d{2}$/);
+    const targetDate = dateMatch ? dateStr : new Date().toISOString().slice(0, 10);
+
+    try {
+      const [year, month] = targetDate.split("-").map(Number);
+
+      // BRT = UTC-3 (Brasil não usa horário de verão desde 2019)
+      const dayStart = new Date(`${targetDate}T00:00:00-03:00`).getTime() / 1000;
+      const dayEnd = new Date(`${targetDate}T23:59:59-03:00`).getTime() / 1000;
+
+      const monthStartStr = `${year}-${String(month).padStart(2, "0")}-01`;
+      const monthStart = new Date(`${monthStartStr}T00:00:00-03:00`).getTime() / 1000;
+
+      const lastDay = new Date(year, month, 0).getDate();
+      const monthEndStr = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+      const monthEnd = new Date(`${monthEndStr}T23:59:59-03:00`).getTime() / 1000;
+
+      const STATUS_WON = 142;
+      const STATUS_LOST = 143;
+
+      const allMetrics = await Promise.all(
+        userTeams.filter((t) => !!services[t]).map(async (team) => ({
+          team,
+          metrics: await getCrmMetrics(team, services[team]),
+        }))
+      );
+
+      const result = allMetrics.map(({ team, metrics }) => {
+        const leads = metrics.leadSnapshots;
+
+        const leadsDia = leads.filter((l) => l.created_at >= dayStart && l.created_at <= dayEnd).length;
+        const leadsMes = leads.filter((l) => l.created_at >= monthStart && l.created_at <= monthEnd).length;
+
+        const vendasDia = leads.filter((l) => l.status_id === STATUS_WON && l.closed_at >= dayStart && l.closed_at <= dayEnd).length;
+        const vendasMes = leads.filter((l) => l.status_id === STATUS_WON && l.closed_at >= monthStart && l.closed_at <= monthEnd).length;
+
+        const perdidasDia = leads.filter((l) => l.status_id === STATUS_LOST && l.closed_at >= dayStart && l.closed_at <= dayEnd).length;
+        const perdidasMes = leads.filter((l) => l.status_id === STATUS_LOST && l.closed_at >= monthStart && l.closed_at <= monthEnd).length;
+
+        const convBaseDia = vendasDia + perdidasDia;
+        const convBaseMes = vendasMes + perdidasMes;
+
+        return {
+          team,
+          leadsDia,
+          leadsMes,
+          vendasDia,
+          vendasMes,
+          perdidasDia,
+          perdidasMes,
+          conversaoDia: convBaseDia > 0 ? ((vendasDia / convBaseDia) * 100).toFixed(1) + "%" : "0.0%",
+          conversaoMes: convBaseMes > 0 ? ((vendasMes / convBaseMes) * 100).toFixed(1) + "%" : "0.0%",
+        };
+      });
+
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   return router;
 }

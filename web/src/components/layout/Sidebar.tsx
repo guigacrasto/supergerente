@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   PieChart,
+  CalendarDays,
   MessageSquare,
   BarChart3,
   AlertTriangle,
@@ -15,13 +16,13 @@ import {
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/authStore';
 import { useSidebarStore } from '@/stores/sidebarStore';
-import { useFilterStore } from '@/stores/filterStore';
 import { usePipelines } from '@/hooks/usePipelines';
 import { TEAM_LABELS, APP_SHORT_NAME, APP_NAME } from '@/lib/constants';
 import { stripFunilPrefix } from '@/lib/utils';
 
 const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: PieChart },
+  { to: '/diario', label: 'Diário', icon: CalendarDays },
   { to: '/chat', label: 'Chat IA', icon: MessageSquare },
   { to: '/agents', label: 'Agentes', icon: BarChart3 },
   { to: '/alerts', label: 'Alertas', icon: AlertTriangle },
@@ -31,7 +32,6 @@ const NAV_ITEMS = [
 export function Sidebar() {
   const logout = useAuthStore((s) => s.logout);
   const { collapsed, toggle } = useSidebarStore();
-  const setAgentFilter = useFilterStore((s) => s.setAgentFilter);
   const { byTeam } = usePipelines();
   const navigate = useNavigate();
   const [expandedTeams, setExpandedTeams] = useState<Record<string, boolean>>({});
@@ -130,13 +130,21 @@ export function Sidebar() {
                   </button>
                   {expanded && (
                     <ul className="ml-4 space-y-0.5">
+                      <li>
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/team/${team}`)}
+                          className="block w-full text-left rounded-button px-3 py-1.5 text-body-sm text-primary font-heading font-semibold hover:bg-white/10 transition-colors cursor-pointer"
+                        >
+                          Todos
+                        </button>
+                      </li>
                       {teamPipelines.map((p) => (
                         <li key={p.id}>
                           <button
                             type="button"
                             onClick={() => {
-                              setAgentFilter('filterFunil', stripFunilPrefix(p.name));
-                              navigate('/agents');
+                              navigate(`/team/${team}?pipeline=${encodeURIComponent(stripFunilPrefix(p.name))}`);
                             }}
                             className="block w-full text-left rounded-button px-3 py-1.5 text-body-sm text-white/60 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
                           >
