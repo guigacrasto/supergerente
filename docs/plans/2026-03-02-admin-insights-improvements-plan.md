@@ -780,7 +780,7 @@ Expected: no errors.
 git push origin main
 ```
 
-Expected: Railway auto-deploys. Verify at https://www.assistentekommo.site/
+Expected: Railway auto-deploys. Verify at https://www.supergerente.site/
 
 **Step 4: Post-deploy — Execute SQL**
 

@@ -21,7 +21,7 @@ Add the `workspaces` field to the root `package.json`:
 
 ```json
 {
-  "name": "kommo-mcp-agent",
+  "name": "supergerente",
   "version": "1.0.0",
   "type": "module",
   "workspaces": [

@@ -1,4 +1,4 @@
-# Kommo MCP Agent — Plano de Implementação do Refactor
+# SuperGerente — Plano de Implementação do Refactor
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
@@ -20,7 +20,7 @@
 **Step 1: Verificar o que o git está rastreando**
 
 ```bash
-cd /Users/guicrasto/antigravity-gui/kommo-mcp-agent
+cd /Users/guicrasto/antigravity-gui/supergerente
 git ls-files | grep -E "\.env|build/|web/dist"
 ```
 
@@ -632,7 +632,7 @@ validateConfig();
 const kommoService = new KommoService(kommoConfig);
 
 const server = new Server(
-  { name: "kommo-mcp-agent", version: "1.0.0" },
+  { name: "supergerente", version: "1.0.0" },
   { capabilities: { resources: {}, tools: {} } }
 );
 
@@ -829,7 +829,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("Kommo MCP Agent rodando via stdio");
+  console.error("SuperGerente rodando via stdio");
 }
 
 main().catch(error => {

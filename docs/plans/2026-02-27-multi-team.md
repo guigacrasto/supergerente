@@ -117,7 +117,7 @@ export function validateConfig() {
 
 **Step 2: Verify TypeScript compiles**
 
-Run: `cd kommo-mcp-agent && npm run build 2>&1 | tail -20`
+Run: `cd supergerente && npm run build 2>&1 | tail -20`
 Expected: Only errors about removed `PIPELINE_IDS` / `ALLOWED_PIPELINE_IDS` (will fix in Task 5)
 
 **Step 3: Commit**
@@ -1440,7 +1440,7 @@ git commit -m "feat(multi-team): frontend sidebar groups by team, admin shows bo
 
 **Step 2: Full build**
 
-Run: `cd /path/to/kommo-mcp-agent && npm run build:all 2>&1 | tail -15`
+Run: `cd /path/to/supergerente && npm run build:all 2>&1 | tail -15`
 Expected: `✓ built in ...ms` and `0 errors`
 
 **Step 3: Commit and push**

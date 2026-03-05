@@ -1,6 +1,6 @@
 # TODO - Próximos Passos (Evolução)
 
-Este documento mapeia o futuro do **Kommo MCP Agent** para permitir o uso descentralizado pelos gerentes.
+Este documento mapeia o futuro do **SuperGerente** para permitir o uso descentralizado pelos gerentes.
 
 ## 🏁 Fase 1: Estabilização e Documentação (Concluído)
 - [x] Scripts de relatórios para Tryvion e Matriz.

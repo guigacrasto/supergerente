@@ -14,7 +14,7 @@ validateConfig();
 const kommoService = new KommoService(kommoConfig, "azul");
 
 const server = new Server(
-  { name: "kommo-mcp-agent", version: "1.0.0" },
+  { name: "supergerente", version: "1.0.0" },
   { capabilities: { resources: {}, tools: {} } }
 );
 
@@ -211,7 +211,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("Kommo MCP Agent rodando via stdio");
+  console.error("SuperGerente MCP rodando via stdio");
 }
 
 main().catch(error => {

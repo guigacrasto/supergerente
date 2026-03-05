@@ -72,7 +72,7 @@ Antes de começar, certifique-se de ter:
 
 ```bash
 # Clonar o repo original
-git clone https://github.com/SUA-ORG/kommo-mcp-agent.git cliente-nome
+git clone https://github.com/SUA-ORG/supergerente.git cliente-nome
 
 cd cliente-nome
 
@@ -457,7 +457,7 @@ Para aplicar atualizações do sistema base a uma instância do cliente:
 
 ```bash
 # No repo do cliente
-git remote add upstream https://github.com/SUA-ORG/kommo-mcp-agent.git
+git remote add upstream https://github.com/SUA-ORG/supergerente.git
 git fetch upstream
 git merge upstream/main
 # Resolva conflitos se houver

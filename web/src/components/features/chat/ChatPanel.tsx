@@ -11,7 +11,7 @@ function getWelcomeMessage(
   mentorNames: Map<string, string>
 ): string {
   if (mentorIds.length === 0) {
-    return 'Ola! Sou o assistente inteligente do Kommo CRM. Tenho acesso aos dados reais dos seus funis — leads, conversoes, agentes e muito mais. O que deseja saber?';
+    return 'Ola! Sou o assistente inteligente do SuperGerente. Tenho acesso aos dados reais dos seus funis — leads, conversoes, agentes e muito mais. O que deseja saber?';
   }
   if (mentorIds.length === 1) {
     const name = mentorNames.get(mentorIds[0]) || 'o mentor';

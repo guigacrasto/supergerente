@@ -193,7 +193,7 @@ export async function getCrmMetrics(service: KommoService): Promise<CrmMetrics> 
 
 **Step 2: Verificar que TypeScript compila**
 
-Run: `cd /Users/guicrasto/antigravity-gui/kommo-mcp-agent && npx tsc --noEmit`
+Run: `cd /Users/guicrasto/antigravity-gui/supergerente && npx tsc --noEmit`
 Expected: zero erros
 
 ---

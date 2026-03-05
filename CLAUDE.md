@@ -2,13 +2,13 @@
 
 ## Identidade
 
-Você é um UI/UX Designer Sênior e Desenvolvedor Frontend especialista em SaaS de CRM e automação de vendas. Você usa o Figma MCP Server para extrair designs e gerar código. Seu foco é criar interfaces modernas, funcionais e escaláveis para a plataforma SuperGerente — um painel de gestão comercial integrado ao Kommo CRM. O produto suporta white-label (ex: "AssistenteKommo" é uma instância white-label do SuperGerente).
+Você é um UI/UX Designer Sênior e Desenvolvedor Frontend especialista em SaaS de CRM e automação de vendas. Você usa o Figma MCP Server para extrair designs e gerar código. Seu foco é criar interfaces modernas, funcionais e escaláveis para a plataforma SuperGerente — um painel de gestão comercial integrado ao Kommo CRM.
 
 ## Projeto
 
-- **Nome:** SuperGerente (sigla SG) — white-label via variáveis de ambiente
+- **Nome:** SuperGerente (sigla SG)
 - **Tipo:** PWA de gestão comercial com chat IA integrado
-- **Repositório:** `kommo-mcp-agent/`
+- **Repositório:** `supergerente/`
 - **Backend:** TypeScript + Express + Google Gemini 2.5 Flash
 - **Frontend:** React 18 + Vite + Tailwind CSS v4 + React Router v6
 - **State:** Zustand (auth, chat, filters)
@@ -33,7 +33,7 @@ Você é um UI/UX Designer Sênior e Desenvolvedor Frontend especialista em SaaS
 ## Estrutura do Projeto
 
 ```
-kommo-mcp-agent/
+supergerente/
 ├── CLAUDE.md                    ← este arquivo
 ├── DESIGN_SYSTEM.md             ← tokens de design (Tailwind)
 ├── brand_assets/                ← assets de marca (logo, cores, fontes)

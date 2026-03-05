@@ -1,6 +1,6 @@
-# Kommo MCP Agent
+# SuperGerente
 
-Agente inteligente de análise e relatórios para Kommo CRM, utilizando o protocolo MCP (Model Context Protocol).
+Painel de gestão comercial inteligente integrado ao Kommo CRM, com chat IA e relatórios automatizados.
 
 ## 🚀 Funcionalidades
 
@@ -45,7 +45,7 @@ Para usar no Claude Desktop, adicione ao seu arquivo de configuração:
 ```json
 {
   "mcpServers": {
-    "kommo-agent": {
+    "supergerente": {
       "command": "node",
       "args": ["/CAMINHO/PARA/PROJETO/build/index.js"],
       "env": {

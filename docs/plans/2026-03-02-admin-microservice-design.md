@@ -16,7 +16,7 @@ Isolate the admin panel (user approval, mentor CRUD, OAuth token management, tok
 **Approach:** Full-stack admin separado dentro do monorepo.
 
 ```
-kommo-mcp-agent/               (workspace root)
+supergerente/               (workspace root)
 ├── src/                        backend app principal (Express, porta 3000)
 ├── web/                        frontend app principal (React, Vercel/Railway)
 ├── admin/

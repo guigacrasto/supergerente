@@ -96,7 +96,7 @@ Find the early return around line 85–90 (when no pipelines found):
 **Step 5: Build to verify no TypeScript errors**
 
 ```bash
-cd /Users/guicrasto/antigravity-gui/kommo-mcp-agent && npm run build
+cd /Users/guicrasto/antigravity-gui/supergerente && npm run build
 ```
 Expected: zero errors.
 
@@ -291,7 +291,7 @@ export async function getActivityMetrics(
 **Step 2: Build**
 
 ```bash
-cd /Users/guicrasto/antigravity-gui/kommo-mcp-agent && npm run build
+cd /Users/guicrasto/antigravity-gui/supergerente && npm run build
 ```
 Expected: zero TypeScript errors.
 
@@ -356,7 +356,7 @@ Insert this block immediately before `return router;` (line 98):
 **Step 3: Build**
 
 ```bash
-cd /Users/guicrasto/antigravity-gui/kommo-mcp-agent && npm run build
+cd /Users/guicrasto/antigravity-gui/supergerente && npm run build
 ```
 Expected: zero errors.
 
@@ -503,7 +503,7 @@ Replace with:
 **Step 4: Build**
 
 ```bash
-cd /Users/guicrasto/antigravity-gui/kommo-mcp-agent && npm run build
+cd /Users/guicrasto/antigravity-gui/supergerente && npm run build
 ```
 Expected: zero errors.
 
@@ -822,7 +822,7 @@ Append to the very end of `web/src/index.css`:
 **Step 7: Build**
 
 ```bash
-cd /Users/guicrasto/antigravity-gui/kommo-mcp-agent && npm run build:all 2>&1 | tail -20
+cd /Users/guicrasto/antigravity-gui/supergerente && npm run build:all 2>&1 | tail -20
 ```
 Expected: zero TypeScript errors, Vite build succeeds.
 

@@ -1,4 +1,4 @@
-# Kommo MCP Agent — Design do Refactor
+# SuperGerente — Design do Refactor
 
 **Data:** 2026-02-27
 **Status:** Aprovado
@@ -35,7 +35,7 @@ O projeto atual mistura responsabilidades, tem código duplicado e configuraçõ
 ### Estrutura de pastas
 
 ```
-kommo-mcp-agent/
+supergerente/
 ├── src/
 │   ├── config.ts                  # constantes globais (IDs, status, timezone)
 │   ├── types/

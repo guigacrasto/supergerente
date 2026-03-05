@@ -9,7 +9,7 @@
 **Tech Stack:** `@supabase/supabase-js` (backend only), Supabase Auth, PostgreSQL (Supabase), React state-based navigation.
 
 **Supabase project:** `kppdclftyndtjutoymsu.supabase.co`
-**Admin user already created:** `admin@assistentekommo.site` (ID: `2297f2e5-4dd7-42ef-b76c-a661cf89e427`)
+**Admin user already created:** `admin@supergerente.site` (ID: `2297f2e5-4dd7-42ef-b76c-a661cf89e427`)
 
 ---
 
@@ -73,7 +73,7 @@ INSERT INTO public.profiles (id, name, email, role, status)
 VALUES (
   '2297f2e5-4dd7-42ef-b76c-a661cf89e427',
   'Admin',
-  'admin@assistentekommo.site',
+  'admin@supergerente.site',
   'admin',
   'approved'
 );
@@ -82,7 +82,7 @@ VALUES (
 **Step 2: Verify**
 
 Run: `SELECT * FROM public.profiles;`
-Expected: 1 row — admin@assistentekommo.site, role=admin, status=approved
+Expected: 1 row — admin@supergerente.site, role=admin, status=approved
 
 ---
 
@@ -94,7 +94,7 @@ Expected: 1 row — admin@assistentekommo.site, role=admin, status=approved
 
 **Step 1: Install dependency**
 
-Run: `cd /Users/guicrasto/antigravity-gui/kommo-mcp-agent && npm install @supabase/supabase-js`
+Run: `cd /Users/guicrasto/antigravity-gui/supergerente && npm install @supabase/supabase-js`
 
 **Step 2: Create `src/api/supabase.ts`**
 
@@ -577,7 +577,7 @@ Update every `axios.get(...)` and `axios.post(...)` to include:
 ```tsx
 <div className="auth-page">
   <div className="auth-card glass">
-    <div className="brand"><div className="logo">KG</div><span>Kommo Agent</span></div>
+    <div className="brand"><div className="logo">KG</div><span>SuperGerente</span></div>
     <h2>Entrar</h2>
     <form onSubmit={async (e) => {
       e.preventDefault();
@@ -602,7 +602,7 @@ Update every `axios.get(...)` and `axios.post(...)` to include:
 ```tsx
 <div className="auth-page">
   <div className="auth-card glass">
-    <div className="brand"><div className="logo">KG</div><span>Kommo Agent</span></div>
+    <div className="brand"><div className="logo">KG</div><span>SuperGerente</span></div>
     <h2>Criar conta</h2>
     <form onSubmit={async (e) => {
       e.preventDefault();
@@ -809,6 +809,6 @@ Railway auto-deploys from GitHub push.
 ```bash
 curl -s https://supergerentekommo-production.up.railway.app/api/auth/login \
   -X POST -H "Content-Type: application/json" \
-  -d '{"email":"admin@assistentekommo.site","password":"159753acessoSuper."}'
+  -d '{"email":"admin@supergerente.site","password":"159753acessoSuper."}'
 ```
 Expected: `{"token":"eyJ...","user":{"role":"admin",...}}`

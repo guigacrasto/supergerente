@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Deploy the kommo-mcp-agent (Express API + React frontend) to Railway so managers can access it via browser at a custom domain.
+**Goal:** Deploy the supergerente (Express API + React frontend) to Railway so managers can access it via browser at a custom domain.
 
 **Architecture:**
 - Express (port 3000) already serves `web/dist/` as static files → single Railway service
@@ -27,7 +27,7 @@ In `web/src/App.tsx`, find the `handleSend` function and update it to:
 
 **Step 2: Verify the change compiles**
 
-Run: `cd /Users/guicrasto/antigravity-gui/kommo-mcp-agent/web && npx tsc --noEmit`
+Run: `cd /Users/guicrasto/antigravity-gui/supergerente/web && npx tsc --noEmit`
 Expected: zero errors
 
 ---
@@ -51,7 +51,7 @@ After `app.use(express.static(webPath))`, add:
 
 **Step 2: Verify TypeScript compiles**
 
-Run: `cd /Users/guicrasto/antigravity-gui/kommo-mcp-agent && npx tsc --noEmit`
+Run: `cd /Users/guicrasto/antigravity-gui/supergerente && npx tsc --noEmit`
 Expected: zero errors
 
 ---
@@ -78,7 +78,7 @@ Add `engines` field at root level:
 
 **Step 2: Verify build works locally**
 
-Run: `cd /Users/guicrasto/antigravity-gui/kommo-mcp-agent && npm run build:all`
+Run: `cd /Users/guicrasto/antigravity-gui/supergerente && npm run build:all`
 Expected: `web/dist/` created + `build/` updated, zero errors
 
 ---
@@ -130,7 +130,7 @@ PORT=3000
 
 **Step 1: Init git repo**
 
-Run: `cd /Users/guicrasto/antigravity-gui/kommo-mcp-agent && git init`
+Run: `cd /Users/guicrasto/antigravity-gui/supergerente && git init`
 
 **Step 2: Stage all files**
 
@@ -145,7 +145,7 @@ Verify: `.env` is NOT listed (it's in .gitignore)
 
 Run:
 ```bash
-git commit -m "Initial commit: Kommo CRM Agent — Express API + React frontend + Gemini chat"
+git commit -m "Initial commit: SuperGerente — Express API + React frontend + Gemini chat"
 ```
 
 **Step 5: Ask user for GitHub repo URL, then push**

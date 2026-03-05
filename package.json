@@ -1,8 +1,8 @@
 {
-  "name": "kommo-mcp-agent",
+  "name": "supergerente",
   "version": "1.0.0",
   "type": "module",
-  "description": "MCP server for Kommo CRM integration",
+  "description": "SuperGerente — Painel de gestão comercial inteligente",
   "main": "build/api/index.js",
   "scripts": {
     "build": "npm install --prefix web && npm run build --prefix web && tsc",
@@ -35,7 +35,7 @@
     "typescript": "^5.0.0"
   },
   "bin": {
-    "kommo-mcp-agent": "./build/mcp/index.js"
+    "supergerente": "./build/mcp/index.js"
   },
   "engines": {
     "node": ">=20"
