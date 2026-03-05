@@ -38,10 +38,22 @@ export interface ActiveLead {
   price: number; // Deal value (potential)
 }
 
+export interface LeadTag {
+  id: number;
+  name: string;
+}
+
 export interface LeadSnapshot {
+  id: number;
   created_at: number;
   closed_at: number;
   status_id: number;
+  pipeline_id: number;
+  responsible_user_id: number;
+  price: number;
+  loss_reason_id: number;
+  tags: LeadTag[];
+  custom_fields_values: any[] | null;
 }
 
 export interface CrmMetrics {
@@ -59,6 +71,9 @@ export interface CrmMetrics {
   };
   activeLeads: ActiveLead[];
   leadSnapshots: LeadSnapshot[];
+  pipelineNames: Record<number, string>;
+  userNames: Record<number, string>;
+  allTags: LeadTag[];
   atualizadoEm: string;
 }
 
@@ -112,6 +127,9 @@ async function fetchAndCompute(team: TeamKey, service: KommoService): Promise<Cr
       geral: { total: 0, ganhos: 0, perdidos: 0, ativos: 0, conversao: "0.0%", novosHoje: 0, novosSemana: 0, novosMes: 0 },
       activeLeads: [],
       leadSnapshots: [],
+      pipelineNames: {},
+      userNames: {},
+      allTags: [],
       atualizadoEm: new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }),
     };
   }
@@ -200,12 +218,34 @@ async function fetchAndCompute(team: TeamKey, service: KommoService): Promise<Cr
     }));
 
   const leadSnapshots: LeadSnapshot[] = allLeads.map((l) => ({
+    id: l.id,
     created_at: l.created_at ?? 0,
     closed_at: l.closed_at ?? 0,
     status_id: l.status_id ?? 0,
+    pipeline_id: l.pipeline_id ?? 0,
+    responsible_user_id: l.responsible_user_id ?? 0,
+    price: l.price ?? 0,
+    loss_reason_id: l.loss_reason_id ?? 0,
+    tags: l._embedded?.tags?.map((t: any) => ({ id: t.id, name: t.name })) ?? [],
+    custom_fields_values: l.custom_fields_values ?? null,
   }));
 
-  console.log(`[CrmCache:${team}] Pronto — ${allLeads.length} leads, ${vendedores.length} entradas de vendedor`);
+  const pipelineNames: Record<number, string> = {};
+  pipelines.forEach((p: any) => { pipelineNames[p.id] = p.name; });
+
+  const userNamesMap: Record<number, string> = {};
+  users.forEach((u: any) => { userNamesMap[u.id] = u.name; });
+
+  // Coletar todas as tags únicas
+  const tagMap = new Map<number, string>();
+  for (const snap of leadSnapshots) {
+    for (const t of snap.tags) {
+      if (!tagMap.has(t.id)) tagMap.set(t.id, t.name);
+    }
+  }
+  const allTags: LeadTag[] = Array.from(tagMap.entries()).map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
+
+  console.log(`[CrmCache:${team}] Pronto — ${allLeads.length} leads, ${vendedores.length} entradas de vendedor, ${allTags.length} tags`);
 
   return {
     funis,
@@ -213,6 +253,9 @@ async function fetchAndCompute(team: TeamKey, service: KommoService): Promise<Cr
     geral,
     activeLeads,
     leadSnapshots,
+    pipelineNames,
+    userNames: userNamesMap,
+    allTags,
     atualizadoEm: new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }),
   };
 }

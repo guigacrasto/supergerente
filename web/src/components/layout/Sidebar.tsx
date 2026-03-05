@@ -3,6 +3,10 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   PieChart,
   CalendarDays,
+  Clock,
+  XCircle,
+  DollarSign,
+  Briefcase,
   MessageSquare,
   BarChart3,
   AlertTriangle,
@@ -23,6 +27,10 @@ import { stripFunilPrefix } from '@/lib/utils';
 const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: PieChart },
   { to: '/diario', label: 'Diário', icon: CalendarDays },
+  { to: '/tmf', label: 'TMF', icon: Clock },
+  { to: '/motivos-perda', label: 'Motivos Perda', icon: XCircle },
+  { to: '/renda', label: 'Renda', icon: DollarSign },
+  { to: '/profissao', label: 'Profissão', icon: Briefcase },
   { to: '/chat', label: 'Chat IA', icon: MessageSquare },
   { to: '/agents', label: 'Agentes', icon: BarChart3 },
   { to: '/alerts', label: 'Alertas', icon: AlertTriangle },

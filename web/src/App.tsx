@@ -9,6 +9,10 @@ import { AgentsPage } from '@/pages/AgentsPage';
 import { AlertsPage } from '@/pages/AlertsPage';
 import { InsightsPage } from '@/pages/InsightsPage';
 import { DiarioPage } from '@/pages/DiarioPage';
+import { TMFPage } from '@/pages/TMFPage';
+import { LossReasonsPage } from '@/pages/LossReasonsPage';
+import { RendaPage } from '@/pages/RendaPage';
+import { ProfissaoPage } from '@/pages/ProfissaoPage';
 import { TeamDashboardPage } from '@/pages/TeamDashboardPage';
 
 export default function App() {
@@ -22,6 +26,10 @@ export default function App() {
         <Route element={<AppShell />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/diario" element={<DiarioPage />} />
+          <Route path="/tmf" element={<TMFPage />} />
+          <Route path="/motivos-perda" element={<LossReasonsPage />} />
+          <Route path="/renda" element={<RendaPage />} />
+          <Route path="/profissao" element={<ProfissaoPage />} />
           <Route path="/team/:team" element={<TeamDashboardPage />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/agents" element={<AgentsPage />} />

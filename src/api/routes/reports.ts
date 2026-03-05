@@ -9,6 +9,28 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
   const router = Router();
   router.use(requireAuth as any);
 
+  // — Helper functions —
+  function parseDateRange(query: any): { fromTs: number; toTs: number } {
+    const now = new Date();
+    const toStr = typeof query.to === "string" && query.to.match(/^\d{4}-\d{2}-\d{2}$/) ? query.to : now.toISOString().slice(0, 10);
+    const fromDate = new Date(now);
+    fromDate.setDate(fromDate.getDate() - 30);
+    const fromStr = typeof query.from === "string" && query.from.match(/^\d{4}-\d{2}-\d{2}$/) ? query.from : fromDate.toISOString().slice(0, 10);
+    const fromTs = new Date(`${fromStr}T00:00:00-03:00`).getTime() / 1000;
+    const toTs = new Date(`${toStr}T23:59:59-03:00`).getTime() / 1000;
+    return { fromTs, toTs };
+  }
+
+  function getCustomFieldValue(lead: any, fieldNamePattern: RegExp): string | null {
+    if (!lead.custom_fields_values) return null;
+    for (const cf of lead.custom_fields_values) {
+      if (fieldNamePattern.test(cf.field_name || "")) {
+        return cf.values?.[0]?.value?.toString() || null;
+      }
+    }
+    return null;
+  }
+
   // GET /api/reports/agents — performance de agentes de todas as equipes autorizadas
   router.get("/agents", async (req: AuthRequest, res) => {
     const userTeams = req.userTeams || [];
@@ -246,6 +268,427 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
+  });
+
+  // GET /api/reports/tags — lista todas as tags de todas as equipes autorizadas
+  router.get("/tags", async (req: AuthRequest, res) => {
+    const userTeams = req.userTeams || [];
+    try {
+      const allMetrics = await Promise.all(
+        userTeams.filter((t) => !!services[t]).map(async (team) => ({
+          team,
+          metrics: await getCrmMetrics(team, services[team]),
+        }))
+      );
+
+      const tags: Array<{ id: number; name: string; team: string }> = [];
+
+      for (const { team, metrics } of allMetrics) {
+        for (const tag of metrics.allTags) {
+          tags.push({ id: tag.id, name: tag.name, team });
+        }
+      }
+
+      res.json(tags);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // GET /api/reports/tmf?from=YYYY-MM-DD&to=YYYY-MM-DD — Tempo Médio de Fechamento
+  router.get("/tmf", async (req: AuthRequest, res) => {
+    const userTeams = req.userTeams || [];
+    const { fromTs, toTs } = parseDateRange(req.query);
+    const STATUS_WON = 142;
+
+    try {
+      const allMetrics = await Promise.all(
+        userTeams.filter((t) => !!services[t]).map(async (team) => ({
+          team,
+          metrics: await getCrmMetrics(team, services[team]),
+        }))
+      );
+
+      // Collect all won leads in range across all teams
+      const wonLeads: Array<{
+        responsible_user_id: number;
+        created_at: number;
+        closed_at: number;
+      }> = [];
+      let userNamesMap: Record<number, string> = {};
+
+      for (const { metrics } of allMetrics) {
+        Object.assign(userNamesMap, metrics.userNames);
+        for (const lead of metrics.leadSnapshots) {
+          if (
+            lead.status_id === STATUS_WON &&
+            lead.closed_at >= fromTs &&
+            lead.closed_at <= toTs
+          ) {
+            wonLeads.push({
+              responsible_user_id: lead.responsible_user_id,
+              created_at: lead.created_at,
+              closed_at: lead.closed_at,
+            });
+          }
+        }
+      }
+
+      // Calculate TMF and classify
+      let totalTmfSeconds = 0;
+      let totalFechamentoDia = 0;
+      let totalRemarketing = 0;
+
+      const porAgenteMap: Record<number, {
+        fechamentoDia: number;
+        remarketing: number;
+        totalSeconds: number;
+        count: number;
+      }> = {};
+
+      for (const lead of wonLeads) {
+        const diffSeconds = lead.closed_at - lead.created_at;
+        totalTmfSeconds += diffSeconds;
+
+        const isFechamentoDia = diffSeconds <= 86400;
+        if (isFechamentoDia) {
+          totalFechamentoDia++;
+        } else {
+          totalRemarketing++;
+        }
+
+        if (!porAgenteMap[lead.responsible_user_id]) {
+          porAgenteMap[lead.responsible_user_id] = {
+            fechamentoDia: 0,
+            remarketing: 0,
+            totalSeconds: 0,
+            count: 0,
+          };
+        }
+        const agente = porAgenteMap[lead.responsible_user_id];
+        agente.count++;
+        agente.totalSeconds += diffSeconds;
+        if (isFechamentoDia) {
+          agente.fechamentoDia++;
+        } else {
+          agente.remarketing++;
+        }
+      }
+
+      const totalLeads = wonLeads.length;
+      const tmfGeralHoras = totalLeads > 0
+        ? Math.round((totalTmfSeconds / totalLeads / 3600) * 10) / 10
+        : 0;
+      const pctRemarketing = totalLeads > 0
+        ? ((totalRemarketing / totalLeads) * 100).toFixed(1) + "%"
+        : "0.0%";
+
+      const porAgente = Object.entries(porAgenteMap)
+        .map(([userId, data]) => ({
+          nome: userNamesMap[Number(userId)] || `Usuário ${userId}`,
+          fechamentoDia: data.fechamentoDia,
+          remarketing: data.remarketing,
+          tmfHoras: data.count > 0
+            ? Math.round((data.totalSeconds / data.count / 3600) * 10) / 10
+            : 0,
+        }))
+        .sort((a, b) => a.tmfHoras - b.tmfHoras);
+
+      res.json({
+        tmfGeralHoras,
+        totalFechamentoDia,
+        totalRemarketing,
+        pctRemarketing,
+        porAgente,
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // GET /api/reports/loss-reasons?from=YYYY-MM-DD&to=YYYY-MM-DD — Motivos de Perda
+  router.get("/loss-reasons", async (req: AuthRequest, res) => {
+    const userTeams = req.userTeams || [];
+    const { fromTs, toTs } = parseDateRange(req.query);
+    const STATUS_LOST = 143;
+
+    try {
+      const allMetrics = await Promise.all(
+        userTeams.filter((t) => !!services[t]).map(async (team) => ({
+          team,
+          metrics: await getCrmMetrics(team, services[team]),
+        }))
+      );
+
+      // Collect all lost leads in range
+      const lostLeads: Array<{
+        responsible_user_id: number;
+        loss_reason_id: number;
+      }> = [];
+      let userNamesMap: Record<number, string> = {};
+
+      for (const { metrics } of allMetrics) {
+        Object.assign(userNamesMap, metrics.userNames);
+        for (const lead of metrics.leadSnapshots) {
+          if (
+            lead.status_id === STATUS_LOST &&
+            lead.closed_at >= fromTs &&
+            lead.closed_at <= toTs
+          ) {
+            lostLeads.push({
+              responsible_user_id: lead.responsible_user_id,
+              loss_reason_id: lead.loss_reason_id || 0,
+            });
+          }
+        }
+      }
+
+      const totalPerdidos = lostLeads.length;
+
+      // Group by loss_reason_id
+      const motivosMap: Record<number, number> = {};
+      for (const lead of lostLeads) {
+        motivosMap[lead.loss_reason_id] = (motivosMap[lead.loss_reason_id] || 0) + 1;
+      }
+
+      const motivos = Object.entries(motivosMap)
+        .map(([reasonId, count]) => ({
+          loss_reason_id: Number(reasonId),
+          count,
+          pct: totalPerdidos > 0 ? ((count / totalPerdidos) * 100).toFixed(1) + "%" : "0.0%",
+        }))
+        .sort((a, b) => b.count - a.count);
+
+      // Group by agent with breakdown by loss_reason
+      const porAgenteMap: Record<number, Record<number, number>> = {};
+      for (const lead of lostLeads) {
+        if (!porAgenteMap[lead.responsible_user_id]) {
+          porAgenteMap[lead.responsible_user_id] = {};
+        }
+        porAgenteMap[lead.responsible_user_id][lead.loss_reason_id] =
+          (porAgenteMap[lead.responsible_user_id][lead.loss_reason_id] || 0) + 1;
+      }
+
+      const porAgente = Object.entries(porAgenteMap)
+        .map(([userId, reasons]) => {
+          const total = Object.values(reasons).reduce((s, c) => s + c, 0);
+          const motivosList = Object.entries(reasons)
+            .map(([reasonId, count]) => ({
+              loss_reason_id: Number(reasonId),
+              count,
+            }))
+            .sort((a, b) => b.count - a.count);
+          return {
+            nome: userNamesMap[Number(userId)] || `Usuário ${userId}`,
+            total,
+            motivos: motivosList,
+          };
+        })
+        .sort((a, b) => b.total - a.total);
+
+      res.json({ motivos, porAgente, totalPerdidos });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // GET /api/reports/income?from=YYYY-MM-DD&to=YYYY-MM-DD — Renda do Lead
+  router.get("/income", async (req: AuthRequest, res) => {
+    const userTeams = req.userTeams || [];
+    const { fromTs, toTs } = parseDateRange(req.query);
+    const STATUS_WON = 142;
+    const rendaPattern = /renda/i;
+
+    const brackets: Array<{ label: string; min: number; max: number }> = [
+      { label: "Até R$ 2.000", min: 0, max: 2000 },
+      { label: "R$ 2.001 a R$ 5.000", min: 2001, max: 5000 },
+      { label: "R$ 5.001 a R$ 10.000", min: 5001, max: 10000 },
+      { label: "R$ 10.001 a R$ 20.000", min: 10001, max: 20000 },
+      { label: "Acima de R$ 20.000", min: 20001, max: Infinity },
+    ];
+
+    try {
+      const allMetrics = await Promise.all(
+        userTeams.filter((t) => !!services[t]).map(async (team) => ({
+          team,
+          metrics: await getCrmMetrics(team, services[team]),
+        }))
+      );
+
+      // Collect leads in date range
+      const leads: Array<{
+        status_id: number;
+        price: number;
+        renda: string | null;
+      }> = [];
+
+      for (const { metrics } of allMetrics) {
+        for (const lead of metrics.leadSnapshots) {
+          if (lead.created_at >= fromTs && lead.created_at <= toTs) {
+            leads.push({
+              status_id: lead.status_id,
+              price: lead.price || 0,
+              renda: getCustomFieldValue(lead, rendaPattern),
+            });
+          }
+        }
+      }
+
+      // Initialize brackets + "Não informado"
+      const faixasMap: Record<string, { volume: number; fechamentos: number; totalPrice: number }> = {};
+      for (const b of brackets) {
+        faixasMap[b.label] = { volume: 0, fechamentos: 0, totalPrice: 0 };
+      }
+      faixasMap["Não informado"] = { volume: 0, fechamentos: 0, totalPrice: 0 };
+
+      for (const lead of leads) {
+        const rendaValue = lead.renda ? parseFloat(lead.renda.replace(/[^\d.,]/g, "").replace(",", ".")) : NaN;
+        let bracketLabel = "Não informado";
+
+        if (!isNaN(rendaValue)) {
+          for (const b of brackets) {
+            if (rendaValue >= b.min && rendaValue <= b.max) {
+              bracketLabel = b.label;
+              break;
+            }
+          }
+        }
+
+        faixasMap[bracketLabel].volume++;
+        if (lead.status_id === STATUS_WON) {
+          faixasMap[bracketLabel].fechamentos++;
+          faixasMap[bracketLabel].totalPrice += lead.price;
+        }
+      }
+
+      const faixas = [...brackets.map((b) => b.label), "Não informado"].map((label) => {
+        const data = faixasMap[label];
+        return {
+          faixa: label,
+          volume: data.volume,
+          fechamentos: data.fechamentos,
+          conversao: data.volume > 0
+            ? ((data.fechamentos / data.volume) * 100).toFixed(1) + "%"
+            : "0.0%",
+          ticketMedio: data.fechamentos > 0
+            ? Math.round(data.totalPrice / data.fechamentos)
+            : 0,
+        };
+      });
+
+      res.json({ faixas });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // GET /api/reports/profession?from=YYYY-MM-DD&to=YYYY-MM-DD — Profissão do Lead
+  router.get("/profession", async (req: AuthRequest, res) => {
+    const userTeams = req.userTeams || [];
+    const { fromTs, toTs } = parseDateRange(req.query);
+    const STATUS_WON = 142;
+    const profissaoPattern = /profiss[aã]o/i;
+
+    try {
+      const allMetrics = await Promise.all(
+        userTeams.filter((t) => !!services[t]).map(async (team) => ({
+          team,
+          metrics: await getCrmMetrics(team, services[team]),
+        }))
+      );
+
+      // Collect leads in date range
+      const leads: Array<{
+        status_id: number;
+        price: number;
+        profissao: string | null;
+      }> = [];
+
+      for (const { metrics } of allMetrics) {
+        for (const lead of metrics.leadSnapshots) {
+          if (lead.created_at >= fromTs && lead.created_at <= toTs) {
+            leads.push({
+              status_id: lead.status_id,
+              price: lead.price || 0,
+              profissao: getCustomFieldValue(lead, profissaoPattern),
+            });
+          }
+        }
+      }
+
+      // Group by profession
+      const profMap: Record<string, { volume: number; fechamentos: number; totalPrice: number }> = {};
+
+      for (const lead of leads) {
+        const prof = lead.profissao?.trim() || "Não informado";
+        if (!profMap[prof]) {
+          profMap[prof] = { volume: 0, fechamentos: 0, totalPrice: 0 };
+        }
+        profMap[prof].volume++;
+        if (lead.status_id === STATUS_WON) {
+          profMap[prof].fechamentos++;
+          profMap[prof].totalPrice += lead.price;
+        }
+      }
+
+      const profissoes = Object.entries(profMap)
+        .map(([profissao, data]) => ({
+          profissao,
+          volume: data.volume,
+          fechamentos: data.fechamentos,
+          conversao: data.volume > 0
+            ? ((data.fechamentos / data.volume) * 100).toFixed(1) + "%"
+            : "0.0%",
+          ticketMedio: data.fechamentos > 0
+            ? Math.round(data.totalPrice / data.fechamentos)
+            : 0,
+        }))
+        .sort((a, b) => b.volume - a.volume)
+        .slice(0, 20);
+
+      res.json({ profissoes });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // GET /api/reports/stream — SSE stream for real-time updates
+  router.get("/stream", async (req: AuthRequest, res) => {
+    const userTeams = req.userTeams || [];
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+
+    const sendUpdate = async () => {
+      try {
+        const teamsData = await Promise.all(
+          userTeams.filter((t) => !!services[t]).map(async (team) => {
+            const metrics = await getCrmMetrics(team, services[team]);
+            return {
+              team,
+              geral: metrics.geral,
+              atualizadoEm: new Date().toISOString(),
+            };
+          })
+        );
+        const payload = JSON.stringify({ teams: teamsData });
+        res.write(`data: ${payload}\n\n`);
+      } catch (err: any) {
+        console.error("[SSE /stream] Erro ao enviar update:", err.message);
+      }
+    };
+
+    // Send initial event immediately
+    await sendUpdate();
+
+    // Then send every 30 seconds
+    const interval = setInterval(sendUpdate, 30_000);
+
+    req.on("close", () => {
+      clearInterval(interval);
+    });
   });
 
   return router;

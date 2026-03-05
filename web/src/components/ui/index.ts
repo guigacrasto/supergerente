@@ -7,3 +7,4 @@ export { Select } from './Select';
 export { Spinner, PageSpinner } from './Spinner';
 export { Skeleton } from './Skeleton';
 export { EmptyState } from './EmptyState';
+export { LiveTimestamp } from './LiveTimestamp';

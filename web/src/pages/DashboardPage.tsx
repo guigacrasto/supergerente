@@ -6,7 +6,7 @@ import { stripFunilPrefix } from '@/lib/utils';
 import { TEAM_LABELS } from '@/lib/constants';
 import { useFilterStore } from '@/stores/filterStore';
 import { useAuthStore } from '@/stores/authStore';
-import { Card, CardHeader, CardTitle, Chip, Skeleton } from '@/components/ui';
+import { Card, CardHeader, CardTitle, Chip, Skeleton, LiveTimestamp } from '@/components/ui';
 import { KPICard } from '@/components/features/dashboard/KPICard';
 import { TeamBarChart } from '@/components/features/dashboard/TeamBarChart';
 import { SalesRanking } from '@/components/features/dashboard/SalesRanking';
@@ -81,6 +81,7 @@ export function DashboardPage() {
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [teamFilter, setTeamFilter] = useState<TeamFilter>('');
+  const [lastFetchTime, setLastFetchTime] = useState<string>('');
 
   const userTeams = user?.teams ?? [];
   const hasMultipleTeams = userTeams.length > 1;
@@ -96,6 +97,7 @@ export function DashboardPage() {
       setSummary(summaryRes.data);
       setActivity(activityRes.data);
       setDashboard(dashboardRes.data);
+      setLastFetchTime(new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
     } catch (err) {
       console.error('[DashboardPage] Erro ao carregar dados:', err);
     } finally {
@@ -177,6 +179,9 @@ export function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Live timestamp indicator */}
+      <LiveTimestamp timestamp={lastFetchTime} />
+
       {/* Team filter tabs — only show when user has multiple teams */}
       {hasMultipleTeams && (
         <div className="flex items-center gap-2">
