@@ -3,8 +3,8 @@ import {
   Settings,
   Shield,
   Users,
-  Pause,
-  Play,
+  EyeOff,
+  Eye,
   Check,
   ChevronDown,
   ChevronRight,
@@ -156,21 +156,21 @@ function PipelineSection({
                     >
                       <div className="flex items-center gap-3">
                         {pipeline.paused ? (
-                          <Pause className="h-4 w-4 text-warning" />
+                          <EyeOff className="h-4 w-4 text-warning" />
                         ) : (
-                          <Play className="h-4 w-4 text-success" />
+                          <Eye className="h-4 w-4 text-success" />
                         )}
                         <span className="text-body-md text-foreground">
                           {pipeline.name}
                         </span>
                         {pipeline.paused && (
-                          <Badge variant="warning">Pausado</Badge>
+                          <Badge variant="warning">Oculto</Badge>
                         )}
                       </div>
                       <ToggleSwitch
                         checked={!pipeline.paused}
                         loading={togglingId === pipeline.id}
-                        label={`${pipeline.paused ? 'Ativar' : 'Pausar'} ${pipeline.name}`}
+                        label={`${pipeline.paused ? 'Mostrar' : 'Ocultar'} ${pipeline.name}`}
                         onChange={() =>
                           handleToggle(pipeline.id, !pipeline.paused)
                         }
@@ -532,7 +532,7 @@ export function AdminPage() {
         prev.map((p) => (p.id === pipelineId ? { ...p, paused } : p))
       );
     } catch (err) {
-      console.error('[AdminPage] Erro ao pausar pipeline:', err);
+      console.error('[AdminPage] Erro ao ocultar pipeline:', err);
     }
   };
 
