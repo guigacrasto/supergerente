@@ -337,9 +337,36 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
   router.get("/tmf", async (req: AuthRequest, res) => {
     const { fromTs, toTs } = parseDateRange(req.query);
     const STATUS_WON = 142;
+    const funilFilter = typeof req.query.funil === "string" ? req.query.funil : "";
+    const agenteFilter = typeof req.query.agente === "string" ? req.query.agente : "";
 
     try {
       const allMetrics = await getFilteredMetrics(req);
+
+      // Collect funnel/agent lists and build lookup maps
+      const funisSet = new Set<string>();
+      const agentesSet = new Set<string>();
+      const pipelineNameToIds = new Map<string, Set<number>>();
+      const agenteNameToIds = new Map<string, Set<number>>();
+
+      for (const { metrics } of allMetrics) {
+        for (const [key, funil] of Object.entries(metrics.funis)) {
+          const cleanName = funil.nome.replace(/^FUNIL\s+/i, "");
+          funisSet.add(cleanName);
+          if (!pipelineNameToIds.has(cleanName)) pipelineNameToIds.set(cleanName, new Set());
+          pipelineNameToIds.get(cleanName)!.add(Number(key));
+        }
+        for (const [userId, userName] of Object.entries(metrics.userNames)) {
+          agentesSet.add(userName);
+          if (!agenteNameToIds.has(userName)) agenteNameToIds.set(userName, new Set());
+          agenteNameToIds.get(userName)!.add(Number(userId));
+        }
+      }
+      const funis = Array.from(funisSet).sort();
+      const agentes = Array.from(agentesSet).sort();
+
+      const filterPipelineIds = funilFilter ? pipelineNameToIds.get(funilFilter) : null;
+      const filterAgenteIds = agenteFilter ? agenteNameToIds.get(agenteFilter) : null;
 
       // Collect all won leads in range across all teams
       const wonLeads: Array<{
@@ -352,17 +379,15 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
       for (const { metrics } of allMetrics) {
         Object.assign(userNamesMap, metrics.userNames);
         for (const lead of metrics.leadSnapshots) {
-          if (
-            lead.status_id === STATUS_WON &&
-            lead.closed_at >= fromTs &&
-            lead.closed_at <= toTs
-          ) {
-            wonLeads.push({
-              responsible_user_id: lead.responsible_user_id,
-              created_at: lead.created_at,
-              closed_at: lead.closed_at,
-            });
-          }
+          if (lead.status_id !== STATUS_WON) continue;
+          if (lead.closed_at < fromTs || lead.closed_at > toTs) continue;
+          if (filterPipelineIds && !filterPipelineIds.has(lead.pipeline_id)) continue;
+          if (filterAgenteIds && !filterAgenteIds.has(lead.responsible_user_id)) continue;
+          wonLeads.push({
+            responsible_user_id: lead.responsible_user_id,
+            created_at: lead.created_at,
+            closed_at: lead.closed_at,
+          });
         }
       }
 
@@ -432,6 +457,8 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
         totalRemarketing,
         pctRemarketing,
         porAgente,
+        funis,
+        agentes,
       });
     } catch (error: any) {
       res.status(500).json({ error: error.message });

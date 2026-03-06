@@ -2,9 +2,12 @@ import { useEffect, useState, useCallback } from 'react';
 import { CalendarDays, Clock, Zap, RefreshCw, Percent } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
+import { useFilterStore } from '@/stores/filterStore';
 import { Chip, Skeleton, LiveTimestamp } from '@/components/ui';
 import { KPICard } from '@/components/features/dashboard/KPICard';
 import { TagFilter } from '@/components/features/filters/TagFilter';
+import { FunilFilter } from '@/components/features/filters/FunilFilter';
+import { AgenteFilter } from '@/components/features/filters/AgenteFilter';
 
 interface TMFAgente {
   nome: string;
@@ -19,6 +22,8 @@ interface TMFData {
   totalRemarketing: number;
   pctRemarketing: string;
   porAgente: TMFAgente[];
+  funis: string[];
+  agentes: string[];
 }
 
 type TeamFilter = '' | 'azul' | 'amarela';
@@ -41,7 +46,9 @@ function formatTMF(horas: number): string {
 
 export function TMFPage() {
   const user = useAuthStore((s) => s.user);
+  const selectedFunil = useFilterStore((s) => s.selectedFunil);
   const [data, setData] = useState<TMFData | null>(null);
+  const [selectedAgente, setSelectedAgente] = useState('');
   const [loading, setLoading] = useState(true);
   const [from, setFrom] = useState(getDefaultFrom);
   const [to, setTo] = useState(getToday);
@@ -51,12 +58,13 @@ export function TMFPage() {
   const userTeams = user?.teams ?? [];
   const hasMultipleTeams = userTeams.length > 1;
 
-  const fetchData = useCallback(async (fromDate: string, toDate: string) => {
+  const fetchData = useCallback(async (fromDate: string, toDate: string, funil: string, agente: string) => {
     try {
       setLoading(true);
-      const res = await api.get<TMFData>('/reports/tmf', {
-        params: { from: fromDate, to: toDate },
-      });
+      const params: Record<string, string> = { from: fromDate, to: toDate };
+      if (funil) params.funil = funil;
+      if (agente) params.agente = agente;
+      const res = await api.get<TMFData>('/reports/tmf', { params });
       setData(res.data);
       setLastFetchTime(new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
     } catch (err) {
@@ -67,8 +75,11 @@ export function TMFPage() {
   }, []);
 
   useEffect(() => {
-    fetchData(from, to);
-  }, [from, to, fetchData]);
+    fetchData(from, to, selectedFunil, selectedAgente);
+  }, [from, to, selectedFunil, selectedAgente, fetchData]);
+
+  const funis = data?.funis ?? [];
+  const agentes = data?.agentes ?? [];
 
   // Sort agents by TMF ascending
   const sortedAgentes = data?.porAgente
@@ -79,7 +90,7 @@ export function TMFPage() {
     <div className="flex flex-col gap-6">
       <LiveTimestamp timestamp={lastFetchTime} />
 
-      {/* Date range + Team filter */}
+      {/* Filters */}
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2">
           <CalendarDays className="h-5 w-5 text-primary" />
@@ -116,6 +127,8 @@ export function TMFPage() {
           </div>
         )}
 
+        <FunilFilter funis={funis} />
+        <AgenteFilter agentes={agentes} selected={selectedAgente} onChange={setSelectedAgente} />
         <TagFilter />
       </div>
 
