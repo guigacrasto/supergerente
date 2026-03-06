@@ -12,12 +12,14 @@ interface FilterState {
   alertFilter: AlertFilter;
   alertEquipeFilter: AlertEquipeFilter;
   selectedTags: number[];
+  tagMode: 'or' | 'and';
   setAgentFilter: (key: 'filterAgente' | 'filterFunil' | 'filterEquipe', value: string) => void;
   setSort: (col: string) => void;
   setDateRange: (from: string, to: string) => void;
   setAlertFilter: (filter: AlertFilter) => void;
   setAlertEquipeFilter: (filter: AlertEquipeFilter) => void;
   setSelectedTags: (tags: number[]) => void;
+  setTagMode: (mode: 'or' | 'and') => void;
   clearTags: () => void;
   clearAgentFilters: () => void;
   clearDateRange: () => void;
@@ -42,6 +44,7 @@ export const useFilterStore = create<FilterState>((set) => ({
   alertFilter: 'todos',
   alertEquipeFilter: 'todas',
   selectedTags: [],
+  tagMode: 'or',
 
   setAgentFilter: (key, value) => set({ [key]: value }),
 
@@ -58,6 +61,8 @@ export const useFilterStore = create<FilterState>((set) => ({
   setAlertEquipeFilter: (alertEquipeFilter) => set({ alertEquipeFilter }),
 
   setSelectedTags: (selectedTags) => set({ selectedTags }),
+
+  setTagMode: (tagMode) => set({ tagMode }),
 
   clearTags: () => set({ selectedTags: [] }),
 
