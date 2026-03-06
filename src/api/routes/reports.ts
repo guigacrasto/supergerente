@@ -633,9 +633,12 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
     }
   });
 
-  // GET /api/reports/stream — SSE stream for real-time updates
+  // GET /api/reports/stream — SSE stream for real-time updates (full dashboard data)
   router.get("/stream", async (req: AuthRequest, res) => {
     const userTeams = req.userTeams || [];
+    const allowedFunnels = req.allowedFunnels || { azul: [], amarela: [] };
+    const pausedPipelines = req.pausedPipelines || [];
+    const isAdmin = req.userRole === "admin";
 
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
@@ -646,10 +649,53 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
       try {
         const teamsData = await Promise.all(
           userTeams.filter((t) => !!services[t]).map(async (team) => {
-            const metrics = await getCrmMetrics(team, services[team]);
+            const raw = await getCrmMetrics(team, services[team]);
+            const metrics = filterCrmMetrics(raw, {
+              tags: [],
+              tagMode: "or",
+              allowedFunnels: allowedFunnels[team] || [],
+              pausedPipelines,
+              isAdmin,
+            });
+
+            // Summary: funis list
+            const summary = Object.values(metrics.funis).map((f) => ({
+              nome: f.nome,
+              team,
+              novosHoje: f.novosHoje,
+              novosMes: f.novosMes,
+              ativos: f.ativos,
+            }));
+
+            // Dashboard agents aggregated
+            const byAgent: Record<string, {
+              nome: string; total: number; ganhos: number;
+              ganhosHoje: number; ganhosSemana: number; ativos: number;
+            }> = {};
+            for (const v of metrics.vendedores) {
+              if (!byAgent[v.nome]) {
+                byAgent[v.nome] = { nome: v.nome, total: 0, ganhos: 0, ganhosHoje: 0, ganhosSemana: 0, ativos: 0 };
+              }
+              byAgent[v.nome].total += v.total;
+              byAgent[v.nome].ganhos += v.ganhos;
+              byAgent[v.nome].ganhosHoje += v.ganhosHoje;
+              byAgent[v.nome].ganhosSemana += v.ganhosSemana;
+              byAgent[v.nome].ativos += v.ativos;
+            }
+            const agents = Object.values(byAgent).sort((a, b) => b.total - a.total);
+
+            // Activity
+            let activity = null;
+            try {
+              activity = await getActivityMetrics(team, services[team], metrics);
+            } catch {}
+
             return {
               team,
               geral: metrics.geral,
+              summary,
+              agents,
+              activity,
               atualizadoEm: new Date().toISOString(),
             };
           })
@@ -661,15 +707,9 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
       }
     };
 
-    // Send initial event immediately
     await sendUpdate();
-
-    // Then send every 30 seconds
     const interval = setInterval(sendUpdate, 30_000);
-
-    req.on("close", () => {
-      clearInterval(interval);
-    });
+    req.on("close", () => { clearInterval(interval); });
   });
 
   return router;
