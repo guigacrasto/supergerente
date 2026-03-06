@@ -65,6 +65,15 @@ export function filterCrmMetrics(metrics: CrmMetrics, opts: FilterOptions): CrmM
     return leads.filter((l) => l.created_at >= cutoff).length;
   }
 
+  function countCurrentMonth(leads: LeadSnapshot[]): number {
+    const now = new Date();
+    const brt = new Date(now.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+    const year = brt.getFullYear();
+    const month = String(brt.getMonth() + 1).padStart(2, '0');
+    const cutoff = new Date(`${year}-${month}-01T00:00:00-03:00`).getTime() / 1000;
+    return leads.filter((l) => l.created_at >= cutoff).length;
+  }
+
   const geral = {
     total: filteredSnapshots.length,
     ganhos: totalGanhos,
@@ -73,7 +82,7 @@ export function filterCrmMetrics(metrics: CrmMetrics, opts: FilterOptions): CrmM
     conversao: filteredSnapshots.length > 0 ? ((totalGanhos / filteredSnapshots.length) * 100).toFixed(1) + "%" : "0.0%",
     novosHoje: countPeriod(filteredSnapshots, 1),
     novosSemana: countPeriod(filteredSnapshots, 7),
-    novosMes: countPeriod(filteredSnapshots, 30),
+    novosMes: countCurrentMonth(filteredSnapshots),
   };
 
   // 7. Collect tags from filtered snapshots

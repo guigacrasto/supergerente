@@ -8,7 +8,7 @@ import {
   DollarSign,
   Briefcase,
   MessageSquare,
-  BarChart3,
+  Headset,
   AlertTriangle,
   Brain,
   Settings,
@@ -33,7 +33,7 @@ const NAV_ITEMS = [
   { to: '/renda', label: 'Renda', icon: DollarSign },
   { to: '/profissao', label: 'Profissão', icon: Briefcase },
   { to: '/chat', label: 'Chat IA', icon: MessageSquare },
-  { to: '/agents', label: 'Agentes', icon: BarChart3 },
+  { to: '/agents', label: 'Agentes', icon: Headset },
   { to: '/alerts', label: 'Alertas', icon: AlertTriangle },
   { to: '/insights', label: 'Insights', icon: Brain },
 ] as const;

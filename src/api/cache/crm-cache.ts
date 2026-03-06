@@ -120,6 +120,19 @@ function countWonPeriod(leads: any[], days: number): number {
   return leads.filter((l) => l.status_id === STATUS.WON && l.closed_at >= cutoff).length;
 }
 
+function getBrtMonthStart(): number {
+  const now = new Date();
+  const brt = new Date(now.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+  const year = brt.getFullYear();
+  const month = String(brt.getMonth() + 1).padStart(2, '0');
+  return new Date(`${year}-${month}-01T00:00:00-03:00`).getTime() / 1000;
+}
+
+function countCurrentMonth(leads: any[]): number {
+  const cutoff = getBrtMonthStart();
+  return leads.filter((l) => l.created_at >= cutoff).length;
+}
+
 async function fetchAndCompute(team: TeamKey, service: KommoService): Promise<CrmMetrics> {
   console.log(`[CrmCache:${team}] Buscando dados do CRM...`);
 
@@ -178,7 +191,7 @@ async function fetchAndCompute(team: TeamKey, service: KommoService): Promise<Cr
       conversao: toConversao(ganhos, leads.length),
       novosHoje: countPeriod(leads, 1),
       novosSemana: countPeriod(leads, 7),
-      novosMes: countPeriod(leads, 30),
+      novosMes: countCurrentMonth(leads),
     };
   }
 
@@ -202,7 +215,7 @@ async function fetchAndCompute(team: TeamKey, service: KommoService): Promise<Cr
         ativos: mine.length - ganhos - perdidos,
         conversao: toConversao(ganhos, mine.length),
         novosSemana: countPeriod(mine, 7),
-        novosMes: countPeriod(mine, 30),
+        novosMes: countCurrentMonth(mine),
       });
     }
   }
@@ -218,7 +231,7 @@ async function fetchAndCompute(team: TeamKey, service: KommoService): Promise<Cr
     conversao: toConversao(totalGanhos, allLeads.length),
     novosHoje: countPeriod(allLeads, 1),
     novosSemana: countPeriod(allLeads, 7),
-    novosMes: countPeriod(allLeads, 30),
+    novosMes: countCurrentMonth(allLeads),
   };
 
   const userMap = new Map<number, string>(users.map((u: any) => [u.id, u.name]));

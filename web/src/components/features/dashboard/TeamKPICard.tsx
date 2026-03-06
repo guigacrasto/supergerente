@@ -38,7 +38,7 @@ export function TeamKPICard({
         <div className="flex flex-col items-center gap-1 rounded-button bg-surface-secondary p-3">
           <Target className={`h-4 w-4 ${titleColor}`} />
           <span className="font-heading text-heading-sm">{novosMes}</span>
-          <span className="text-body-sm text-muted">Mes</span>
+          <span className="text-body-sm text-muted">Mês</span>
         </div>
       </div>
     </Card>

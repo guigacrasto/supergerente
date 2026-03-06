@@ -327,7 +327,7 @@ export function DashboardPage() {
           loading={loading}
         />
         <KPICard
-          label="Novos no Mes"
+          label="Novos no Mês"
           value={totalNovosMes}
           icon={Target}
           accent="success"
@@ -396,7 +396,7 @@ export function DashboardPage() {
                         <span className="font-heading text-heading-sm">
                           {p.novosMes}
                         </span>
-                        <span className="text-body-sm text-muted">mes</span>
+                        <span className="text-body-sm text-muted">mês</span>
                       </div>
                       <div className="flex flex-col items-center">
                         <span className="font-heading text-heading-sm">

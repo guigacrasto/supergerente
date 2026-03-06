@@ -239,7 +239,7 @@ export function TeamDashboardPage() {
           loading={loading}
         />
         <KPICard
-          label="Novos no Mes"
+          label="Novos no Mês"
           value={totalNovosMes}
           icon={Target}
           accent="success"
@@ -311,7 +311,7 @@ export function TeamDashboardPage() {
             {/* Pie chart — distribuicao de leads */}
             <Card>
               <CardHeader>
-                <CardTitle>Distribuicao de Leads Ativos</CardTitle>
+                <CardTitle>Distribuição de Leads Ativos</CardTitle>
               </CardHeader>
               <div className="px-5 py-4 flex items-center justify-center">
                 {pieData.length === 0 ? (
@@ -375,7 +375,7 @@ export function TeamDashboardPage() {
                   <tr className="border-b border-glass-border">
                     <th className="text-left px-5 py-3 text-muted font-heading font-semibold">Marca</th>
                     <th className="text-right px-5 py-3 text-muted font-heading font-semibold">Novos Hoje</th>
-                    <th className="text-right px-5 py-3 text-muted font-heading font-semibold">Novos no Mes</th>
+                    <th className="text-right px-5 py-3 text-muted font-heading font-semibold">Novos no Mês</th>
                     <th className="text-right px-5 py-3 text-muted font-heading font-semibold">Ativos</th>
                     <th className="text-right px-5 py-3 text-muted font-heading font-semibold">% do Total</th>
                   </tr>
@@ -443,7 +443,7 @@ export function TeamDashboardPage() {
                 </div>
                 <div className="flex flex-col gap-1 rounded-card border border-glass-border bg-surface-secondary p-4">
                   <span className="text-heading-lg font-heading">{filteredSummary[0].novosMes}</span>
-                  <span className="text-body-sm text-muted">Novos no Mes</span>
+                  <span className="text-body-sm text-muted">Novos no Mês</span>
                 </div>
                 <div className="flex flex-col gap-1 rounded-card border border-glass-border bg-surface-secondary p-4">
                   <span className="text-heading-lg font-heading text-accent-blue">{filteredSummary[0].ativos}</span>
