@@ -11,6 +11,8 @@ export interface AuthRequest extends Request {
   userId?: string;
   userRole?: string;
   userTeams?: TeamKey[];
+  allowedFunnels?: Record<string, number[]>;
+  pausedPipelines?: number[];
 }
 
 // In-memory auth profile cache — avoids 2 Supabase queries per request
@@ -18,6 +20,8 @@ interface CachedProfile {
   userId: string;
   role: string;
   teams: TeamKey[];
+  allowedFunnels: Record<string, number[]>;
+  pausedPipelines: number[];
   expiresAt: number;
 }
 
@@ -49,6 +53,8 @@ export async function requireAuth(
     req.userId = cached.userId;
     req.userRole = cached.role;
     req.userTeams = cached.teams;
+    req.allowedFunnels = cached.allowedFunnels;
+    req.pausedPipelines = cached.pausedPipelines;
     return next();
   }
 
@@ -70,6 +76,38 @@ export async function requireAuth(
     return;
   }
 
+  // Fetch funnel permissions + paused pipelines in parallel
+  const [permissionsResult, pausedResult] = await Promise.all([
+    supabase
+      .from("user_funnel_permissions")
+      .select("team, allowed_funnels")
+      .eq("user_id", user.id),
+    supabase
+      .from("settings")
+      .select("value")
+      .eq("key", "paused_pipelines")
+      .single(),
+  ]);
+
+  const allowedFunnels: Record<string, number[]> = { azul: [], amarela: [] };
+  if (permissionsResult.data) {
+    for (const row of permissionsResult.data) {
+      const funnels = Array.isArray(row.allowed_funnels) ? row.allowed_funnels : [];
+      allowedFunnels[row.team] = funnels;
+    }
+  }
+
+  let pausedPipelines: number[] = [];
+  if (pausedResult.data?.value) {
+    try {
+      pausedPipelines = Array.isArray(pausedResult.data.value)
+        ? pausedResult.data.value
+        : JSON.parse(pausedResult.data.value);
+    } catch {
+      pausedPipelines = [];
+    }
+  }
+
   // Admins always see all configured teams
   const teams: TeamKey[] = profile.role === "admin"
     ? ALL_CONFIGURED_TEAMS
@@ -80,11 +118,15 @@ export async function requireAuth(
     userId: user.id,
     role: profile.role,
     teams,
+    allowedFunnels,
+    pausedPipelines,
     expiresAt: Date.now() + AUTH_CACHE_TTL_MS,
   });
 
   req.userId = user.id;
   req.userRole = profile.role;
   req.userTeams = teams;
+  req.allowedFunnels = allowedFunnels;
+  req.pausedPipelines = pausedPipelines;
   next();
 }
