@@ -194,35 +194,15 @@ export class KommoService {
 
     public async getGroups(): Promise<Array<{ id: number; name: string }>> {
         try {
-            // Kommo exposes groups via the account endpoint with ?with=groups
-            const response = await this.client.get("/account", { params: { with: "groups" } });
-            // Groups may be at _embedded.groups or directly at .groups
-            const groups = response.data?._embedded?.groups || response.data?.groups || [];
-            console.log(`[Kommo] Account groups raw keys: ${JSON.stringify(Object.keys(response.data || {}))}`);
-            console.log(`[Kommo] Account _embedded keys: ${JSON.stringify(Object.keys(response.data?._embedded || {}))}`);
-            console.log(`[Kommo] Groups found: ${JSON.stringify(groups.length)} items`);
-            if (groups.length > 0) {
-                console.log(`[Kommo] First group: ${JSON.stringify(groups[0])}`);
-            }
+            const response = await this.client.get("/groups");
+            const raw = response.data;
+            console.log(`[Kommo] /groups response keys: ${JSON.stringify(Object.keys(raw || {}))}`);
+            console.log(`[Kommo] /groups raw data: ${JSON.stringify(raw).slice(0, 500)}`);
+            const groups = raw?._embedded?.groups || raw?.groups || (Array.isArray(raw) ? raw : []);
             return groups.map((g: any) => ({ id: g.id, name: g.name }));
-        } catch (error) {
-            console.error("Error fetching groups from account:", error);
+        } catch (error: any) {
+            console.error(`[Kommo] Error fetching /groups: ${error?.response?.status} ${error?.response?.statusText}`);
             return [];
-        }
-    }
-
-    public async getUsersWithGroups(): Promise<any[]> {
-        try {
-            const response = await this.client.get("/users", { params: { with: "group_id,role" } });
-            const users = response.data?._embedded?.users || [];
-            if (users.length > 0) {
-                console.log(`[Kommo] FULL USER OBJECT KEYS: ${JSON.stringify(Object.keys(users[0]))}`);
-                console.log(`[Kommo] FIRST USER FULL: ${JSON.stringify(users[0])}`);
-            }
-            return users;
-        } catch (error) {
-            console.error("Error fetching users with groups:", error);
-            throw error;
         }
     }
 

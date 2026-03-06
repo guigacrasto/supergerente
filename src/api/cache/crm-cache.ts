@@ -162,7 +162,7 @@ async function fetchAndCompute(team: TeamKey, service: KommoService): Promise<Cr
   }
 
   const [users, lossReasons, groups, ...leadsPerPipeline] = await Promise.all([
-    service.getUsersWithGroups(),
+    service.getUsers(),
     service.getLossReasons(),
     service.getGroups(),
     ...pipelines.map((p: any) => service.getLeads({ filter: { pipeline_id: p.id } })),
@@ -268,14 +268,20 @@ async function fetchAndCompute(team: TeamKey, service: KommoService): Promise<Cr
   // Build group name lookup
   const groupNamesMap: Record<number, string> = {};
   groups.forEach((g: { id: number; name: string }) => { groupNamesMap[g.id] = g.name; });
-  console.log(`[CrmCache:${team}] Groups from API: ${JSON.stringify(groups)}`);
-  console.log(`[CrmCache:${team}] Users group_ids: ${JSON.stringify(users.slice(0, 5).map((u: any) => ({ id: u.id, name: u.name, group_id: u.group_id })))}`);
+  console.log(`[CrmCache:${team}] Groups from API: ${groups.length} groups — ${JSON.stringify(groups)}`);
 
-  // Map users to their group names
+  // group_id lives inside user.rights.group_id in the Kommo API
+  const sampleUsers = users.slice(0, 5).map((u: any) => ({
+    id: u.id, name: u.name, group_id: u.rights?.group_id ?? u.group_id
+  }));
+  console.log(`[CrmCache:${team}] Users rights.group_id: ${JSON.stringify(sampleUsers)}`);
+
+  // Map users to their group names (group_id is in rights object)
   const userGroupsMap: Record<number, string> = {};
   users.forEach((u: any) => {
-    if (u.group_id && groupNamesMap[u.group_id]) {
-      userGroupsMap[u.id] = groupNamesMap[u.group_id];
+    const gid = u.rights?.group_id ?? u.group_id;
+    if (gid && groupNamesMap[gid]) {
+      userGroupsMap[u.id] = groupNamesMap[gid];
     }
   });
   console.log(`[CrmCache:${team}] User groups mapped: ${JSON.stringify(userGroupsMap)}`);
