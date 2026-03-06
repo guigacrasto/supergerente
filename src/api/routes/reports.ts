@@ -633,6 +633,74 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
     }
   });
 
+  // GET /api/reports/all — combined endpoint (summary + dashboard + activity in 1 request)
+  router.get("/all", async (req: AuthRequest, res) => {
+    const userTeams = req.userTeams || [];
+    const { tags, tagMode } = parseTagsFromQuery(req.query);
+    const allowedFunnels = req.allowedFunnels || { azul: [], amarela: [] };
+    const pausedPipelines = req.pausedPipelines || [];
+    const isAdmin = req.userRole === "admin";
+
+    try {
+      const teamsData = await Promise.all(
+        userTeams.filter((t) => !!services[t]).map(async (team) => {
+          const raw = await getCrmMetrics(team, services[team]);
+          const metrics = filterCrmMetrics(raw, {
+            tags, tagMode,
+            allowedFunnels: allowedFunnels[team] || [],
+            pausedPipelines, isAdmin,
+          });
+
+          const summary = Object.values(metrics.funis).map((f) => ({
+            nome: f.nome, team, novosHoje: f.novosHoje, novosMes: f.novosMes, ativos: f.ativos,
+          }));
+
+          const byAgent: Record<string, {
+            nome: string; total: number; ganhos: number;
+            ganhosHoje: number; ganhosSemana: number; ativos: number;
+          }> = {};
+          for (const v of metrics.vendedores) {
+            if (!byAgent[v.nome]) {
+              byAgent[v.nome] = { nome: v.nome, total: 0, ganhos: 0, ganhosHoje: 0, ganhosSemana: 0, ativos: 0 };
+            }
+            byAgent[v.nome].total += v.total;
+            byAgent[v.nome].ganhos += v.ganhos;
+            byAgent[v.nome].ganhosHoje += v.ganhosHoje;
+            byAgent[v.nome].ganhosSemana += v.ganhosSemana;
+            byAgent[v.nome].ativos += v.ativos;
+          }
+          const agents = Object.values(byAgent).sort((a, b) => b.total - a.total);
+
+          let activity = null;
+          try {
+            activity = await getActivityMetrics(team, services[team], metrics);
+          } catch {}
+
+          return { team, summary, agents, activity };
+        })
+      );
+
+      // Flatten into the format DashboardPage expects
+      const summary = teamsData.flatMap((t) => t.summary);
+      const agentsByTeam: Record<string, any[]> = {};
+      const activityList: Array<{ team: string; label: string; activity: any }> = [];
+      for (const t of teamsData) {
+        agentsByTeam[t.team] = t.agents;
+        if (t.activity) {
+          activityList.push({
+            team: t.team,
+            label: t.team === "azul" ? "Equipe Azul" : "Equipe Amarela",
+            activity: t.activity,
+          });
+        }
+      }
+
+      res.json({ summary, dashboard: { agentsByTeam }, activity: activityList });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // GET /api/reports/stream — SSE stream for real-time updates (full dashboard data)
   router.get("/stream", async (req: AuthRequest, res) => {
     const userTeams = req.userTeams || [];

@@ -297,3 +297,32 @@ export async function getCrmMetrics(team: TeamKey, service: KommoService): Promi
 
   return entry.fetchPromise;
 }
+
+// Proactive background refresh — keeps cache always warm so no user ever waits
+const PROACTIVE_REFRESH_MS = 25 * 60 * 1000; // 25 min (before 30 min TTL expires)
+const registeredTeams: Array<{ team: TeamKey; service: KommoService }> = [];
+
+export function startProactiveRefresh(team: TeamKey, service: KommoService): void {
+  registeredTeams.push({ team, service });
+}
+
+// Single interval refreshes all registered teams
+setInterval(async () => {
+  for (const { team, service } of registeredTeams) {
+    const entry = caches[team];
+    if (entry.fetchPromise) continue; // already refreshing
+    console.log(`[CrmCache:${team}] Proactive refresh...`);
+    entry.fetchPromise = fetchAndCompute(team, service)
+      .then((metrics) => {
+        entry.metrics = metrics;
+        entry.expiresAt = Date.now() + CACHE_TTL_MS;
+        console.log(`[CrmCache:${team}] Proactive refresh OK`);
+        return metrics;
+      })
+      .catch((err) => {
+        console.error(`[CrmCache:${team}] Proactive refresh error:`, err.message);
+        return entry.metrics!;
+      })
+      .finally(() => { entry.fetchPromise = null; });
+  }
+}, PROACTIVE_REFRESH_MS);

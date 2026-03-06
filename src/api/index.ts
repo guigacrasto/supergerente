@@ -1,7 +1,7 @@
 import { TEAMS, validateConfig, PORT } from "../config.js";
 import { KommoService } from "../services/kommo.js";
 import { createServer } from "./server.js";
-import { getCrmMetrics } from "./cache/crm-cache.js";
+import { getCrmMetrics, startProactiveRefresh } from "./cache/crm-cache.js";
 import { markCacheReady } from "./readiness.js";
 
 validateConfig();
@@ -46,5 +46,13 @@ app.listen(PORT, async () => {
   } catch (e) {
     console.error("[WarmUp] Erro ao aquecer cache (continuando mesmo assim):", e);
   }
+
+  // Register teams for proactive background refresh (cache never goes stale)
+  startProactiveRefresh("azul", services.azul);
+  if (TEAMS.amarela.subdomain) {
+    startProactiveRefresh("amarela", services.amarela);
+  }
+  console.log("[ProactiveRefresh] Background refresh registrado (cada 25 min)");
+
   markCacheReady();
 });

@@ -95,14 +95,15 @@ export function DashboardPage() {
     try {
       if (!isBackground) setLoading(true);
       const tagQuery = buildTagParams(selectedTags, tagMode);
-      const [summaryRes, activityRes, dashboardRes] = await Promise.all([
-        api.get<SummaryItem[]>(`/reports/summary${tagQuery}`),
-        api.get<ActivityTeam[]>(`/reports/activity${tagQuery}`),
-        api.get<DashboardData>(`/reports/dashboard${tagQuery}`),
-      ]);
-      setSummary(summaryRes.data);
-      setActivity(activityRes.data);
-      setDashboard(dashboardRes.data);
+      // Single combined request instead of 3 parallel
+      const res = await api.get<{
+        summary: SummaryItem[];
+        dashboard: DashboardData;
+        activity: ActivityTeam[];
+      }>(`/reports/all${tagQuery}`);
+      setSummary(res.data.summary);
+      setDashboard(res.data.dashboard);
+      setActivity(res.data.activity);
       setLastFetchTime(new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
     } catch (err) {
       console.error('[DashboardPage] Erro ao carregar dados:', err);
