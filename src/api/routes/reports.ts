@@ -339,9 +339,13 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
     const STATUS_WON = 142;
     const funilFilter = typeof req.query.funil === "string" ? req.query.funil : "";
     const agenteFilter = typeof req.query.agente === "string" ? req.query.agente : "";
+    const teamFilterParam = typeof req.query.team === "string" ? req.query.team : "";
 
     try {
-      const allMetrics = await getFilteredMetrics(req);
+      let allMetrics = await getFilteredMetrics(req);
+      if (teamFilterParam) {
+        allMetrics = allMetrics.filter(({ team }) => team === teamFilterParam);
+      }
 
       // Collect funnel/agent lists and build lookup maps
       const funisSet = new Set<string>();

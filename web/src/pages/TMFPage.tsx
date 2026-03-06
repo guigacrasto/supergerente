@@ -58,12 +58,13 @@ export function TMFPage() {
   const userTeams = user?.teams ?? [];
   const hasMultipleTeams = userTeams.length > 1;
 
-  const fetchData = useCallback(async (fromDate: string, toDate: string, funil: string, agente: string) => {
+  const fetchData = useCallback(async (fromDate: string, toDate: string, funil: string, agente: string, team: string) => {
     try {
       setLoading(true);
       const params: Record<string, string> = { from: fromDate, to: toDate };
       if (funil) params.funil = funil;
       if (agente) params.agente = agente;
+      if (team) params.team = team;
       const res = await api.get<TMFData>('/reports/tmf', { params });
       setData(res.data);
       setLastFetchTime(new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
@@ -75,8 +76,8 @@ export function TMFPage() {
   }, []);
 
   useEffect(() => {
-    fetchData(from, to, selectedFunil, selectedAgente);
-  }, [from, to, selectedFunil, selectedAgente, fetchData]);
+    fetchData(from, to, selectedFunil, selectedAgente, teamFilter);
+  }, [from, to, selectedFunil, selectedAgente, teamFilter, fetchData]);
 
   const funis = data?.funis ?? [];
   const agentes = data?.agentes ?? [];
@@ -164,8 +165,8 @@ export function TMFPage() {
         />
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto rounded-card border border-glass-border bg-surface">
+      {/* Table — only show when funil or agente filter is active */}
+      {(selectedFunil || selectedAgente) && <div className="overflow-x-auto rounded-card border border-glass-border bg-surface">
         <table className="w-full">
           <thead>
             <tr className="bg-surface-secondary text-muted text-body-sm">
@@ -219,7 +220,7 @@ export function TMFPage() {
             )}
           </tbody>
         </table>
-      </div>
+      </div>}
     </div>
   );
 }
