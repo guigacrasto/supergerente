@@ -196,13 +196,26 @@ export class KommoService {
         try {
             const response = await this.client.get("/groups");
             const raw = response.data;
-            console.log(`[Kommo] /groups response keys: ${JSON.stringify(Object.keys(raw || {}))}`);
-            console.log(`[Kommo] /groups raw data: ${JSON.stringify(raw).slice(0, 500)}`);
             const groups = raw?._embedded?.groups || raw?.groups || (Array.isArray(raw) ? raw : []);
-            return groups.map((g: any) => ({ id: g.id, name: g.name }));
-        } catch (error: any) {
-            console.error(`[Kommo] Error fetching /groups: ${error?.response?.status} ${error?.response?.statusText}`);
+            if (groups.length > 0) {
+                console.log(`[Kommo] /groups returned ${groups.length} groups`);
+                return groups.map((g: any) => ({ id: g.id, name: g.name }));
+            }
+            console.log(`[Kommo] /groups returned empty, trying /groups/{id} for each unique user group`);
             return [];
+        } catch (error: any) {
+            console.log(`[Kommo] /groups failed (${error?.response?.status}), will resolve from users`);
+            return [];
+        }
+    }
+
+    public async getGroupById(groupId: number): Promise<{ id: number; name: string } | null> {
+        try {
+            const response = await this.client.get(`/groups/${groupId}`);
+            const data = response.data;
+            return { id: data.id, name: data.name };
+        } catch {
+            return null;
         }
     }
 

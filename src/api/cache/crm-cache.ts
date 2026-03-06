@@ -268,13 +268,25 @@ async function fetchAndCompute(team: TeamKey, service: KommoService): Promise<Cr
   // Build group name lookup
   const groupNamesMap: Record<number, string> = {};
   groups.forEach((g: { id: number; name: string }) => { groupNamesMap[g.id] = g.name; });
-  console.log(`[CrmCache:${team}] Groups from API: ${groups.length} groups — ${JSON.stringify(groups)}`);
 
-  // group_id lives inside user.rights.group_id in the Kommo API
-  const sampleUsers = users.slice(0, 5).map((u: any) => ({
-    id: u.id, name: u.name, group_id: u.rights?.group_id ?? u.group_id
-  }));
-  console.log(`[CrmCache:${team}] Users rights.group_id: ${JSON.stringify(sampleUsers)}`);
+  // Collect unique group_ids from users (group_id is in user.rights.group_id)
+  const uniqueGroupIds = new Set<number>();
+  users.forEach((u: any) => {
+    const gid = u.rights?.group_id ?? u.group_id;
+    if (gid && gid !== 0) uniqueGroupIds.add(gid);
+  });
+
+  // If bulk /groups returned empty, resolve names individually
+  if (groups.length === 0 && uniqueGroupIds.size > 0) {
+    console.log(`[CrmCache:${team}] Resolving ${uniqueGroupIds.size} groups by ID: ${[...uniqueGroupIds]}`);
+    const resolved = await Promise.all(
+      [...uniqueGroupIds].map((gid) => service.getGroupById(gid))
+    );
+    for (const g of resolved) {
+      if (g) groupNamesMap[g.id] = g.name;
+    }
+  }
+  console.log(`[CrmCache:${team}] Group names: ${JSON.stringify(groupNamesMap)}`);
 
   // Map users to their group names (group_id is in rights object)
   const userGroupsMap: Record<number, string> = {};
@@ -284,7 +296,7 @@ async function fetchAndCompute(team: TeamKey, service: KommoService): Promise<Cr
       userGroupsMap[u.id] = groupNamesMap[gid];
     }
   });
-  console.log(`[CrmCache:${team}] User groups mapped: ${JSON.stringify(userGroupsMap)}`);
+  console.log(`[CrmCache:${team}] User groups mapped: ${Object.keys(userGroupsMap).length} users`);
 
   const lossReasonNamesMap: Record<number, string> = {};
   lossReasons.forEach((r: { id: number; name: string }) => { lossReasonNamesMap[r.id] = r.name; });
