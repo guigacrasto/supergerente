@@ -4,6 +4,7 @@ import { TeamKey } from "../../config.js";
 import { getCrmMetrics } from "../cache/crm-cache.js";
 import { getActivityMetrics, ActivityMetrics } from "../cache/activity-cache.js";
 import { requireAuth, AuthRequest } from "../middleware/requireAuth.js";
+import { filterCrmMetrics, parseTagsFromQuery } from "../helpers/filter-metrics.js";
 
 export function reportsRouter(services: Record<TeamKey, KommoService>) {
   const router = Router();
@@ -31,9 +32,32 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
     return null;
   }
 
+  async function getFilteredMetrics(req: AuthRequest) {
+    const userTeams = req.userTeams || [];
+    const { tags, tagMode } = parseTagsFromQuery(req.query);
+    const allowedFunnels = req.allowedFunnels || { azul: [], amarela: [] };
+    const pausedPipelines = req.pausedPipelines || [];
+    const isAdmin = req.userRole === "admin";
+
+    const results = await Promise.all(
+      userTeams.filter((t) => !!services[t]).map(async (team) => {
+        const raw = await getCrmMetrics(team, services[team]);
+        const filtered = filterCrmMetrics(raw, {
+          tags,
+          tagMode,
+          allowedFunnels: allowedFunnels[team] || [],
+          pausedPipelines,
+          isAdmin,
+        });
+        return { team, metrics: filtered };
+      })
+    );
+
+    return results;
+  }
+
   // GET /api/reports/agents — performance de agentes de todas as equipes autorizadas
   router.get("/agents", async (req: AuthRequest, res) => {
-    const userTeams = req.userTeams || [];
     try {
       const byAgent: Record<string, {
         Agente: string;
@@ -43,12 +67,7 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
         funnels: Record<string, number>;
       }> = {};
 
-      const allMetrics = await Promise.all(
-        userTeams.filter((t) => !!services[t]).map(async (team) => ({
-          team,
-          metrics: await getCrmMetrics(team, services[team]),
-        }))
-      );
+      const allMetrics = await getFilteredMetrics(req);
 
       for (const { metrics } of allMetrics) {
         for (const v of metrics.vendedores) {
@@ -88,14 +107,8 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
 
   // GET /api/reports/summary — novos hoje/mês + ativos por funil para todas as equipes autorizadas
   router.get("/summary", async (req: AuthRequest, res) => {
-    const userTeams = req.userTeams || [];
     try {
-      const allMetrics = await Promise.all(
-        userTeams.filter((t) => !!services[t]).map(async (team) => ({
-          team,
-          metrics: await getCrmMetrics(team, services[team]),
-        }))
-      );
+      const allMetrics = await getFilteredMetrics(req);
 
       const result: Array<{
         nome: string;
@@ -125,14 +138,8 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
 
   // GET /api/reports/dashboard — dados agregados por agente/equipe para o dashboard
   router.get("/dashboard", async (req: AuthRequest, res) => {
-    const userTeams = req.userTeams || [];
     try {
-      const allMetrics = await Promise.all(
-        userTeams.filter((t) => !!services[t]).map(async (team) => ({
-          team,
-          metrics: await getCrmMetrics(team, services[team]),
-        }))
-      );
+      const allMetrics = await getFilteredMetrics(req);
 
       const agentsByTeam: Record<string, Array<{
         nome: string;
@@ -176,6 +183,11 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
   // GET /api/reports/activity — leads sem atividade e tarefas vencidas por equipe
   router.get("/activity", async (req: AuthRequest, res) => {
     const userTeams = req.userTeams || [];
+    const { tags, tagMode } = parseTagsFromQuery(req.query);
+    const allowedFunnels = req.allowedFunnels || { azul: [], amarela: [] };
+    const pausedPipelines = req.pausedPipelines || [];
+    const isAdmin = req.userRole === "admin";
+
     try {
       const result: Array<{
         team: TeamKey;
@@ -186,8 +198,13 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
       const activityResults = await Promise.all(
         userTeams.filter((t) => !!services[t]).map(async (team) => {
           try {
-            const crmMetrics = await getCrmMetrics(team, services[team]);
-            const activity = await getActivityMetrics(team, services[team], crmMetrics);
+            const raw = await getCrmMetrics(team, services[team]);
+            const filtered = filterCrmMetrics(raw, {
+              tags, tagMode,
+              allowedFunnels: allowedFunnels[team] || [],
+              pausedPipelines, isAdmin,
+            });
+            const activity = await getActivityMetrics(team, services[team], filtered);
             return { team, label: team === "azul" ? "Equipe Azul" : "Equipe Amarela", activity };
           } catch (teamErr: any) {
             console.error(`[/api/reports/activity] Erro na equipe ${team}:`, teamErr.message);
@@ -207,7 +224,6 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
 
   // GET /api/reports/daily?date=YYYY-MM-DD — métricas diárias por equipe
   router.get("/daily", async (req: AuthRequest, res) => {
-    const userTeams = req.userTeams || [];
     const dateStr = typeof req.query.date === "string" ? req.query.date : "";
     const dateMatch = dateStr.match(/^\d{4}-\d{2}-\d{2}$/);
     const targetDate = dateMatch ? dateStr : new Date().toISOString().slice(0, 10);
@@ -229,12 +245,7 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
       const STATUS_WON = 142;
       const STATUS_LOST = 143;
 
-      const allMetrics = await Promise.all(
-        userTeams.filter((t) => !!services[t]).map(async (team) => ({
-          team,
-          metrics: await getCrmMetrics(team, services[team]),
-        }))
-      );
+      const allMetrics = await getFilteredMetrics(req);
 
       const result = allMetrics.map(({ team, metrics }) => {
         const leads = metrics.leadSnapshots;
@@ -272,14 +283,8 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
 
   // GET /api/reports/tags — lista todas as tags de todas as equipes autorizadas
   router.get("/tags", async (req: AuthRequest, res) => {
-    const userTeams = req.userTeams || [];
     try {
-      const allMetrics = await Promise.all(
-        userTeams.filter((t) => !!services[t]).map(async (team) => ({
-          team,
-          metrics: await getCrmMetrics(team, services[team]),
-        }))
-      );
+      const allMetrics = await getFilteredMetrics(req);
 
       const tags: Array<{ id: number; name: string; team: string }> = [];
 
@@ -297,17 +302,11 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
 
   // GET /api/reports/tmf?from=YYYY-MM-DD&to=YYYY-MM-DD — Tempo Médio de Fechamento
   router.get("/tmf", async (req: AuthRequest, res) => {
-    const userTeams = req.userTeams || [];
     const { fromTs, toTs } = parseDateRange(req.query);
     const STATUS_WON = 142;
 
     try {
-      const allMetrics = await Promise.all(
-        userTeams.filter((t) => !!services[t]).map(async (team) => ({
-          team,
-          metrics: await getCrmMetrics(team, services[team]),
-        }))
-      );
+      const allMetrics = await getFilteredMetrics(req);
 
       // Collect all won leads in range across all teams
       const wonLeads: Array<{
@@ -408,17 +407,11 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
 
   // GET /api/reports/loss-reasons?from=YYYY-MM-DD&to=YYYY-MM-DD — Motivos de Perda
   router.get("/loss-reasons", async (req: AuthRequest, res) => {
-    const userTeams = req.userTeams || [];
     const { fromTs, toTs } = parseDateRange(req.query);
     const STATUS_LOST = 143;
 
     try {
-      const allMetrics = await Promise.all(
-        userTeams.filter((t) => !!services[t]).map(async (team) => ({
-          team,
-          metrics: await getCrmMetrics(team, services[team]),
-        }))
-      );
+      const allMetrics = await getFilteredMetrics(req);
 
       // Collect all lost leads in range
       const lostLeads: Array<{
@@ -494,7 +487,6 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
 
   // GET /api/reports/income?from=YYYY-MM-DD&to=YYYY-MM-DD — Renda do Lead
   router.get("/income", async (req: AuthRequest, res) => {
-    const userTeams = req.userTeams || [];
     const { fromTs, toTs } = parseDateRange(req.query);
     const STATUS_WON = 142;
     const rendaPattern = /renda/i;
@@ -508,12 +500,7 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
     ];
 
     try {
-      const allMetrics = await Promise.all(
-        userTeams.filter((t) => !!services[t]).map(async (team) => ({
-          team,
-          metrics: await getCrmMetrics(team, services[team]),
-        }))
-      );
+      const allMetrics = await getFilteredMetrics(req);
 
       // Collect leads in date range
       const leads: Array<{
@@ -584,18 +571,12 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
 
   // GET /api/reports/profession?from=YYYY-MM-DD&to=YYYY-MM-DD — Profissão do Lead
   router.get("/profession", async (req: AuthRequest, res) => {
-    const userTeams = req.userTeams || [];
     const { fromTs, toTs } = parseDateRange(req.query);
     const STATUS_WON = 142;
     const profissaoPattern = /profiss[aã]o/i;
 
     try {
-      const allMetrics = await Promise.all(
-        userTeams.filter((t) => !!services[t]).map(async (team) => ({
-          team,
-          metrics: await getCrmMetrics(team, services[team]),
-        }))
-      );
+      const allMetrics = await getFilteredMetrics(req);
 
       // Collect leads in date range
       const leads: Array<{
