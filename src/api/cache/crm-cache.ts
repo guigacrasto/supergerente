@@ -77,7 +77,7 @@ export interface CrmMetrics {
   atualizadoEm: string;
 }
 
-const CACHE_TTL_MS = 30 * 60 * 1000;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 min — dados sempre frescos
 
 const STATUS = { WON: 142, LOST: 143 };
 
@@ -299,7 +299,7 @@ export async function getCrmMetrics(team: TeamKey, service: KommoService): Promi
 }
 
 // Proactive background refresh — keeps cache always warm so no user ever waits
-const PROACTIVE_REFRESH_MS = 25 * 60 * 1000; // 25 min (before 30 min TTL expires)
+const PROACTIVE_REFRESH_MS = 4 * 60 * 1000; // 4 min (before 5 min TTL expires)
 const registeredTeams: Array<{ team: TeamKey; service: KommoService }> = [];
 
 export function startProactiveRefresh(team: TeamKey, service: KommoService): void {
