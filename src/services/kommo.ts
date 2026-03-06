@@ -213,9 +213,12 @@ export class KommoService {
 
     public async getUsersWithGroups(): Promise<any[]> {
         try {
-            const response = await this.client.get("/users", { params: { with: "group" } });
+            const response = await this.client.get("/users", { params: { with: "group_id,role" } });
             const users = response.data?._embedded?.users || [];
-            console.log(`[Kommo] Users with group - first 3: ${JSON.stringify(users.slice(0, 3).map((u: any) => ({ id: u.id, name: u.name, group_id: u.group_id, rights_group_id: u.rights?.group_id })))}`);
+            if (users.length > 0) {
+                console.log(`[Kommo] FULL USER OBJECT KEYS: ${JSON.stringify(Object.keys(users[0]))}`);
+                console.log(`[Kommo] FIRST USER FULL: ${JSON.stringify(users[0])}`);
+            }
             return users;
         } catch (error) {
             console.error("Error fetching users with groups:", error);
@@ -276,7 +279,7 @@ export class KommoService {
             const limit = params.limit || 250;
 
             while (true) {
-                console.log(`[Kommo] Fetching leads page ${page}...`);
+                if (page % 10 === 1) console.log(`[Kommo] Fetching leads page ${page}...`);
                 const response = await this.client.get("/leads", {
                     params: {
                         limit: limit,
