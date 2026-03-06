@@ -6,6 +6,7 @@ import { stripFunilPrefix, buildTagParams } from '@/lib/utils';
 import { TEAM_LABELS } from '@/lib/constants';
 import { useFilterStore } from '@/stores/filterStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useSSE } from '@/hooks/useSSE';
 import { Card, CardHeader, CardTitle, Chip, Skeleton, LiveTimestamp } from '@/components/ui';
 import { KPICard } from '@/components/features/dashboard/KPICard';
 import { TeamBarChart } from '@/components/features/dashboard/TeamBarChart';
@@ -79,6 +80,7 @@ export function DashboardPage() {
   const selectedTags = useFilterStore((s) => s.selectedTags);
   const tagMode = useFilterStore((s) => s.tagMode);
   const user = useAuthStore((s) => s.user);
+  const { data: sseData, connected: sseConnected } = useSSE();
   const [summary, setSummary] = useState<SummaryItem[]>([]);
   const [activity, setActivity] = useState<ActivityTeam[]>([]);
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
@@ -109,11 +111,45 @@ export function DashboardPage() {
     }
   }, [selectedTags, tagMode]);
 
+  // SSE provides real-time data — use when available
   useEffect(() => {
+    if (!sseData) return;
+
+    // Derive summary from SSE
+    const sseSummary: SummaryItem[] = sseData.teams.flatMap((t) => t.summary || []);
+    setSummary(sseSummary);
+
+    // Derive dashboard agents from SSE
+    const agentsByTeam: Record<string, DashboardAgent[]> = {};
+    for (const t of sseData.teams) {
+      agentsByTeam[t.team] = t.agents || [];
+    }
+    setDashboard({ agentsByTeam });
+
+    // Derive activity from SSE
+    const activityData: ActivityTeam[] = sseData.teams
+      .filter((t) => t.activity)
+      .map((t) => ({
+        team: t.team,
+        label: t.team === 'azul' ? 'Equipe Azul' : 'Equipe Amarela',
+        activity: t.activity!,
+      }));
+    setActivity(activityData);
+
+    setLastFetchTime(new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+    setLoading(false);
+  }, [sseData]);
+
+  useEffect(() => {
+    // Initial fetch (SSE takes a moment to connect)
     fetchData();
-    const interval = setInterval(() => fetchData(true), REFRESH_INTERVAL_MS);
-    return () => clearInterval(interval);
-  }, [fetchData]);
+
+    // Only poll if SSE is not connected (fallback)
+    if (!sseConnected) {
+      const interval = setInterval(() => fetchData(true), REFRESH_INTERVAL_MS);
+      return () => clearInterval(interval);
+    }
+  }, [fetchData, sseConnected]);
 
   // Apply team filter to data sources
   const filteredSummary = teamFilter

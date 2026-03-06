@@ -1,22 +1,52 @@
 import { useEffect, useRef, useState } from 'react';
 import { STORAGE_KEYS } from '@/lib/constants';
 
+interface SSESummaryItem {
+  nome: string;
+  team: string;
+  novosHoje: number;
+  novosMes: number;
+  ativos: number;
+}
+
+interface SSEAgent {
+  nome: string;
+  total: number;
+  ganhos: number;
+  ganhosHoje: number;
+  ganhosSemana: number;
+  ativos: number;
+}
+
+interface SSEActivity {
+  leadsAbandonados48h: Array<{
+    id: number; nome: string; vendedor: string;
+    diasSemAtividade: number; kommoUrl: string;
+  }>;
+  leadsEmRisco7d: Array<{
+    id: number; nome: string; vendedor: string;
+    diasSemAtividade: number; kommoUrl: string;
+  }>;
+  tarefasVencidas: Array<{
+    id: number; texto: string; vendedor: string;
+    leadId: number; leadNome: string; diasVencida: number; kommoUrl: string;
+  }>;
+}
+
 interface SSETeamData {
   team: string;
   geral: {
-    total: number;
-    ganhos: number;
-    perdidos: number;
-    ativos: number;
-    conversao: string;
-    novosHoje: number;
-    novosSemana: number;
-    novosMes: number;
+    total: number; ganhos: number; perdidos: number;
+    ativos: number; conversao: string;
+    novosHoje: number; novosSemana: number; novosMes: number;
   };
+  summary: SSESummaryItem[];
+  agents: SSEAgent[];
+  activity: SSEActivity | null;
   atualizadoEm: string;
 }
 
-interface SSEPayload {
+export interface SSEPayload {
   teams: SSETeamData[];
 }
 
