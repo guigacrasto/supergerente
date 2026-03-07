@@ -46,6 +46,9 @@ interface ActivityTeamData {
     tarefasVencidas: RawAlertTask[];
     leadsDDDProibido: RawAlertLead[];
   };
+  funis?: string[];
+  grupos?: string[];
+  agentes?: string[];
 }
 
 type AlertFilter = 'todos' | 'risco48h' | 'risco7d' | 'tarefas' | 'ddd';
@@ -197,27 +200,15 @@ export function AlertsPage() {
     return true;
   }
 
-  // Extract unique values for filter dropdowns
+  // Extract filter dropdown lists from backend response (complete lists, not just from alerts)
   const { allGrupos, allFunis, allAgentes } = useMemo(() => {
     const gruposSet = new Set<string>();
     const funisSet = new Set<string>();
     const agentesSet = new Set<string>();
     for (const td of filteredTeams) {
-      const allLeads = [
-        ...td.activity.leadsAbandonados48h,
-        ...td.activity.leadsEmRisco7d,
-        ...(td.activity.leadsDDDProibido || []),
-      ];
-      for (const a of allLeads) {
-        if (a.grupo) gruposSet.add(a.grupo);
-        if (a.funil) funisSet.add(a.funil);
-        if (a.vendedor) agentesSet.add(a.vendedor);
-      }
-      for (const t of td.activity.tarefasVencidas) {
-        if (t.grupo) gruposSet.add(t.grupo);
-        if (t.funil) funisSet.add(t.funil);
-        if (t.vendedor) agentesSet.add(t.vendedor);
-      }
+      for (const f of (td.funis || [])) funisSet.add(f);
+      for (const g of (td.grupos || [])) gruposSet.add(g);
+      for (const a of (td.agentes || [])) agentesSet.add(a);
     }
     return {
       allGrupos: [...gruposSet].sort(),

@@ -257,7 +257,10 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
               pausedPipelines, isAdmin,
             });
             const activity = await getActivityMetrics(team, services[team], filtered);
-            return { team, label: team === "azul" ? "Equipe Azul" : "Equipe Amarela", activity };
+            const funis = Object.values(filtered.pipelineNames).sort();
+            const agentes = [...new Set(filtered.vendedores.map((v) => v.nome))].sort();
+            const grupos = [...new Set(Object.values(filtered.userGroups).filter(Boolean))].sort();
+            return { team, label: team === "azul" ? "Equipe Azul" : "Equipe Amarela", activity, funis, grupos, agentes };
           } catch (teamErr: any) {
             console.error(`[/api/reports/activity] Erro na equipe ${team}:`, teamErr.message);
             return null;
