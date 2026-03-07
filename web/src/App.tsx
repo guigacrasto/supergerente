@@ -13,6 +13,7 @@ import { TMFPage } from '@/pages/TMFPage';
 import { LossReasonsPage } from '@/pages/LossReasonsPage';
 import { RendaPage } from '@/pages/RendaPage';
 import { ProfissaoPage } from '@/pages/ProfissaoPage';
+import { DDDPage } from '@/pages/DDDPage';
 import { TeamDashboardPage } from '@/pages/TeamDashboardPage';
 import { AdminPage } from '@/pages/AdminPage';
 
@@ -31,6 +32,7 @@ export default function App() {
           <Route path="/motivos-perda" element={<LossReasonsPage />} />
           <Route path="/renda" element={<RendaPage />} />
           <Route path="/profissao" element={<ProfissaoPage />} />
+          <Route path="/ddd" element={<DDDPage />} />
           <Route path="/team/:team" element={<TeamDashboardPage />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/agents" element={<AgentsPage />} />

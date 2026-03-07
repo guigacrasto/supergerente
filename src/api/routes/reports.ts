@@ -835,6 +835,122 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
     }
   });
 
+  // GET /api/reports/ddd?from=YYYY-MM-DD&to=YYYY-MM-DD — Leads por DDD (código de área)
+  router.get("/ddd", async (req: AuthRequest, res) => {
+    const { fromTs, toTs } = parseDateRange(req.query);
+    const STATUS_WON = 142;
+    const teamFilter = typeof req.query.team === "string" ? req.query.team : "";
+    const groupFilter = typeof req.query.group === "string" ? req.query.group : "";
+    const funilFilter = typeof req.query.funil === "string" ? req.query.funil : "";
+
+    try {
+      const allMetrics = await getFilteredMetrics(req);
+
+      const { groupUserIds, allGroups } = buildGroupFilter(allMetrics, groupFilter, req.allowedGroups || {});
+
+      // Helper: extract phone from lead or contact custom fields
+      function getPhone(lead: any, contactCfByLead: Record<number, any[]>): string | null {
+        // Try lead custom fields
+        if (lead.custom_fields_values) {
+          for (const cf of lead.custom_fields_values) {
+            if (cf.field_code === "PHONE" || /phone|telefone|celular/i.test(cf.field_name || "")) {
+              const val = cf.values?.[0]?.value;
+              if (val) return val.toString();
+            }
+          }
+        }
+        // Try contact custom fields
+        const contactCfs = contactCfByLead[lead.id];
+        if (!contactCfs) return null;
+        for (const cf of contactCfs) {
+          if (cf.field_code === "PHONE" || /phone|telefone|celular/i.test(cf.field_name || "")) {
+            const val = cf.values?.[0]?.value;
+            if (val) return val.toString();
+          }
+        }
+        return null;
+      }
+
+      // Helper: extract DDD from Brazilian phone number
+      function extractDDD(phone: string): string | null {
+        const digits = phone.replace(/\D/g, "");
+        // +55 XX XXXXX-XXXX → DDD = XX
+        if (digits.startsWith("55") && digits.length >= 12) {
+          return digits.substring(2, 4);
+        }
+        // XX XXXXX-XXXX (no country code)
+        if (digits.length >= 10 && digits.length <= 11) {
+          return digits.substring(0, 2);
+        }
+        return null;
+      }
+
+      const leads: Array<{
+        status_id: number;
+        price: number;
+        phone: string | null;
+      }> = [];
+      let pipelineNamesMap: Record<number, string> = {};
+      const allFunilNames = new Set<string>();
+
+      for (const { team, metrics } of allMetrics) {
+        if (teamFilter && team !== teamFilter) continue;
+        Object.assign(pipelineNamesMap, metrics.pipelineNames);
+        for (const v of metrics.vendedores) {
+          allFunilNames.add(v.funil.replace(/^FUNIL\s+/i, ""));
+        }
+        for (const lead of metrics.leadSnapshots) {
+          if (lead.created_at >= fromTs && lead.created_at <= toTs) {
+            if (groupUserIds && !groupUserIds.has(lead.responsible_user_id)) continue;
+            if (funilFilter) {
+              const pName = (pipelineNamesMap[lead.pipeline_id] || "").replace(/^FUNIL\s+/i, "");
+              if (pName !== funilFilter) continue;
+            }
+            leads.push({
+              status_id: lead.status_id,
+              price: lead.price || 0,
+              phone: getPhone(lead, metrics.contactCfByLead),
+            });
+          }
+        }
+      }
+
+      // Group by DDD
+      const dddMap: Record<string, { volume: number; fechamentos: number; totalPrice: number }> = {};
+
+      for (const lead of leads) {
+        const ddd = lead.phone ? extractDDD(lead.phone) : null;
+        const key = ddd || "Não identificado";
+        if (!dddMap[key]) {
+          dddMap[key] = { volume: 0, fechamentos: 0, totalPrice: 0 };
+        }
+        dddMap[key].volume++;
+        if (lead.status_id === STATUS_WON) {
+          dddMap[key].fechamentos++;
+          dddMap[key].totalPrice += lead.price;
+        }
+      }
+
+      const ddds = Object.entries(dddMap)
+        .map(([ddd, data]) => ({
+          ddd,
+          volume: data.volume,
+          fechamentos: data.fechamentos,
+          conversao: data.volume > 0
+            ? ((data.fechamentos / data.volume) * 100).toFixed(1) + "%"
+            : "0.0%",
+          ticketMedio: data.fechamentos > 0
+            ? Math.round(data.totalPrice / data.fechamentos)
+            : 0,
+        }))
+        .sort((a, b) => b.volume - a.volume);
+
+      res.json({ ddds, funis: Array.from(allFunilNames).sort(), grupos: Array.from(allGroups).sort() });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // GET /api/reports/all — combined endpoint (summary + dashboard + activity in 1 request)
   router.get("/all", async (req: AuthRequest, res) => {
     const userTeams = req.userTeams || [];
