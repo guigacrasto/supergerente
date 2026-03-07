@@ -107,6 +107,7 @@ export function filterCrmMetrics(metrics: CrmMetrics, opts: FilterOptions): CrmM
     ),
     userNames: metrics.userNames,
     userGroups: metrics.userGroups,
+    contactCfByLead: metrics.contactCfByLead,
     lossReasonNames: metrics.lossReasonNames,
     allTags,
     atualizadoEm: metrics.atualizadoEm,

@@ -297,7 +297,7 @@ export class KommoService {
                     params: {
                         limit: limit,
                         page: page,
-                        with: "custom_fields_values",
+                        with: "custom_fields_values,contacts",
                         filter: params.filter,
                         sort: params.sort
                     }
@@ -322,6 +322,47 @@ export class KommoService {
             return allLeads;
         } catch (error) {
             console.error("Error fetching leads:", error);
+            return [];
+        }
+    }
+
+    /**
+     * Fetch all contacts with custom_fields_values (paginated).
+     * Returns raw Kommo contact objects.
+     */
+    public async getContacts(): Promise<any[]> {
+        try {
+            let allContacts: any[] = [];
+            let page = 1;
+            const limit = 250;
+
+            while (true) {
+                if (page % 10 === 1) console.log(`[Kommo] Fetching contacts page ${page}...`);
+                const response = await this.client.get("/contacts", {
+                    params: {
+                        limit,
+                        page,
+                        with: "custom_fields_values",
+                    },
+                });
+
+                const contacts = response.data?._embedded?.contacts || [];
+                if (contacts.length === 0) break;
+
+                allContacts = allContacts.concat(contacts);
+
+                if (contacts.length < limit) break;
+                if (page > 100) {
+                    console.warn("[Kommo] Reached 100 pages of contacts, stopping for safety.");
+                    break;
+                }
+                page++;
+            }
+
+            console.log(`[Kommo] Total contacts fetched: ${allContacts.length}`);
+            return allContacts;
+        } catch (error) {
+            console.error("Error fetching contacts:", error);
             return [];
         }
     }

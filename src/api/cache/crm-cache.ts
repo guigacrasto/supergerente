@@ -72,6 +72,7 @@ export interface CrmMetrics {
   };
   activeLeads: ActiveLead[];
   leadSnapshots: LeadSnapshot[];
+  contactCfByLead: Record<number, any[]>;
   pipelineNames: Record<number, string>;
   userNames: Record<number, string>;
   userGroups: Record<number, string>;
@@ -153,6 +154,7 @@ async function fetchAndCompute(team: TeamKey, service: KommoService): Promise<Cr
       geral: { total: 0, ganhos: 0, perdidos: 0, ativos: 0, conversao: "0.0%", novosHoje: 0, novosSemana: 0, novosMes: 0 },
       activeLeads: [],
       leadSnapshots: [],
+      contactCfByLead: {},
       pipelineNames: {},
       userNames: {},
       userGroups: {},
@@ -162,10 +164,11 @@ async function fetchAndCompute(team: TeamKey, service: KommoService): Promise<Cr
     };
   }
 
-  const [users, lossReasons, groups, ...leadsPerPipeline] = await Promise.all([
+  const [users, lossReasons, groups, contacts, ...leadsPerPipeline] = await Promise.all([
     service.getUsers(),
     service.getLossReasons(),
     service.getGroups(),
+    service.getContacts(),
     ...pipelines.map((p: any) => service.getLeads({ filter: { pipeline_id: p.id } })),
   ]);
 
@@ -261,6 +264,27 @@ async function fetchAndCompute(team: TeamKey, service: KommoService): Promise<Cr
     custom_fields_values: l.custom_fields_values ?? null,
   }));
 
+  // Build contact custom fields map: contactId → custom_fields_values
+  const contactCfMap = new Map<number, any[]>();
+  for (const c of contacts) {
+    if (c.custom_fields_values && c.custom_fields_values.length > 0) {
+      contactCfMap.set(c.id, c.custom_fields_values);
+    }
+  }
+
+  // Build leadId → contact custom fields (from embedded contacts in lead response)
+  const contactCfByLead: Record<number, any[]> = {};
+  for (const l of allLeads) {
+    const linkedContacts = l._embedded?.contacts ?? [];
+    if (linkedContacts.length === 0) continue;
+    const merged: any[] = [];
+    for (const lc of linkedContacts) {
+      const cf = contactCfMap.get(lc.id);
+      if (cf) merged.push(...cf);
+    }
+    if (merged.length > 0) contactCfByLead[l.id] = merged;
+  }
+  console.log(`[CrmCache:${team}] Contatos: ${contacts.length}, leads com CF de contato: ${Object.keys(contactCfByLead).length}`);
 
   const pipelineNames: Record<number, string> = {};
   pipelines.forEach((p: any) => { pipelineNames[p.id] = p.name; });
@@ -345,6 +369,7 @@ async function fetchAndCompute(team: TeamKey, service: KommoService): Promise<Cr
     geral,
     activeLeads,
     leadSnapshots,
+    contactCfByLead,
     pipelineNames,
     userNames: userNamesMap,
     userGroups: userGroupsMap,

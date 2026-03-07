@@ -32,6 +32,25 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
     return null;
   }
 
+  function getCustomFieldValueWithContacts(
+    lead: any,
+    fieldNamePattern: RegExp,
+    contactCfByLead: Record<number, any[]>,
+  ): string | null {
+    // 1. Tenta no lead
+    const fromLead = getCustomFieldValue(lead, fieldNamePattern);
+    if (fromLead) return fromLead;
+    // 2. Tenta nos contatos vinculados
+    const contactCfs = contactCfByLead[lead.id];
+    if (!contactCfs) return null;
+    for (const cf of contactCfs) {
+      if (fieldNamePattern.test(cf.field_name || "")) {
+        return cf.values?.[0]?.value?.toString() || null;
+      }
+    }
+    return null;
+  }
+
   // Build group user IDs set considering both permission and explicit filter
   function buildGroupFilter(
     allMetrics: Array<{ team: string; metrics: any }>,
@@ -681,7 +700,7 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
             leads.push({
               status_id: lead.status_id,
               price: lead.price || 0,
-              renda: getCustomFieldValue(lead, rendaPattern),
+              renda: getCustomFieldValueWithContacts(lead, rendaPattern, metrics.contactCfByLead),
             });
           }
         }
@@ -774,7 +793,7 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
             leads.push({
               status_id: lead.status_id,
               price: lead.price || 0,
-              profissao: getCustomFieldValue(lead, profissaoPattern),
+              profissao: getCustomFieldValueWithContacts(lead, profissaoPattern, metrics.contactCfByLead),
             });
           }
         }
