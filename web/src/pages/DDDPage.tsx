@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { CalendarDays, Phone, MapPin } from 'lucide-react';
+import { CalendarDays, Phone, MapPin, ChevronDown, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
 import { useFilterStore } from '@/stores/filterStore';
@@ -33,6 +34,62 @@ function getDefaultFrom(): string {
 
 function getToday(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+function EstadoFilter({ estados, selected, onChange }: { estados: string[]; selected: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  if (estados.length === 0) return null;
+  const active = selected !== '';
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className={cn(
+          'flex items-center gap-2 px-3 py-2 rounded-button border text-body-sm font-medium transition-colors cursor-pointer',
+          active
+            ? 'border-primary bg-primary/10 text-primary'
+            : 'border-glass-border bg-surface-secondary text-muted hover:text-foreground'
+        )}
+      >
+        <MapPin className="h-4 w-4" />
+        <span>Estado{active ? `: ${selected}` : ''}</span>
+        <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', open && 'rotate-180')} />
+      </button>
+
+      {open && (
+        <div className="absolute top-full left-0 mt-1 z-50 min-w-[160px] max-h-[280px] overflow-y-auto rounded-card border border-glass-border bg-surface shadow-lg">
+          {active && (
+            <button
+              onClick={() => { onChange(''); setOpen(false); }}
+              className="flex w-full items-center gap-2 px-3 py-2 text-body-sm text-danger hover:bg-surface-secondary transition-colors cursor-pointer border-b border-glass-border"
+            >
+              <X className="h-3.5 w-3.5" />
+              Limpar filtro
+            </button>
+          )}
+          {estados.map((uf) => (
+            <button
+              key={uf}
+              onClick={() => { onChange(uf); setOpen(false); }}
+              className={cn(
+                'flex w-full items-center gap-2 px-3 py-2 text-body-sm transition-colors cursor-pointer',
+                selected === uf
+                  ? 'bg-primary/10 text-primary font-medium'
+                  : 'text-foreground hover:bg-surface-secondary'
+              )}
+            >
+              {uf}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {open && (
+        <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+      )}
+    </div>
+  );
 }
 
 type SortKey = 'ddd' | 'estado' | 'volume' | 'fechamentos' | 'conversao' | 'ticketMedio';
@@ -143,19 +200,7 @@ export function DDDPage() {
         <FunilFilter funis={funis} />
 
         {/* Estado Filter */}
-        <div className="flex items-center gap-2">
-          <MapPin className="h-4 w-4 text-muted" />
-          <select
-            value={estadoFilter}
-            onChange={(e) => setEstadoFilter(e.target.value)}
-            className="rounded-button border border-glass-border bg-surface-secondary px-3 py-2 text-body-md text-foreground focus:outline-none focus:border-primary transition-colors cursor-pointer"
-          >
-            <option value="">Estado</option>
-            {estados.map((uf) => (
-              <option key={uf} value={uf}>{uf}</option>
-            ))}
-          </select>
-        </div>
+        <EstadoFilter estados={estados} selected={estadoFilter} onChange={setEstadoFilter} />
 
         <TagFilter />
       </div>
