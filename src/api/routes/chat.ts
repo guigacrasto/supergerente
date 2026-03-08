@@ -3,9 +3,9 @@ import { randomUUID } from "crypto";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { KommoService } from "../../services/kommo.js";
 import { getCrmMetrics, CrmMetrics } from "../cache/crm-cache.js";
-import { requireAuth, AuthRequest } from "../middleware/requireAuth.js";
+import { AuthRequest } from "../middleware/requireAuth.js";
 import { supabase } from "../supabase.js";
-import { TeamKey, TEAMS } from "../../config.js";
+import { getTeamConfigsFromTenant } from "../../config.js";
 import { getActivityMetrics, ActivityMetrics } from "../cache/activity-cache.js";
 
 interface ChatSession {
@@ -21,9 +21,9 @@ function buildMentorInstruction(mentor: {
   system_prompt: string;
   methodology_text: string;
 }): string {
-  let instruction = `## VOCÊ É O MENTOR: ${mentor.name.toUpperCase()}\n${mentor.system_prompt}`;
+  let instruction = `## VOCE E O MENTOR: ${mentor.name.toUpperCase()}\n${mentor.system_prompt}`;
   if (mentor.methodology_text?.trim()) {
-    instruction += `\n\n## METODOLOGIA DE REFERÊNCIA (${mentor.name})\n${mentor.methodology_text}`;
+    instruction += `\n\n## METODOLOGIA DE REFERENCIA (${mentor.name})\n${mentor.methodology_text}`;
   }
   return instruction;
 }
@@ -41,14 +41,14 @@ function buildSystemPrompt(
     const funisTexto = Object.values(funis)
       .map(
         (f) =>
-          `  ${f.nome}: ${f.total} leads | ganhos: ${f.ganhos} | perdidos: ${f.perdidos} | ativos: ${f.ativos} | conversão: ${f.conversao} | novos hoje: ${f.novosHoje} | novos semana: ${f.novosSemana} | novos mês: ${f.novosMes}`
+          `  ${f.nome}: ${f.total} leads | ganhos: ${f.ganhos} | perdidos: ${f.perdidos} | ativos: ${f.ativos} | conversao: ${f.conversao} | novos hoje: ${f.novosHoje} | novos semana: ${f.novosSemana} | novos mes: ${f.novosMes}`
       )
       .join("\n");
 
     const vendedoresTexto = vendedores
       .map(
         (v) =>
-          `  ${v.nome} | ${v.funil} | total: ${v.total} | ganhos: ${v.ganhos} | perdidos: ${v.perdidos} | ativos: ${v.ativos} | conversão: ${v.conversao} | novos semana: ${v.novosSemana} | novos mês: ${v.novosMes}`
+          `  ${v.nome} | ${v.funil} | total: ${v.total} | ganhos: ${v.ganhos} | perdidos: ${v.perdidos} | ativos: ${v.ativos} | conversao: ${v.conversao} | novos semana: ${v.novosSemana} | novos mes: ${v.novosMes}`
       )
       .join("\n");
 
@@ -59,66 +59,65 @@ function buildSystemPrompt(
       const tarefas = activity.tarefasVencidas;
       activityTexto = `
 ALERTAS DE ATIVIDADE (${activity.atualizadoEm}):
-  Leads sem atividade há +48h: ${ab.length}${ab.length > 0 ? " — " + ab.slice(0, 5).map((l) => `${l.nome} (${l.vendedor}, ${l.diasSemAtividade}d)`).join(", ") + (ab.length > 5 ? ` e mais ${ab.length - 5}` : "") : ""}
+  Leads sem atividade ha +48h: ${ab.length}${ab.length > 0 ? " — " + ab.slice(0, 5).map((l) => `${l.nome} (${l.vendedor}, ${l.diasSemAtividade}d)`).join(", ") + (ab.length > 5 ? ` e mais ${ab.length - 5}` : "") : ""}
   Leads em risco (sem atividade +7d): ${risco.length}${risco.length > 0 ? " — " + risco.slice(0, 5).map((l) => `${l.nome} (${l.vendedor}, ${l.diasSemAtividade}d)`).join(", ") + (risco.length > 5 ? ` e mais ${risco.length - 5}` : "") : ""}
   Tarefas vencidas: ${tarefas.length}${tarefas.length > 0 ? " — " + tarefas.slice(0, 5).map((t) => `${t.texto} (${t.vendedor}, ${t.diasVencida}d vencida)`).join(", ") + (tarefas.length > 5 ? ` e mais ${tarefas.length - 5}` : "") : ""}`;
     }
 
     return `## ${label.toUpperCase()} — DADOS ATUALIZADOS EM: ${metrics.atualizadoEm}
 
-⚠️ COBERTURA DOS DADOS DISPONÍVEIS:
-- "novosHoje" = leads criados nas últimas 24h (janela rolante, NÃO dia calendário)
-- "novosSemana" = leads criados nos últimos 7 dias (janela rolante, NÃO semana seg-dom)
-- "novosMes" = leads criados nos últimos 30 dias (janela rolante, NÃO mês calendário)
-- "total/ativos/ganhos/perdidos" = acumulado histórico completo do funil
-- NÃO há dados de "semana passada" ou períodos anteriores específicos — apenas janelas rolantes.
+⚠️ COBERTURA DOS DADOS DISPONIVEIS:
+- "novosHoje" = leads criados nas ultimas 24h (janela rolante, NAO dia calendario)
+- "novosSemana" = leads criados nos ultimos 7 dias (janela rolante, NAO semana seg-dom)
+- "novosMes" = leads criados nos ultimos 30 dias (janela rolante, NAO mes calendario)
+- "total/ativos/ganhos/perdidos" = acumulado historico completo do funil
+- NAO ha dados de "semana passada" ou periodos anteriores especificos — apenas janelas rolantes.
 
-RESUMO GERAL: ${geral.total} leads | ganhos: ${geral.ganhos} | perdidos: ${geral.perdidos} | ativos: ${geral.ativos} | conversão: ${geral.conversao} | novos hoje: ${geral.novosHoje}
+RESUMO GERAL: ${geral.total} leads | ganhos: ${geral.ganhos} | perdidos: ${geral.perdidos} | ativos: ${geral.ativos} | conversao: ${geral.conversao} | novos hoje: ${geral.novosHoje}
 
-MÉTRICAS POR FUNIL:
+METRICAS POR FUNIL:
 ${funisTexto}
 
-MÉTRICAS POR VENDEDOR × FUNIL:
+METRICAS POR VENDEDOR × FUNIL:
 ${vendedoresTexto}
 ${activityTexto}`;
   });
 
-  return `Você é o assistente analítico de CRM da empresa. Responda gerentes com precisão, profissionalismo e análise aprofundada.
+  return `Voce e o assistente analitico de CRM da empresa. Responda gerentes com precisao, profissionalismo e analise aprofundada.
 
 ${sections.join("\n\n---\n\n")}
 
 ## REGRAS GERAIS
-- Responda SEMPRE em Português Brasil.
+- Responda SEMPRE em Portugues Brasil.
 - Use Markdown (tabelas, negrito, listas) para formatar respostas.
 - Baseie suas respostas EXCLUSIVAMENTE nos dados acima.
-- Se não tiver o dado solicitado, informe claramente que não está disponível.
+- Se nao tiver o dado solicitado, informe claramente que nao esta disponivel.
 - Para rankings, ordene do maior para o menor.
-- Conversão = ganhos ÷ (ganhos + perdidos) × 100.
+- Conversao = ganhos ÷ (ganhos + perdidos) × 100.
 
-## MODO ANALÍTICO — SEMPRE APLIQUE
+## MODO ANALITICO — SEMPRE APLIQUE
 - Ao analisar performance, identifique os **TOP 3 INSIGHTS** mais relevantes antes de responder.
-- Faça **COMPARATIVOS** sempre que possível: funil A vs. B, agente X vs. média, esta semana vs. mês.
-- Identifique **ANOMALIAS**: agentes muito acima ou abaixo da média, funis com conversão muito baixa.
-- Conclua análises com uma **RECOMENDAÇÃO DE AÇÃO** clara e objetiva.
+- Faca **COMPARATIVOS** sempre que possivel: funil A vs. B, agente X vs. media, esta semana vs. mes.
+- Identifique **ANOMALIAS**: agentes muito acima ou abaixo da media, funis com conversao muito baixa.
+- Conclua analises com uma **RECOMENDACAO DE ACAO** clara e objetiva.
 - Para perguntas sobre acompanhamento: use os dados de ALERTAS DE ATIVIDADE acima.
 - Use tom executivo: direto, baseado em dados, orientado a resultado.
 
-## FORMATAÇÃO OBRIGATÓRIA
-- Use emojis para organizar seções: 📊 para dados/tabelas, 💡 para insights, ⚠️ para anomalias, ✅ para recomendações, 🏆 para rankings, 📋 para resumos
-- Sempre que houver métricas numéricas, use tabela Markdown: | coluna | valor |
-- Separe seções com linha horizontal: ---
-- Máximo 3 bullet points por seção — seja conciso
-- Nunca escreva parágrafos longos sem estrutura visual
+## FORMATACAO OBRIGATORIA
+- Use emojis para organizar secoes: 📊 para dados/tabelas, 💡 para insights, ⚠️ para anomalias, ✅ para recomendacoes, 🏆 para rankings, 📋 para resumos
+- Sempre que houver metricas numericas, use tabela Markdown: | coluna | valor |
+- Separe secoes com linha horizontal: ---
+- Maximo 3 bullet points por secao — seja conciso
+- Nunca escreva paragrafos longos sem estrutura visual
 
-## METADADOS OBRIGATÓRIOS
+## METADADOS OBRIGATORIOS
 - Ao citar dados, SEMPRE inclua ao final: 📡 Fonte: Kommo CRM | ⏱️ Dados de: [cite o atualizadoEm]
-- Se dados vierem zerados: explique que o funil pode não ter atividade no período. NÃO assuma erro de sistema.
-- Se o usuário perguntar sobre "semana passada": esclareça que só há janelas rolantes de 7/30 dias e ofereça os dados disponíveis.`;
+- Se dados vierem zerados: explique que o funil pode nao ter atividade no periodo. NAO assuma erro de sistema.
+- Se o usuario perguntar sobre "semana passada": esclareca que so ha janelas rolantes de 7/30 dias e ofereca os dados disponiveis.`;
 }
 
-export function chatRouter(services: Record<TeamKey, KommoService>) {
+export function chatRouter() {
   const router = Router();
-  router.use(requireAuth as any);
 
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
@@ -133,7 +132,8 @@ export function chatRouter(services: Record<TeamKey, KommoService>) {
     res.json(data);
   });
 
-  router.post("/", async (req: AuthRequest, res) => {
+  router.post("/", async (req, res) => {
+    const authReq = req as AuthRequest;
     const { message, sessionId: incomingSessionId, mentorIds }: { message: string; sessionId?: string; mentorIds?: string[] } = req.body;
 
     if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === "SUA_CHAVE_AQUI") {
@@ -143,15 +143,21 @@ export function chatRouter(services: Record<TeamKey, KommoService>) {
     }
 
     try {
-      // Fetch metrics for all user's authorized teams
-      const userTeams = (req as AuthRequest).userTeams || [];
+      // Build KommoService instances from tenant config
+      const tenant = authReq.tenant!;
+      const tenantId = authReq.tenantId!;
+      const teamConfigs = getTeamConfigsFromTenant(tenant);
+      const userTeams = authReq.userTeams || [];
+
       const metricsPerTeam = await Promise.all(
         userTeams
-          .filter((t) => services[t])
+          .filter((t) => !!teamConfigs[t] && teamConfigs[t].subdomain)
           .map(async (t) => {
-            const crmMetrics = await getCrmMetrics(t, services[t]);
-            const activity = await getActivityMetrics(t, services[t], crmMetrics);
-            return { team: t, label: TEAMS[t].label, crmMetrics, activity };
+            const cfg = teamConfigs[t];
+            const kommoService = new KommoService(cfg, t, tenantId);
+            const crmMetrics = await getCrmMetrics(t, kommoService, tenantId, cfg.excludePipelineNames);
+            const activity = await getActivityMetrics(t, kommoService, crmMetrics);
+            return { team: t, label: cfg.label, crmMetrics, activity };
           })
       );
       const allMetrics = metricsPerTeam.map((m) => ({
@@ -209,8 +215,8 @@ export function chatRouter(services: Record<TeamKey, KommoService>) {
         );
 
         // Synthesis call
-        const synthesisPrompt = `Você é um moderador de conselho de mentores. Os seguintes mentores responderam à pergunta do gerente.
-Apresente a opinião de cada mentor claramente (com o nome como título), depois sintetize um **VEREDITO FINAL** consolidado.
+        const synthesisPrompt = `Voce e um moderador de conselho de mentores. Os seguintes mentores responderam a pergunta do gerente.
+Apresente a opiniao de cada mentor claramente (com o nome como titulo), depois sintetize um **VEREDITO FINAL** consolidado.
 
 Pergunta do gerente: ${message}
 
@@ -234,9 +240,9 @@ ${mentorResponses.map((m) => `## Mentor: ${m.name}\n${m.response}`).join("\n\n--
       }
 
       // Log token usage
-      if (usageMeta && req.userId) {
+      if (usageMeta && authReq.userId) {
         await supabase.from("token_logs").insert({
-          user_id: req.userId,
+          user_id: authReq.userId,
           session_id: sessionId,
           prompt_tokens: usageMeta.promptTokenCount ?? 0,
           completion_tokens: usageMeta.candidatesTokenCount ?? 0,

@@ -1,6 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { KommoService } from "../../services/kommo.js";
-import { TeamKey, TEAMS } from "../../config.js";
 import { getCrmMetrics, ActiveLead, CrmMetrics } from "./crm-cache.js";
 
 export interface ConversationInsight {
@@ -163,9 +162,9 @@ export interface InsightsFilter {
  * Only re-analyzes a lead if it has +5 new notes since last analysis.
  */
 export async function fetchFilteredInsights(
-  services: Record<TeamKey, KommoService>,
+  services: Record<string, KommoService>,
   genAI: GoogleGenerativeAI,
-  userTeams: TeamKey[],
+  userTeams: string[],
   filters: InsightsFilter
 ): Promise<{ data: AgentInsightSummary[]; processing: boolean }> {
   const targetTeams = filters.team
@@ -175,7 +174,7 @@ export async function fetchFilteredInsights(
   if (targetTeams.length === 0) return { data: [], processing: false };
 
   // Collect all active leads matching filters
-  let allLeads: Array<{ lead: ActiveLead; team: TeamKey; metrics: CrmMetrics }> = [];
+  let allLeads: Array<{ lead: ActiveLead; team: string; metrics: CrmMetrics }> = [];
 
   for (const team of targetTeams) {
     const metrics = await getCrmMetrics(team, services[team]);
@@ -216,7 +215,7 @@ export async function fetchFilteredInsights(
     selectedWithTeam,
     CONCURRENCY,
     async ({ lead, team }): Promise<ConversationInsight | null> => {
-      const subdomain = TEAMS[team].subdomain;
+      const subdomain = services[team].config.subdomain;
       const kommoUrl = `https://${subdomain}.kommo.com/leads/detail/${lead.id}`;
 
       try {
@@ -305,19 +304,19 @@ export async function fetchFilteredInsights(
 
 // Legacy functions for backwards compat (remove later)
 export async function getConversationInsights(
-  team: TeamKey,
+  team: string,
   service: KommoService,
   genAI: GoogleGenerativeAI
 ): Promise<{ data: AgentInsightSummary[]; processing: boolean }> {
   return fetchFilteredInsights(
-    { [team]: service } as Record<TeamKey, KommoService>,
+    { [team]: service } as Record<string, KommoService>,
     genAI,
     [team],
     { team }
   );
 }
 
-export function clearInsightsCache(_team?: TeamKey): void {
+export function clearInsightsCache(_team?: string): void {
   // Per-lead cache doesn't need clearing — 5-action rule handles staleness
   console.log(`[InsightsCache] Cache invalidation requested (per-lead cache remains)`);
 }

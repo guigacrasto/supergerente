@@ -12,7 +12,9 @@ import {
   Headset,
   AlertTriangle,
   Brain,
+  TrendingUp,
   Settings,
+  Building2 as Building2Icon,
   LogOut,
   ChevronRight,
   ChevronDown,
@@ -36,6 +38,7 @@ const NAV_ITEMS = [
   { to: '/renda', label: 'Renda', icon: DollarSign },
   { to: '/profissao', label: 'Profissão', icon: Briefcase },
   { to: '/ddd', label: 'DDD', icon: Phone },
+  { to: '/predictions', label: 'Previsões', icon: TrendingUp },
   { to: '/chat', label: 'Chat IA', icon: MessageSquare },
   { to: '/agents', label: 'Agentes', icon: Headset },
   { to: '/alerts', label: 'Alertas', icon: AlertTriangle },
@@ -129,7 +132,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           ))}
 
           {/* Admin-only nav items */}
-          {user?.role === 'admin' && ADMIN_NAV_ITEMS.map(({ to, label, icon: Icon }) => (
+          {(user?.role === 'admin' || user?.role === 'superadmin') && ADMIN_NAV_ITEMS.map(({ to, label, icon: Icon }) => (
             <li key={to}>
               <NavLink
                 to={to}
@@ -152,7 +155,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           ))}
 
           {/* Admin link — only for admins */}
-          {user?.role === 'admin' && (
+          {(user?.role === 'admin' || user?.role === 'superadmin') && (
             <li>
               <NavLink
                 to="/admin"
@@ -173,10 +176,33 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               </NavLink>
             </li>
           )}
+
+          {/* Super Admin link — only for superadmins */}
+          {user?.role === 'superadmin' && (
+            <li>
+              <NavLink
+                to="/super"
+                onClick={handleNavClick}
+                title={isCollapsed ? 'Super Admin' : undefined}
+                className={({ isActive }) =>
+                  cn(
+                    'flex items-center rounded-button px-3 py-2.5 text-body-md font-medium transition-colors duration-150',
+                    isCollapsed ? 'justify-center' : 'gap-3',
+                    isActive
+                      ? 'border-l-2 border-primary bg-primary/20 text-white'
+                      : 'text-white/70 hover:bg-white/10 hover:text-white'
+                  )
+                }
+              >
+                <Building2Icon className="h-5 w-5 shrink-0" />
+                {!isCollapsed && 'Super Admin'}
+              </NavLink>
+            </li>
+          )}
         </ul>
 
         {/* Team accordion sections — hidden when collapsed, admin only */}
-        {!isCollapsed && user?.role === 'admin' && (
+        {!isCollapsed && (user?.role === 'admin' || user?.role === 'superadmin') && (
           <div className="mt-6 space-y-2">
             {(['azul', 'amarela'] as const).map((team) => {
               const teamPipelines = byTeam(team);

@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Central de Inteligência Comercial — Apresentação</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --blue: #3b82f6;
+    --blue-dark: #1d4ed8;
+    --purple: #8b5cf6;
+    --green: #10b981;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --slate: #1e293b;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --bg: #f8fafc;
+    --white: #ffffff;
+
+    /* App dark theme colors for mockups */
+    --app-bg: #0d1117;
+    --app-glass: rgba(255,255,255,0.05);
+    --app-border: rgba(255,255,255,0.1);
+    --app-accent: #3b82f6;
+    --app-text: #f1f5f9;
+    --app-muted: #94a3b8;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .page { max-width: 980px; margin: 0 auto; padding: 40px 32px; }
+
+  /* ── Header ── */
+  .header {
+    text-align: center;
+    margin-bottom: 52px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--border);
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #dbeafe, #ede9fe);
+    color: #3730a3;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+  .header h1 {
+    font-size: 38px;
+    font-weight: 900;
+    color: var(--slate);
+    line-height: 1.15;
+    margin-bottom: 16px;
+    letter-spacing: -0.02em;
+  }
+  .header h1 .accent { color: var(--blue); }
+  .header-sub {
+    font-size: 16px;
+    color: var(--text-muted);
+    max-width: 560px;
+    margin: 0 auto 28px;
+    line-height: 1.7;
+    font-weight: 400;
+  }
+  .header-stats {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+  .stat {
+    text-align: center;
+  }
+  .stat .num {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--blue);
+    display: block;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat .lbl { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+
+  /* ── Section headers ── */
+  .sec {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .sec::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* ── Problem / Solution ── */
+  .problem-solution {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+  .ps-card {
+    border-radius: 14px;
+    padding: 22px 24px;
+  }
+  .ps-card.problem {
+    background: #fff5f5;
+    border: 1.5px solid #fecaca;
+  }
+  .ps-card.solution {
+    background: #f0fdf4;
+    border: 1.5px solid #bbf7d0;
+  }
+  .ps-card h3 {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ps-card.problem h3 { color: #991b1b; }
+  .ps-card.solution h3 { color: #14532d; }
+  .ps-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .ps-list li {
+    font-size: 12px;
+    line-height: 1.5;
+    padding-left: 20px;
+    position: relative;
+  }
+  .ps-card.problem .ps-list li { color: #7f1d1d; }
+  .ps-card.problem .ps-list li::before { content: '✗'; position: absolute; left: 0; color: #ef4444; font-weight: 700; }
+  .ps-card.solution .ps-list li { color: #15803d; }
+  .ps-card.solution .ps-list li::before { content: '✓'; position: absolute; left: 0; color: #10b981; font-weight: 700; }
+
+  /* ── Screen mockups ── */
+  .screens-section { margin-bottom: 52px; }
+
+  .screen-block {
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 32px;
+    align-items: center;
+    margin-bottom: 48px;
+  }
+  .screen-block.reverse { grid-template-columns: 0.95fr 1.05fr; }
+  .screen-block.reverse .screen-info { order: -1; }
+
+  .screen-info { padding: 8px 0; }
+  .screen-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+  .screen-tag.blue { background: #dbeafe; color: #1d4ed8; }
+  .screen-tag.purple { background: #ede9fe; color: #6d28d9; }
+  .screen-tag.red { background: #fee2e2; color: #991b1b; }
+  .screen-tag.green { background: #dcfce7; color: #14532d; }
+  .screen-tag.amber { background: #fef3c7; color: #92400e; }
+
+  .screen-info h2 {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--slate);
+    line-height: 1.25;
+    margin-bottom: 10px;
+    letter-spacing: -0.01em;
+  }
+  .screen-info p {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    line-height: 1.65;
+    margin-bottom: 14px;
+  }
+  .bullets { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .bullets li {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding-left: 18px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .bullets li::before { content: '→'; position: absolute; left: 0; color: var(--blue); font-weight: 700; font-size: 11px; }
+
+  /* ── APP MOCKUPS ── */
+  .mockup {
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25), 0 4px 16px rgba(0,0,0,0.15);
+    background: var(--app-bg);
+    border: 1px solid rgba(255,255,255,0.06);
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* Window chrome */
+  .mock-chrome {
+    background: rgba(255,255,255,0.04);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .dot.r { background: #ff5f57; }
+  .dot.y { background: #febc2e; }
+  .dot.g { background: #28c840; }
+  .mock-title {
+    font-size: 10px;
+    color: rgba(255,255,255,0.35);
+    margin-left: 8px;
+    font-weight: 500;
+  }
+
+  .mock-body { padding: 14px 16px; }
+
+  /* Chat mockup */
+  .mock-mentor-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .mock-mentor-label {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.35);
+    white-space: nowrap;
+  }
+  .mock-chip {
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.14);
+    color: rgba(255,255,255,0.45);
+    background: transparent;
+  }
+  .mock-chip.active {
+    background: var(--app-accent);
+    color: #fff;
+    border-color: var(--app-accent);
+    font-weight: 700;
+  }
+  .mock-chip.council {
+    background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+    color: #fff;
+    border-color: transparent;
+    font-weight: 700;
+  }
+
+  .mock-msg {
+    margin-bottom: 10px;
+    display: flex;
+    gap: 8px;
+  }
+  .mock-msg.user { flex-direction: row-reverse; }
+  .mock-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+  }
+  .mock-avatar.bot { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; }
+  .mock-avatar.user { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); }
+  .mock-bubble {
+    max-width: 85%;
+    padding: 8px 11px;
+    border-radius: 12px;
+    font-size: 10.5px;
+    line-height: 1.55;
+  }
+  .mock-msg.user .mock-bubble { background: rgba(59,130,246,0.18); color: #93c5fd; border-radius: 12px 4px 12px 12px; }
+  .mock-msg.bot .mock-bubble {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--app-text);
+    border-radius: 4px 12px 12px 12px;
+  }
+  .mock-bubble strong { color: #93c5fd; font-weight: 700; }
+  .mock-bubble .tbl {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0;
+    font-size: 9.5px;
+  }
+  .mock-bubble .tbl th {
+    background: rgba(59,130,246,0.15);
+    color: #93c5fd;
+    padding: 4px 6px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .mock-bubble .tbl td {
+    padding: 3px 6px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: rgba(255,255,255,0.75);
+  }
+  .mock-bubble .tbl tr:last-child td { border-bottom: none; }
+  .mock-bubble hr { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 6px 0; }
+  .mock-emoji { margin-right: 3px; }
+
+  .mock-input-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 7px 10px;
+  }
+  .mock-input-bar input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: rgba(255,255,255,0.4);
+    font-size: 10px;
+    font-family: inherit;
+  }
+  .mock-input-bar .send-btn {
+    background: var(--app-accent);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 11px;
+    padding: 4px 8px;
+    cursor: pointer;
+  }
+
+  /* Alerts mockup */
+  .mock-section-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .mock-team-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #60a5fa;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .mock-alert-group {
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  .mock-alert-group.yellow {
+    background: rgba(245,158,11,0.08);
+    border-color: rgba(245,158,11,0.2);
+  }
+  .mock-alert-group.orange {
+    background: rgba(249,115,22,0.08);
+    border-color: rgba(249,115,22,0.2);
+  }
+  .alert-group-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #fca5a5;
+  }
+  .mock-alert-group.yellow .alert-group-title { color: #fcd34d; }
+  .mock-alert-group.orange .alert-group-title { color: #fdba74; }
+  .alert-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 7px;
+    padding: 6px 9px;
+    margin-bottom: 4px;
+    font-size: 10px;
+  }
+  .alert-row:last-child { margin-bottom: 0; }
+  .alert-name { color: var(--app-text); font-weight: 500; }
+  .alert-agent { color: var(--app-muted); font-size: 9px; }
+  .alert-badge {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .alert-badge.red { background: rgba(239,68,68,0.2); color: #fca5a5; }
+  .alert-badge.yellow { background: rgba(245,158,11,0.2); color: #fcd34d; }
+  .alert-badge.orange { background: rgba(249,115,22,0.2); color: #fdba74; }
+
+  /* Report table mockup */
+  .mock-filter-bar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .mock-filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .mock-filter-field label { font-size: 8.5px; color: var(--app-muted); font-weight: 600; text-transform: uppercase; }
+  .mock-filter-field select {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 5px;
+    color: var(--app-text);
+    font-size: 9.5px;
+    padding: 3px 6px;
+    font-family: inherit;
+  }
+  .mock-filter-btn {
+    background: var(--app-accent);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 9.5px;
+    padding: 5px 10px;
+    font-weight: 600;
+    cursor: pointer;
+    align-self: flex-end;
+    font-family: inherit;
+  }
+  .mock-table { width: 100%; border-collapse: collapse; font-size: 9.5px; }
+  .mock-table th {
+    background: rgba(255,255,255,0.06);
+    color: var(--app-muted);
+    padding: 6px 8px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    position: sticky;
+    top: 0;
+  }
+  .mock-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: rgba(255,255,255,0.8);
+  }
+  .mock-table tr:first-child td { color: #93c5fd; font-weight: 600; }
+  .mock-table .hl { color: #4ade80; }
+
+  /* Admin mentor mockup */
+  .mock-mentor-form {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+  .mock-form-label {
+    font-size: 9px;
+    color: var(--app-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+    display: block;
+  }
+  .mock-form-input {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    color: var(--app-text);
+    font-size: 10px;
+    padding: 5px 8px;
+    margin-bottom: 8px;
+    font-family: inherit;
+  }
+  .mock-form-textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    color: var(--app-text);
+    font-size: 10px;
+    padding: 5px 8px;
+    margin-bottom: 8px;
+    font-family: inherit;
+    resize: none;
+  }
+  .mock-form-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    align-items: center;
+  }
+  .mock-file-btn {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 6px;
+    color: var(--app-muted);
+    font-size: 9.5px;
+    padding: 4px 9px;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .mock-file-ok { font-size: 9.5px; color: #4ade80; }
+  .mock-create-btn {
+    background: var(--app-accent);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 10px;
+    padding: 6px 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .mock-mentor-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 8px;
+    padding: 9px 12px;
+    margin-bottom: 6px;
+  }
+  .mock-mentor-name { font-size: 11px; font-weight: 600; color: var(--app-text); }
+  .mock-mentor-desc { font-size: 9.5px; color: var(--app-muted); }
+  .mock-badge-active { font-size: 9px; background: rgba(16,185,129,0.15); color: #6ee7b7; border-radius: 4px; padding: 2px 6px; font-weight: 600; }
+  .mock-row-btns { display: flex; gap: 6px; }
+  .mock-edit-btn { font-size: 9px; padding: 3px 8px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.12); background: transparent; color: var(--app-muted); cursor: pointer; font-family: inherit; }
+  .mock-del-btn { font-size: 9px; padding: 3px 8px; border-radius: 5px; border: 1px solid rgba(239,68,68,0.3); background: rgba(239,68,68,0.1); color: #fca5a5; cursor: pointer; font-family: inherit; }
+
+  /* Council mockup */
+  .council-bubble {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 4px 12px 12px 12px;
+    padding: 10px 12px;
+    font-size: 10px;
+    color: var(--app-text);
+    line-height: 1.55;
+  }
+  .council-mentor-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: #c4b5fd;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .council-section {
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+  }
+  .council-section:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+  .council-verdict {
+    background: rgba(59,130,246,0.08);
+    border: 1px solid rgba(59,130,246,0.2);
+    border-radius: 7px;
+    padding: 7px 10px;
+    margin-top: 6px;
+  }
+  .council-verdict-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: #93c5fd;
+    margin-bottom: 4px;
+  }
+
+  /* ── White label section ── */
+  .wl-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 48px;
+  }
+  .wl-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    padding: 18px 20px;
+  }
+  .wl-card h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--slate);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .wl-card ul { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+  .wl-card ul li {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    padding-left: 18px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .wl-card ul li::before { content: '✓'; position: absolute; left: 0; color: var(--green); font-weight: 700; font-size: 11px; }
+
+  /* ── ROI section ── */
+  .roi-strip {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 48px;
+    color: white;
+  }
+  .roi-strip h2 {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 6px;
+    color: white;
+  }
+  .roi-strip p { font-size: 12px; color: #94a3b8; margin-bottom: 20px; }
+  .roi-items {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  .roi-item {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+  }
+  .roi-num { font-size: 26px; font-weight: 800; color: #60a5fa; display: block; margin-bottom: 4px; line-height: 1; }
+  .roi-lbl { font-size: 10.5px; color: #94a3b8; line-height: 1.4; }
+
+  /* ── Footer ── */
+  .footer {
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10.5px;
+    color: var(--text-muted);
+  }
+
+  /* Print */
+  @media print {
+    body { background: white; }
+    .page { padding: 16px 20px; }
+    .screen-block { break-inside: avoid; margin-bottom: 32px; }
+    .mockup { box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+    .roi-strip { break-inside: avoid; }
+  }
+  @page { size: A4; margin: 12mm; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ── Header ── -->
+  <div class="header">
+    <div class="eyebrow">✦ Apresentação Comercial</div>
+    <h1>A <span class="accent">Central de Inteligência</span><br>da sua Equipe Comercial</h1>
+    <p class="header-sub">
+      Seu gestor de vendas responde perguntas, acompanha a equipe e toma decisões com dados reais —
+      tudo em uma conversa, sem planilhas, sem relatórios manuais.
+    </p>
+    <div class="header-stats">
+      <div class="stat">
+        <span class="num">100%</span>
+        <span class="lbl">Dados ao vivo do CRM</span>
+      </div>
+      <div class="stat">
+        <span class="num">&lt; 5s</span>
+        <span class="lbl">Resposta da IA</span>
+      </div>
+      <div class="stat">
+        <span class="num">3</span>
+        <span class="lbl">Modos de IA disponíveis</span>
+      </div>
+      <div class="stat">
+        <span class="num">24h</span>
+        <span class="lbl">Alerta automático de risco</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Problem / Solution ── -->
+  <p class="sec">O Problema que Resolvemos</p>
+  <div class="problem-solution" style="margin-bottom: 52px;">
+    <div class="ps-card problem">
+      <h3>😣 Como é hoje — sem a plataforma</h3>
+      <ul class="ps-list">
+        <li>Gestor perde horas exportando relatórios do CRM manualmente</li>
+        <li>Leads somem sem contato e ninguém percebe até ser tarde</li>
+        <li>Difícil saber quem está performando bem ou mal sem montar planilha</li>
+        <li>Treinamentos de vendas não chegam no momento certo da decisão</li>
+        <li>Perguntas simples como "quem vendeu mais essa semana?" levam 10 minutos pra responder</li>
+      </ul>
+    </div>
+    <div class="ps-card solution">
+      <h3>🚀 Como fica — com a plataforma</h3>
+      <ul class="ps-list">
+        <li>Resposta instantânea sobre qualquer métrica — só perguntar no chat</li>
+        <li>Alertas automáticos de leads parados antes de perder o negócio</li>
+        <li>Ranking de agentes, taxas de conversão e anomalias detectadas automaticamente</li>
+        <li>Mentores de IA com metodologias treinadas da empresa respondem junto com os dados</li>
+        <li>Zero configuração de relatório — os dados aparecem em segundos</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ── SCREENS ── -->
+  <p class="sec">As Telas do Sistema</p>
+
+  <!-- Screen 1: Chat com Mentor -->
+  <div class="screen-block screens-section" style="margin-bottom: 44px;">
+    <div class="mockup">
+      <div class="mock-chrome">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+        <span class="mock-title">Chat Inteligente — Equipe Comercial</span>
+      </div>
+      <div class="mock-body">
+        <div class="mock-mentor-bar">
+          <span class="mock-mentor-label">Mentor:</span>
+          <span class="mock-chip active">🤖 Padrão</span>
+          <span class="mock-chip">Grant Cardone</span>
+          <span class="mock-chip">Jordan Belfort</span>
+        </div>
+        <div class="mock-msg user">
+          <div class="mock-avatar user">G</div>
+          <div class="mock-bubble">Quem foram os top 3 vendedores esse mês e qual a taxa de conversão deles?</div>
+        </div>
+        <div class="mock-msg bot">
+          <div class="mock-avatar bot">IA</div>
+          <div class="mock-bubble">
+            <span class="mock-emoji">🏆</span><strong>Top 3 Vendedores — Este Mês</strong><hr>
+            <table class="tbl">
+              <thead><tr><th>#</th><th>Vendedor</th><th>Fechamentos</th><th>Conversão</th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td>Marcos Silva</td><td>18</td><td class="hl">42,3%</td></tr>
+                <tr><td>2</td><td>Ana Costa</td><td>14</td><td>37,1%</td></tr>
+                <tr><td>3</td><td>Pedro Lima</td><td>11</td><td>28,5%</td></tr>
+              </tbody>
+            </table>
+            <hr><span class="mock-emoji">💡</span><strong>Insight:</strong> Marcos está 14% acima da média do time (28,1%). Ana tem o melhor volume de novas entradas. Pedro caiu 6pp vs. semana passada — monitorar.<br><hr>
+            <span class="mock-emoji">✅</span><strong>Ação recomendada:</strong> Agendar 1:1 com Pedro para entender gargalo na etapa de proposta.
+          </div>
+        </div>
+        <div class="mock-input-bar">
+          <input type="text" placeholder="Pergunte sobre leads, agentes, funis..." readonly>
+          <button class="send-btn">↑</button>
+        </div>
+      </div>
+    </div>
+    <div class="screen-info">
+      <span class="screen-tag blue">Chat Analítico</span>
+      <h2>Pergunte qualquer coisa sobre seu time de vendas</h2>
+      <p>O gestor digita uma pergunta em linguagem natural e recebe análise completa com tabelas, rankings e recomendações — baseada nos dados reais do CRM naquele momento.</p>
+      <ul class="bullets">
+        <li>Dados atualizados automaticamente a cada 30 minutos</li>
+        <li>Respostas organizadas com tabelas, emojis e insights visuais</li>
+        <li>Histórico da conversa mantido durante a sessão</li>
+        <li>Selecione um mentor antes de perguntar para respostas com o estilo dele</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Screen 2: Conselho de Mentores -->
+  <div class="screen-block reverse" style="margin-bottom: 44px;">
+    <div class="screen-info">
+      <span class="screen-tag purple">Modo Conselho</span>
+      <h2>Um board de consultores especializados — ao mesmo tempo</h2>
+      <p>Selecione dois ou mais mentores e faça sua pergunta. O sistema consulta cada um em paralelo e apresenta as opiniões individuais seguidas de um veredito consolidado.</p>
+      <ul class="bullets">
+        <li>Cada mentor responde com sua abordagem e metodologia própria</li>
+        <li>Moderador sintetiza as visões em um Veredito Final objetivo</li>
+        <li>Ideal para decisões estratégicas: contratar, desligar, mudar meta</li>
+        <li>Mentores treinados com os materiais de vendas da empresa</li>
+      </ul>
+    </div>
+    <div class="mockup">
+      <div class="mock-chrome">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+        <span class="mock-title">Chat — Modo Conselho Ativado</span>
+      </div>
+      <div class="mock-body">
+        <div class="mock-mentor-bar">
+          <span class="mock-mentor-label">Mentor:</span>
+          <span class="mock-chip">🤖 Padrão</span>
+          <span class="mock-chip council">Grant Cardone ✓</span>
+          <span class="mock-chip council">Straight Line ✓</span>
+        </div>
+        <div class="mock-msg user">
+          <div class="mock-avatar user">G</div>
+          <div class="mock-bubble">Pedro perdeu 3 negócios seguidos na etapa de proposta. O que fazer?</div>
+        </div>
+        <div class="mock-msg bot">
+          <div class="mock-avatar bot">⚖️</div>
+          <div class="council-bubble">
+            <div class="council-section">
+              <div class="council-mentor-title">🎤 Grant Cardone</div>
+              Pedro está com medo de fechar. O volume de atividade dele caiu — ele precisa de 10x mais follow-ups. Cada "não" é um treino, não uma derrota. Aumente a meta dele por 2 semanas.
+            </div>
+            <div class="council-section">
+              <div class="council-mentor-title">📐 Straight Line</div>
+              O problema está na etapa de apresentação de valor. Pedro não está identificando as três certezas do cliente antes da proposta. Revise o script da etapa 3 com ele hoje.
+            </div>
+            <div class="council-verdict">
+              <div class="council-verdict-title">⚖️ Veredito Final</div>
+              Ação imediata: role-play de objeções com Pedro (abordagem Straight Line) + meta de volume dobrada por 2 semanas (Cardone). Acompanhar conversão na próxima semana.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 3: Alertas -->
+  <div class="screen-block" style="margin-bottom: 44px;">
+    <div class="mockup">
+      <div class="mock-chrome">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+        <span class="mock-title">Painel de Alertas de Atividade</span>
+      </div>
+      <div class="mock-body">
+        <div class="mock-team-title">⚡ Equipe Azul</div>
+        <div class="mock-alert-group">
+          <div class="alert-group-title">⚠️ Sem atividade há +48h — 4 leads</div>
+          <div class="alert-row">
+            <div><div class="alert-name">Empresa XYZ Ltda</div><div class="alert-agent">Pedro Lima</div></div>
+            <span class="alert-badge red">3d</span>
+          </div>
+          <div class="alert-row">
+            <div><div class="alert-name">Construtora Alfa</div><div class="alert-agent">Ana Costa</div></div>
+            <span class="alert-badge red">2d</span>
+          </div>
+        </div>
+        <div class="mock-alert-group yellow">
+          <div class="alert-group-title">🕐 Em risco crítico (+7 dias) — 2 leads</div>
+          <div class="alert-row">
+            <div><div class="alert-name">Grupo Beta Comércio</div><div class="alert-agent">Marcos Silva</div></div>
+            <span class="alert-badge yellow">9d</span>
+          </div>
+        </div>
+        <div class="mock-alert-group orange">
+          <div class="alert-group-title">📋 Tarefas vencidas — 3</div>
+          <div class="alert-row">
+            <div><div class="alert-name">Ligar para decisor</div><div class="alert-agent">Pedro Lima · Empresa XYZ</div></div>
+            <span class="alert-badge orange">2d</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="screen-info">
+      <span class="screen-tag red">Alertas Automáticos</span>
+      <h2>Veja quais leads estão esfriando — antes de perder o negócio</h2>
+      <p>O sistema monitora automaticamente a atividade de cada lead. Quando um lead fica sem contato por muito tempo, aparece imediatamente no painel — com link direto para abri-lo no CRM.</p>
+      <ul class="bullets">
+        <li>Alerta em 48h — lead precisa de atenção</li>
+        <li>Alerta em 7 dias — lead em risco crítico de perda</li>
+        <li>Tarefas vencidas agrupadas por vendedor</li>
+        <li>Clique no alerta e o lead abre direto no CRM</li>
+        <li>Zero configuração — funciona automaticamente</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Screen 4: Relatório Agentes -->
+  <div class="screen-block reverse" style="margin-bottom: 44px;">
+    <div class="screen-info">
+      <span class="screen-tag amber">Relatório de Performance</span>
+      <h2>Ranking completo dos agentes com filtros em tempo real</h2>
+      <p>Tabela completa com todos os vendedores, total de leads, vendas ganhas/perdidas e taxa de conversão. Filtre por agente, funil ou equipe em um clique — sem esperar relatório.</p>
+      <ul class="bullets">
+        <li>Dados atualizados automaticamente — sem exportação</li>
+        <li>Filtre por agente específico, funil ou equipe</li>
+        <li>Cabeçalho fixo para navegar em times grandes</li>
+        <li>Taxa de conversão calculada automaticamente por vendedor</li>
+      </ul>
+    </div>
+    <div class="mockup">
+      <div class="mock-chrome">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+        <span class="mock-title">Relatório de Performance — Agentes</span>
+      </div>
+      <div class="mock-body">
+        <div class="mock-filter-bar">
+          <div class="mock-filter-field">
+            <label>Agente</label>
+            <select><option>Todos</option></select>
+          </div>
+          <div class="mock-filter-field">
+            <label>Funil</label>
+            <select><option>Todos</option></select>
+          </div>
+          <div class="mock-filter-field">
+            <label>Equipe</label>
+            <select><option>Todas</option></select>
+          </div>
+          <button class="mock-filter-btn">Filtrar</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="mock-table">
+            <thead>
+              <tr>
+                <th>Agente</th>
+                <th>Total</th>
+                <th>Ganhas</th>
+                <th>Perdidas</th>
+                <th>Conversão</th>
+                <th>Funil A</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Marcos Silva</td><td>43</td><td>18 (41,8%)</td><td>7 (16,2%)</td><td class="hl">72,0%</td><td>12</td></tr>
+              <tr><td>Ana Costa</td><td>38</td><td>14 (36,8%)</td><td>9 (23,6%)</td><td class="hl">60,8%</td><td>9</td></tr>
+              <tr><td>Pedro Lima</td><td>31</td><td>11 (35,4%)</td><td>13 (41,9%)</td><td>45,8%</td><td>8</td></tr>
+              <tr><td>Julia Ramos</td><td>29</td><td>9 (31,0%)</td><td>8 (27,5%)</td><td>52,9%</td><td>7</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 5: Admin Mentores -->
+  <div class="screen-block" style="margin-bottom: 52px;">
+    <div class="mockup">
+      <div class="mock-chrome">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+        <span class="mock-title">Admin — Mentores / Agentes de IA</span>
+      </div>
+      <div class="mock-body">
+        <div class="mock-section-header">🤖 Criar novo mentor</div>
+        <div class="mock-mentor-form">
+          <span class="mock-form-label">Nome do Mentor</span>
+          <input class="mock-form-input" value="Grant Cardone" readonly>
+          <span class="mock-form-label">Descrição</span>
+          <input class="mock-form-input" value="Abordagem 10X — alta pressão e volume" readonly>
+          <span class="mock-form-label">Personalidade / Instruções</span>
+          <textarea class="mock-form-textarea" rows="2" readonly>Você é um coach agressivo de vendas, inspirado na metodologia 10X. Seja direto, incisivo e sempre oriente para ação imediata com alta urgência...</textarea>
+          <div class="mock-form-row">
+            <button class="mock-file-btn">📄 Upload metodologia (.txt)</button>
+            <span class="mock-file-ok">✅ metodologia-10x.txt (42KB)</span>
+          </div>
+          <button class="mock-create-btn">Criar Mentor</button>
+        </div>
+        <div class="mock-section-header" style="margin-top:10px;">Mentores ativos</div>
+        <div class="mock-mentor-card">
+          <div><div class="mock-mentor-name">Grant Cardone</div><div class="mock-mentor-desc">Abordagem 10X — alta pressão e volume</div></div>
+          <div style="display:flex;align-items:center;gap:8px;"><span class="mock-badge-active">ativo</span><div class="mock-row-btns"><button class="mock-edit-btn">Editar</button><button class="mock-del-btn">Excluir</button></div></div>
+        </div>
+        <div class="mock-mentor-card">
+          <div><div class="mock-mentor-name">Straight Line</div><div class="mock-mentor-desc">Método Jordan Belfort — certezas e fechamento</div></div>
+          <div style="display:flex;align-items:center;gap:8px;"><span class="mock-badge-active">ativo</span><div class="mock-row-btns"><button class="mock-edit-btn">Editar</button><button class="mock-del-btn">Excluir</button></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="screen-info">
+      <span class="screen-tag green">Gestão de Mentores</span>
+      <h2>Configure a IA com a metodologia de vendas da sua empresa</h2>
+      <p>O administrador cria mentores personalizados: dá um nome, define a personalidade e faz upload do material de treinamento. Os gestores escolhem o mentor direto no chat.</p>
+      <ul class="bullets">
+        <li>Nome, descrição e personalidade configuráveis</li>
+        <li>Upload de metodologia em texto (.txt ou .md)</li>
+        <li>Ative ou desative mentores sem excluir</li>
+        <li>Cada empresa pode ter seus próprios metodologistas configurados</li>
+        <li>Gestores escolhem o mentor antes de perguntar</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ── ROI ── -->
+  <p class="sec">Impacto no Negócio</p>
+  <div class="roi-strip">
+    <h2>Por que isso importa para o resultado?</h2>
+    <p>Cada minuto que o gestor economiza em relatórios é reinvestido em coaching, fechamento e estratégia.</p>
+    <div class="roi-items">
+      <div class="roi-item">
+        <span class="roi-num">2h+</span>
+        <span class="roi-lbl">Economia diária em relatórios manuais por gestor</span>
+      </div>
+      <div class="roi-item">
+        <span class="roi-num">100%</span>
+        <span class="roi-lbl">Visibilidade sobre leads parados — sem exceção</span>
+      </div>
+      <div class="roi-item">
+        <span class="roi-num">3x</span>
+        <span class="roi-lbl">Mais rápido para responder perguntas sobre a equipe</span>
+      </div>
+      <div class="roi-item">
+        <span class="roi-num">∞</span>
+        <span class="roi-lbl">Mentores disponíveis 24h — não só no treinamento</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── White label ── -->
+  <p class="sec">Modelo White Label</p>
+  <div class="wl-grid">
+    <div class="wl-card">
+      <h3>🏢 Para quem é ideal</h3>
+      <ul>
+        <li>Empresas com equipes de vendas de 3 a 100+ pessoas</li>
+        <li>Gestores que usam CRM mas ainda dependem de planilhas</li>
+        <li>Operações multi-equipe ou multi-marca num só painel</li>
+        <li>Consultorias e agências que treinam equipes de vendas</li>
+        <li>Empresas que querem uma IA treinada com o próprio método</li>
+      </ul>
+    </div>
+    <div class="wl-card">
+      <h3>✨ O que é customizável</h3>
+      <ul>
+        <li>Nome do produto, logo e cores da sua marca</li>
+        <li>Domínio próprio (ex: ia.suaempresa.com.br)</li>
+        <li>Mentores configurados com a metodologia da empresa</li>
+        <li>Múltiplas equipes com acessos separados por usuário</li>
+        <li>Conexão com o CRM do cliente (credenciais próprias)</li>
+      </ul>
+    </div>
+    <div class="wl-card">
+      <h3>💰 Modelos comerciais</h3>
+      <ul>
+        <li>Mensalidade por empresa — fee fixo independente de usuários</li>
+        <li>Por usuário ativo — escala conforme o time cresce</li>
+        <li>Setup + mensalidade — implantação + suporte contínuo</li>
+        <li>Licença anual com desconto — comprometimento de longo prazo</li>
+      </ul>
+    </div>
+    <div class="wl-card">
+      <h3>🚀 Diferenciais exclusivos</h3>
+      <ul>
+        <li>IA com dados reais do CRM — não é chatbot genérico</li>
+        <li>Modo Conselho: board de consultores virtuais simultâneos</li>
+        <li>Alertas proativos — nenhum lead esquecido sem aviso</li>
+        <li>Mentores com a metodologia proprietária do cliente</li>
+        <li>Pronto em dias — sem meses de implementação</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span>Central de Inteligência Comercial — Apresentação White Label 2026</span>
+    <span>Confidencial · Não distribuir sem autorização</span>
+  </div>
+
+</div>
+</body>
+</html>

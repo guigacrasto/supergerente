@@ -45,3 +45,36 @@ export interface Message {
     author_id: number;
     is_incoming: boolean;
 }
+
+// Multi-tenant types
+export interface Tenant {
+  id: string;
+  name: string;
+  slug: string;
+  logoUrl: string | null;
+  primaryColor: string;
+  kommoBaseUrl: string | null;
+  kommoAccessToken: string | null;
+  kommoRefreshToken: string | null;
+  kommoTokenExpiresAt: string | null;
+  webhookSecret: string | null;
+  settings: TenantSettings;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TenantSettings {
+  teams?: Record<string, TenantTeamConfig>;
+  hotLeadStatuses?: number[];
+  [key: string]: unknown;
+}
+
+export interface TenantTeamConfig {
+  label: string;
+  subdomain: string;
+  clientId: string;
+  clientSecret: string;
+  redirectUri: string;
+  excludePipelineNames?: string[];
+}

@@ -1,14 +1,14 @@
 import { Router } from "express";
 import { KommoService } from "../../services/kommo.js";
-import { TeamKey, TEAMS } from "../../config.js";
+import { getTeamConfigsFromTenant } from "../../config.js";
 import { getCrmMetrics } from "../cache/crm-cache.js";
 import { getActivityMetrics, ActivityMetrics } from "../cache/activity-cache.js";
-import { requireAuth, AuthRequest } from "../middleware/requireAuth.js";
+import { AuthRequest } from "../middleware/requireAuth.js";
 import { filterCrmMetrics, parseTagsFromQuery } from "../helpers/filter-metrics.js";
+import { calculatePredictions } from "../services/prediction.js";
 
-export function reportsRouter(services: Record<TeamKey, KommoService>) {
+export function reportsRouter() {
   const router = Router();
-  router.use(requireAuth as any);
 
   // — Helper functions —
   function parseDateRange(query: any): { fromTs: number; toTs: number } {
@@ -86,6 +86,9 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
   }
 
   async function getFilteredMetrics(req: AuthRequest) {
+    const tenant = req.tenant!;
+    const tenantId = req.tenantId!;
+    const teamConfigs = getTeamConfigsFromTenant(tenant);
     const userTeams = req.userTeams || [];
     const { tags, tagMode } = parseTagsFromQuery(req.query);
     const allowedFunnels = req.allowedFunnels || { azul: [], amarela: [] };
@@ -93,8 +96,10 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
     const isAdmin = req.userRole === "admin";
 
     const results = await Promise.all(
-      userTeams.filter((t) => !!services[t]).map(async (team) => {
-        const raw = await getCrmMetrics(team, services[team]);
+      userTeams.filter((t) => !!teamConfigs[t] && teamConfigs[t].subdomain).map(async (team) => {
+        const cfg = teamConfigs[team];
+        const kommoService = new KommoService(cfg, team, tenantId);
+        const raw = await getCrmMetrics(team, kommoService, tenantId, cfg.excludePipelineNames);
         const filtered = filterCrmMetrics(raw, {
           tags,
           tagMode,
@@ -164,7 +169,7 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
 
       const result: Array<{
         nome: string;
-        team: TeamKey;
+        team: string;
         novosHoje: number;
         novosMes: number;
         ativos: number;
@@ -234,6 +239,9 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
 
   // GET /api/reports/activity — leads sem atividade e tarefas vencidas por equipe
   router.get("/activity", async (req: AuthRequest, res) => {
+    const tenant = req.tenant!;
+    const tenantId = req.tenantId!;
+    const teamConfigs = getTeamConfigsFromTenant(tenant);
     const userTeams = req.userTeams || [];
     const { tags, tagMode } = parseTagsFromQuery(req.query);
     const allowedFunnels = req.allowedFunnels || { azul: [], amarela: [] };
@@ -242,25 +250,27 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
 
     try {
       const result: Array<{
-        team: TeamKey;
+        team: string;
         label: string;
         activity: ActivityMetrics;
       }> = [];
 
       const activityResults = await Promise.all(
-        userTeams.filter((t) => !!services[t]).map(async (team) => {
+        userTeams.filter((t) => !!teamConfigs[t] && teamConfigs[t].subdomain).map(async (team) => {
           try {
-            const raw = await getCrmMetrics(team, services[team]);
+            const cfg = teamConfigs[team];
+            const kommoService = new KommoService(cfg, team, tenantId);
+            const raw = await getCrmMetrics(team, kommoService, tenantId, cfg.excludePipelineNames);
             const filtered = filterCrmMetrics(raw, {
               tags, tagMode,
               allowedFunnels: allowedFunnels[team] || [],
               pausedPipelines, isAdmin,
             });
-            const activity = await getActivityMetrics(team, services[team], filtered);
+            const activity = await getActivityMetrics(team, kommoService, filtered);
             const funis = Object.values(filtered.pipelineNames).sort();
             const agentes = [...new Set(filtered.vendedores.map((v) => v.nome))].sort();
             const grupos = [...new Set(Object.values(filtered.userGroups).filter(Boolean))].sort();
-            return { team, label: team === "azul" ? "Equipe Azul" : "Equipe Amarela", activity, funis, grupos, agentes };
+            return { team, label: cfg.label, activity, funis, grupos, agentes };
           } catch (teamErr: any) {
             console.error(`[/api/reports/activity] Erro na equipe ${team}:`, teamErr.message);
             return null;
@@ -995,6 +1005,9 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
 
   // GET /api/reports/all — combined endpoint (summary + dashboard + activity in 1 request)
   router.get("/all", async (req: AuthRequest, res) => {
+    const tenant = req.tenant!;
+    const tenantId = req.tenantId!;
+    const teamConfigs = getTeamConfigsFromTenant(tenant);
     const userTeams = req.userTeams || [];
     const { tags, tagMode } = parseTagsFromQuery(req.query);
     const allowedFunnels = req.allowedFunnels || { azul: [], amarela: [] };
@@ -1003,8 +1016,10 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
 
     try {
       const teamsData = await Promise.all(
-        userTeams.filter((t) => !!services[t]).map(async (team) => {
-          const raw = await getCrmMetrics(team, services[team]);
+        userTeams.filter((t) => !!teamConfigs[t] && teamConfigs[t].subdomain).map(async (team) => {
+          const cfg = teamConfigs[team];
+          const kommoService = new KommoService(cfg, team, tenantId);
+          const raw = await getCrmMetrics(team, kommoService, tenantId, cfg.excludePipelineNames);
           const metrics = filterCrmMetrics(raw, {
             tags, tagMode,
             allowedFunnels: allowedFunnels[team] || [],
@@ -1033,7 +1048,7 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
 
           let activity = null;
           try {
-            activity = await getActivityMetrics(team, services[team], metrics);
+            activity = await getActivityMetrics(team, kommoService, metrics);
           } catch {}
 
           // Map vendedores to include group name
@@ -1063,7 +1078,7 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
             }
           }
 
-          return { team, summary, agents, vendedores, activity, grupos: Array.from(gruposSet).sort() };
+          return { team, label: cfg.label, summary, agents, vendedores, activity, grupos: Array.from(gruposSet).sort() };
         })
       );
 
@@ -1079,7 +1094,7 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
         if (t.activity) {
           activityList.push({
             team: t.team,
-            label: TEAMS[t.team as TeamKey]?.label || t.team,
+            label: t.label,
             activity: t.activity,
           });
         }
@@ -1093,6 +1108,9 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
 
   // GET /api/reports/stream — SSE stream for real-time updates (full dashboard data)
   router.get("/stream", async (req: AuthRequest, res) => {
+    const tenant = req.tenant!;
+    const tenantId = req.tenantId!;
+    const teamConfigs = getTeamConfigsFromTenant(tenant);
     const userTeams = req.userTeams || [];
     const allowedFunnels = req.allowedFunnels || { azul: [], amarela: [] };
     const pausedPipelines = req.pausedPipelines || [];
@@ -1106,8 +1124,10 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
     const sendUpdate = async () => {
       try {
         const teamsData = await Promise.all(
-          userTeams.filter((t) => !!services[t]).map(async (team) => {
-            const raw = await getCrmMetrics(team, services[team]);
+          userTeams.filter((t) => !!teamConfigs[t] && teamConfigs[t].subdomain).map(async (team) => {
+            const cfg = teamConfigs[team];
+            const kommoService = new KommoService(cfg, team, tenantId);
+            const raw = await getCrmMetrics(team, kommoService, tenantId, cfg.excludePipelineNames);
             const metrics = filterCrmMetrics(raw, {
               tags: [],
               tagMode: "or",
@@ -1145,7 +1165,7 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
             // Activity
             let activity = null;
             try {
-              activity = await getActivityMetrics(team, services[team], metrics);
+              activity = await getActivityMetrics(team, kommoService, metrics);
             } catch {}
 
             const vendedores = metrics.vendedores.map((v) => {
@@ -1188,6 +1208,47 @@ export function reportsRouter(services: Record<TeamKey, KommoService>) {
     await sendUpdate();
     const interval = setInterval(sendUpdate, 30_000);
     req.on("close", () => { clearInterval(interval); });
+  });
+
+  // GET /api/reports/predictions — Previsão de fechamento por lead
+  router.get("/predictions", async (req: AuthRequest, res) => {
+    try {
+      const tenant = req.tenant!;
+      const tenantId = req.tenantId!;
+      const teamConfigs = getTeamConfigsFromTenant(tenant);
+      const teams = req.userTeams || [];
+      const teamFilter = typeof req.query.team === "string" ? req.query.team : teams[0];
+      const funilFilter = typeof req.query.funil === "string" ? req.query.funil : undefined;
+      const agenteFilter = typeof req.query.agente === "string" ? req.query.agente : undefined;
+
+      const cfg = teamFilter ? teamConfigs[teamFilter] : undefined;
+      if (!teamFilter || !teams.includes(teamFilter) || !cfg || !cfg.subdomain) {
+        res.status(400).json({ error: "Equipe inválida ou sem permissão." });
+        return;
+      }
+
+      const kommoService = new KommoService(cfg, teamFilter, tenantId);
+      const metrics = await getCrmMetrics(teamFilter, kommoService, tenantId, cfg.excludePipelineNames);
+      let predictions = calculatePredictions(metrics, teamFilter);
+
+      // Apply filters
+      if (funilFilter) {
+        predictions = predictions.filter((p) => p.funil === funilFilter);
+      }
+      if (agenteFilter) {
+        predictions = predictions.filter((p) => p.agente === agenteFilter);
+      }
+
+      res.json({
+        predictions,
+        total: predictions.length,
+        team: teamFilter,
+        atualizadoEm: metrics.atualizadoEm,
+      });
+    } catch (error: any) {
+      console.error("[Reports] Erro em predictions:", error.message);
+      res.status(500).json({ error: error.message });
+    }
   });
 
   return router;

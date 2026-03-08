@@ -1,26 +1,32 @@
 import { Router } from "express";
 import { KommoService } from "../../services/kommo.js";
-import { TeamKey, TEAMS } from "../../config.js";
-import { requireAuth, AuthRequest } from "../middleware/requireAuth.js";
+import { getTeamConfigsFromTenant } from "../../config.js";
+import { AuthRequest } from "../middleware/requireAuth.js";
 import { supabase } from "../supabase.js";
 
-export function pipelinesRouter(services: Record<TeamKey, KommoService>) {
+export function pipelinesRouter() {
   const router = Router();
-  router.use(requireAuth as any);
 
   // GET /api/pipelines — pipelines from all authorized teams
-  router.get("/", async (req: AuthRequest, res) => {
-    const userTeams = req.userTeams || [];
+  router.get("/", async (req, res) => {
+    const authReq = req as AuthRequest;
+    const tenant = authReq.tenant!;
+    const tenantId = authReq.tenantId!;
+    const userTeams = authReq.userTeams || [];
+    const teamConfigs = getTeamConfigsFromTenant(tenant);
+
     try {
-      const results: Array<{ id: number; name: string; team: TeamKey }> = [];
+      const results: Array<{ id: number; name: string; team: string }> = [];
 
       const teamResults = await Promise.all(
         userTeams
-          .filter((t) => services[t] && TEAMS[t].subdomain)
+          .filter((t) => !!teamConfigs[t] && teamConfigs[t].subdomain)
           .map(async (team) => {
             try {
-              const excludeNames = TEAMS[team].excludePipelineNames;
-              const pipelines = await services[team].getPipelines();
+              const cfg = teamConfigs[team];
+              const kommoService = new KommoService(cfg, team, tenantId);
+              const excludeNames = cfg.excludePipelineNames;
+              const pipelines = await kommoService.getPipelines();
               return pipelines
                 .filter((p: any) => !excludeNames.some((ex) => p.name.toUpperCase().includes(ex.toUpperCase())))
                 .map((p: any) => ({ id: p.id, name: p.name, team }));
@@ -33,7 +39,7 @@ export function pipelinesRouter(services: Record<TeamKey, KommoService>) {
       results.push(...teamResults.flat());
 
       // Filter by pipeline_visibility (admin bypasses)
-      if (req.userRole !== "admin") {
+      if (authReq.userRole !== "admin") {
         const { data: overrides } = await supabase
           .from("pipeline_visibility")
           .select("team, pipeline_id, visible")

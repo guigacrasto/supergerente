@@ -10,6 +10,13 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  // Superadmin tenant switching
+  const activeTenantId = localStorage.getItem('sg_active_tenant');
+  if (activeTenantId) {
+    config.headers['X-Tenant-Id'] = activeTenantId;
+  }
+
   return config;
 });
 

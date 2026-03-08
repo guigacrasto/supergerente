@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gfin F&aacute;cil &mdash; Diagrama do Sistema</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface-2: #1a1a26;
+    --surface-3: #22222f;
+    --border: #2a2a3a;
+    --border-hover: #3a3a50;
+    --text: #e4e4ef;
+    --text-muted: #8888a0;
+    --text-dim: #55556a;
+    --accent: #6c5ce7;
+    --accent-glow: rgba(108, 92, 231, 0.15);
+    --green: #00d2a0;
+    --green-glow: rgba(0, 210, 160, 0.12);
+    --blue: #4da6ff;
+    --blue-glow: rgba(77, 166, 255, 0.12);
+    --orange: #ff9f43;
+    --orange-glow: rgba(255, 159, 67, 0.12);
+    --red: #ff6b6b;
+    --red-glow: rgba(255, 107, 107, 0.12);
+    --pink: #fd79a8;
+    --pink-glow: rgba(253, 121, 168, 0.12);
+    --cyan: #00cec9;
+    --cyan-glow: rgba(0, 206, 201, 0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
+
+  /* Header */
+  .header {
+    padding: 48px 0 32px;
+    text-align: center;
+    position: relative;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+  .header h1 {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #fff, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header p {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-top: 8px;
+  }
+
+  /* Section */
+  .section {
+    margin: 48px 0;
+  }
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Architecture Diagram */
+  .arch-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .arch-layer {
+    position: relative;
+    padding: 24px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .arch-layer:hover { border-color: var(--border-hover); }
+
+  .layer-label {
+    position: absolute;
+    top: -10px;
+    left: 24px;
+    background: var(--surface);
+    padding: 0 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+  }
+
+  .services-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  .service-card {
+    flex: 1;
+    min-width: 180px;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    transition: all 0.2s;
+    cursor: default;
+  }
+  .service-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+  }
+
+  .service-card .name {
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 4px;
+  }
+  .service-card .desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .service-card .tech {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 500;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .service-card .port {
+    display: inline-block;
+    margin-top: 8px;
+    margin-left: 4px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 500;
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(255,255,255,0.05);
+    color: var(--text-dim);
+  }
+
+  /* Color coding */
+  .c-green .name { color: var(--green); }
+  .c-green { background: var(--green-glow); border-color: rgba(0,210,160,0.2); }
+  .c-green .tech { background: rgba(0,210,160,0.1); color: var(--green); }
+
+  .c-blue .name { color: var(--blue); }
+  .c-blue { background: var(--blue-glow); border-color: rgba(77,166,255,0.2); }
+  .c-blue .tech { background: rgba(77,166,255,0.1); color: var(--blue); }
+
+  .c-accent .name { color: var(--accent); }
+  .c-accent { background: var(--accent-glow); border-color: rgba(108,92,231,0.2); }
+  .c-accent .tech { background: rgba(108,92,231,0.1); color: var(--accent); }
+
+  .c-orange .name { color: var(--orange); }
+  .c-orange { background: var(--orange-glow); border-color: rgba(255,159,67,0.2); }
+  .c-orange .tech { background: rgba(255,159,67,0.1); color: var(--orange); }
+
+  .c-red .name { color: var(--red); }
+  .c-red { background: var(--red-glow); border-color: rgba(255,107,107,0.2); }
+  .c-red .tech { background: rgba(255,107,107,0.1); color: var(--red); }
+
+  .c-pink .name { color: var(--pink); }
+  .c-pink { background: var(--pink-glow); border-color: rgba(253,121,168,0.2); }
+  .c-pink .tech { background: rgba(253,121,168,0.1); color: var(--pink); }
+
+  .c-cyan .name { color: var(--cyan); }
+  .c-cyan { background: var(--cyan-glow); border-color: rgba(0,206,201,0.2); }
+  .c-cyan .tech { background: rgba(0,206,201,0.1); color: var(--cyan); }
+
+  /* Arrows */
+  .flow-arrows {
+    display: flex;
+    justify-content: center;
+    padding: 8px 0;
+    color: var(--text-dim);
+    font-size: 18px;
+    letter-spacing: 8px;
+  }
+
+  /* Feature Map */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+
+  .feature-card {
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    transition: border-color 0.2s;
+  }
+  .feature-card:hover { border-color: var(--border-hover); }
+
+  .feature-card h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .feature-card h3 .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .feature-list {
+    list-style: none;
+  }
+  .feature-list li {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 4px 0;
+    padding-left: 16px;
+    position: relative;
+  }
+  .feature-list li::before {
+    content: '>';
+    position: absolute;
+    left: 0;
+    color: var(--text-dim);
+    font-weight: 600;
+  }
+
+  /* Data Flow */
+  .flow-diagram {
+    padding: 32px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 2;
+    overflow-x: auto;
+    white-space: pre;
+    color: var(--text-muted);
+  }
+  .flow-diagram .highlight { color: var(--green); font-weight: 500; }
+  .flow-diagram .accent { color: var(--accent); font-weight: 500; }
+  .flow-diagram .blue { color: var(--blue); font-weight: 500; }
+  .flow-diagram .orange { color: var(--orange); font-weight: 500; }
+  .flow-diagram .pink { color: var(--pink); font-weight: 500; }
+  .flow-diagram .cyan { color: var(--cyan); font-weight: 500; }
+  .flow-diagram .dim { color: var(--text-dim); }
+
+  /* API Endpoints */
+  .endpoint-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .endpoint-table th {
+    text-align: left;
+    padding: 10px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+  }
+  .endpoint-table td {
+    padding: 8px 16px;
+    border-bottom: 1px solid rgba(42,42,58,0.5);
+    color: var(--text-muted);
+  }
+  .endpoint-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .method {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+  .method.get { background: rgba(0,210,160,0.1); color: var(--green); }
+  .method.post { background: rgba(77,166,255,0.1); color: var(--blue); }
+  .method.put { background: rgba(255,159,67,0.1); color: var(--orange); }
+  .method.patch { background: rgba(255,159,67,0.1); color: var(--orange); }
+  .method.delete { background: rgba(255,107,107,0.1); color: var(--red); }
+
+  .path {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+  }
+
+  /* DB Schema */
+  .schema-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .schema-card {
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .schema-card h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .schema-field {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 0;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .schema-field .fname { color: var(--text); }
+  .schema-field .ftype { color: var(--text-dim); }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    padding: 24px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    margin-bottom: 32px;
+  }
+  .stat {
+    text-align: center;
+    flex: 1;
+    min-width: 120px;
+  }
+  .stat .number {
+    font-size: 28px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .stat .label {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+
+  .footer {
+    text-align: center;
+    padding: 48px 0;
+    color: var(--text-dim);
+    font-size: 12px;
+  }
+
+  @media print {
+    body { background: #fff; color: #111; }
+    .service-card, .feature-card, .schema-card, .arch-layer, .stats-bar {
+      border-color: #ddd;
+      background: #f9f9f9;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>Gfin F&aacute;cil &mdash; Diagrama do Sistema</h1>
+    <p>BPO Financial Management SaaS &bull; Gest&atilde;o Financeira Terceirizada &bull; Multi-Tenant</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat"><div class="number">8</div><div class="label">M&oacute;dulos MVP</div></div>
+    <div class="stat"><div class="number">3</div><div class="label">Perfis de Acesso</div></div>
+    <div class="stat"><div class="number">12</div><div class="label">Telas</div></div>
+    <div class="stat"><div class="number">30+</div><div class="label">Endpoints</div></div>
+    <div class="stat"><div class="number">12</div><div class="label">Tabelas</div></div>
+    <div class="stat"><div class="number">&infin;</div><div class="label">Multi-Tenant</div></div>
+  </div>
+
+  <!-- Architecture -->
+  <div class="section">
+    <div class="section-title">Arquitetura de Servi&ccedil;os</div>
+    <div class="arch-grid">
+
+      <!-- Frontend Layer -->
+      <div class="arch-layer">
+        <div class="layer-label">Frontend &mdash; Browser</div>
+        <div class="services-row">
+          <div class="service-card c-green">
+            <div class="name">gfin-web</div>
+            <div class="desc">Portal principal. Dashboard, Contas, Fluxo de Caixa, Tarefas, Importa&ccedil;&atilde;o.</div>
+            <span class="tech">React 18 + Vite</span>
+            <span class="port">:5173</span>
+          </div>
+          <div class="service-card c-blue">
+            <div class="name">gfin-owner</div>
+            <div class="desc">Portal do Dono. Dashboard read-only, aprova&ccedil;&atilde;o de pagamentos.</div>
+            <span class="tech">React 18 + Vite</span>
+            <span class="port">:5173</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-arrows">&darr; &darr; &darr; REST + JWT &darr; &darr; &darr;</div>
+
+      <!-- Backend Layer -->
+      <div class="arch-layer">
+        <div class="layer-label">Backend &mdash; Servi&ccedil;os</div>
+        <div class="services-row">
+          <div class="service-card c-blue">
+            <div class="name">api-service</div>
+            <div class="desc">API REST principal. Auth, CRUD financeiro, tasks, dashboard, imports.</div>
+            <span class="tech">Express 5 + TS</span>
+            <span class="port">:3001</span>
+          </div>
+          <div class="service-card c-orange">
+            <div class="name">task-scheduler</div>
+            <div class="desc">Gera&ccedil;&atilde;o autom&aacute;tica de tarefas (cron). Vencimentos, concilia&ccedil;&atilde;o, alertas.</div>
+            <span class="tech">Node.js Cron</span>
+            <span class="port">:3001</span>
+          </div>
+          <div class="service-card c-accent">
+            <div class="name">ofx-parser</div>
+            <div class="desc">Parser de extratos banc&aacute;rios OFX/CSV. Preview, categoriza&ccedil;&atilde;o, import.</div>
+            <span class="tech">Node.js</span>
+            <span class="port">:3001</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-arrows">&darr; &darr; Supabase (PostgreSQL + Auth + Storage) &darr; &darr;</div>
+
+      <!-- Infra Layer -->
+      <div class="arch-layer">
+        <div class="layer-label">Infraestrutura &mdash; Data</div>
+        <div class="services-row">
+          <div class="service-card c-green">
+            <div class="name">Supabase PostgreSQL</div>
+            <div class="desc">Banco principal. Organizations, companies, payables, receivables, tasks.</div>
+            <span class="tech">PostgreSQL 15</span>
+            <span class="port">:5432</span>
+          </div>
+          <div class="service-card c-cyan">
+            <div class="name">Supabase Auth</div>
+            <div class="desc">Autentica&ccedil;&atilde;o. JWT, email/senha, RLS policies.</div>
+            <span class="tech">GoTrue</span>
+            <span class="port">&mdash;</span>
+          </div>
+          <div class="service-card c-red">
+            <div class="name">Supabase Storage</div>
+            <div class="desc">Armazenamento de arquivos. Anexos de comprovantes, extratos, NFs.</div>
+            <span class="tech">S3-compatible</span>
+            <span class="port">&mdash;</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Data Flows -->
+  <div class="section">
+    <div class="section-title">Fluxos de Dados</div>
+    <div class="flow-diagram"><span class="dim">// Fluxo de Pagamento</span>
+
+<span class="highlight">Operador BPO</span> &rarr; <span class="blue">gfin-web</span> &rarr; Cria conta a pagar &rarr; <span class="blue">api-service</span> &rarr; <span class="accent">PostgreSQL</span>
+         &darr;
+<span class="blue">api-service</span> &rarr; Envia p/ aprova&ccedil;&atilde;o &rarr; Status: <span class="orange">awaiting_approval</span>
+         &darr;
+<span class="cyan">Dono Empresa</span> &rarr; <span class="blue">gfin-owner</span> &rarr; V&ecirc; aprova&ccedil;&otilde;es pendentes
+         &darr;
+<span class="cyan">Dono</span> &rarr; Clica &quot;Aprovar&quot; &rarr; <span class="blue">api-service</span> &rarr; Status: <span class="highlight">approved</span>
+         &darr;
+<span class="highlight">Operador</span> &rarr; Marca como pago &rarr; Status: <span class="highlight">paid</span> &rarr; Atualiza fluxo de caixa
+
+<span class="dim">&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;</span>
+
+<span class="dim">// Fluxo de Importa&ccedil;&atilde;o</span>
+
+<span class="highlight">Operador</span> &rarr; Upload .OFX/.CSV &rarr; <span class="blue">gfin-web</span> (client-side read)
+         &darr;
+<span class="blue">gfin-web</span> &rarr; POST /api/imports/preview &rarr; <span class="accent">ofx-parser</span> &rarr; Retorna transa&ccedil;&otilde;es
+         &darr;
+<span class="highlight">Operador</span> &rarr; Revisa, categoriza &rarr; POST /api/imports/confirm
+         &darr;
+<span class="blue">api-service</span> &rarr; Cria payables/receivables automaticamente &rarr; Atualiza dashboard
+
+<span class="dim">&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;</span>
+
+<span class="dim">// Tarefas Autom&aacute;ticas</span>
+
+<span class="orange">task-scheduler</span> (cron di&aacute;rio) &rarr; Verifica:
+  &darr; Contas vencendo em 3 dias       &rarr; Cria task <span class="orange">urgente</span>
+  &darr; Contas vencidas                 &rarr; Cria task <span class="pink">&quot;pagamento atrasado&quot;</span>
+  &darr; Extrato n&atilde;o conciliado 7d      &rarr; Cria task <span class="accent">&quot;concilia&ccedil;&atilde;o pendente&quot;</span>
+  &darr; Aprova&ccedil;&otilde;es paradas 48h         &rarr; Cria task <span class="cyan">&quot;cobrar aprova&ccedil;&atilde;o&quot;</span></div>
+  </div>
+
+  <!-- Feature Map -->
+  <div class="section">
+    <div class="section-title">Mapa de Features</div>
+    <div class="feature-grid">
+
+      <div class="feature-card">
+        <h3><span class="dot" style="background:var(--green)"></span> Dashboard</h3>
+        <ul class="feature-list">
+          <li>KPI cards (saldo, a receber, a pagar, vencidos)</li>
+          <li>Gr&aacute;fico fluxo de caixa 30 dias</li>
+          <li>&Uacute;ltimas movimenta&ccedil;&otilde;es</li>
+          <li>Widget de tarefas urgentes</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <h3><span class="dot" style="background:var(--blue)"></span> Contas a Pagar</h3>
+        <ul class="feature-list">
+          <li>CRUD com fornecedor/categoria/centro de custo</li>
+          <li>Status: aberto &rarr; agendado &rarr; aguardando &rarr; aprovado &rarr; pago</li>
+          <li>Filtros por per&iacute;odo/status/fornecedor</li>
+          <li>Fluxo de aprova&ccedil;&atilde;o pelo dono</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <h3><span class="dot" style="background:var(--accent)"></span> Contas a Receber</h3>
+        <ul class="feature-list">
+          <li>CRUD com cliente/categoria</li>
+          <li>Recebimento parcial</li>
+          <li>Status: pendente &rarr; recebido/atrasado/parcial</li>
+          <li>Filtros por per&iacute;odo/status/cliente</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <h3><span class="dot" style="background:var(--orange)"></span> Tarefas</h3>
+        <ul class="feature-list">
+          <li>Auto-geradas + manuais</li>
+          <li>Agrupamento por empresa ou data</li>
+          <li>Prioridade: baixa/m&eacute;dia/alta/urgente</li>
+          <li>Clica &rarr; navega pra resolver pend&ecirc;ncia</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <h3><span class="dot" style="background:var(--pink)"></span> Importa&ccedil;&atilde;o</h3>
+        <ul class="feature-list">
+          <li>Upload OFX/CSV</li>
+          <li>Preview antes de confirmar</li>
+          <li>Match autom&aacute;tico de categorias</li>
+          <li>Hist&oacute;rico de importa&ccedil;&otilde;es</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <h3><span class="dot" style="background:var(--cyan)"></span> Multi-Tenant</h3>
+        <ul class="feature-list">
+          <li>Organiza&ccedil;&atilde;o (BPO) com N empresas</li>
+          <li>3 perfis: admin / operador / dono</li>
+          <li>RLS no PostgreSQL por org_id</li>
+          <li>Audit log com quem/quando/o que</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- API Endpoints -->
+  <div class="section">
+    <div class="section-title">Endpoints da API</div>
+    <div style="border-radius:12px; border:1px solid var(--border); background:var(--surface); overflow:hidden;">
+      <table class="endpoint-table">
+        <thead>
+          <tr><th>M&eacute;todo</th><th>Rota</th><th>Descri&ccedil;&atilde;o</th><th>Auth</th></tr>
+        </thead>
+        <tbody>
+          <!-- Auth -->
+          <tr><td><span class="method post">POST</span></td><td class="path">/api/auth/signup</td><td>Registro + cria&ccedil;&atilde;o de organiza&ccedil;&atilde;o</td><td>P&uacute;blico</td></tr>
+          <tr><td><span class="method post">POST</span></td><td class="path">/api/auth/login</td><td>Login (retorna JWT + perfil)</td><td>P&uacute;blico</td></tr>
+          <tr><td><span class="method get">GET</span></td><td class="path">/api/auth/me</td><td>Perfil do usu&aacute;rio logado</td><td>Auth</td></tr>
+          <tr><td colspan="4" style="padding:4px;background:var(--surface-2)"></td></tr>
+
+          <!-- Companies -->
+          <tr><td><span class="method get">GET</span></td><td class="path">/api/companies</td><td>Listar empresas da organiza&ccedil;&atilde;o</td><td>Auth</td></tr>
+          <tr><td><span class="method post">POST</span></td><td class="path">/api/companies</td><td>Criar empresa</td><td>Admin</td></tr>
+          <tr><td colspan="4" style="padding:4px;background:var(--surface-2)"></td></tr>
+
+          <!-- Payables -->
+          <tr><td><span class="method get">GET</span></td><td class="path">/api/payables</td><td>Listar contas a pagar (filtros)</td><td>Auth + Company</td></tr>
+          <tr><td><span class="method post">POST</span></td><td class="path">/api/payables</td><td>Criar conta a pagar</td><td>Auth + Company</td></tr>
+          <tr><td><span class="method post">POST</span></td><td class="path">/api/payables/:id/send-approval</td><td>Enviar para aprova&ccedil;&atilde;o</td><td>Auth + Company</td></tr>
+          <tr><td><span class="method post">POST</span></td><td class="path">/api/payables/:id/approve</td><td>Aprovar pagamento</td><td>Owner</td></tr>
+          <tr><td><span class="method post">POST</span></td><td class="path">/api/payables/:id/mark-paid</td><td>Marcar como pago</td><td>Auth + Company</td></tr>
+          <tr><td colspan="4" style="padding:4px;background:var(--surface-2)"></td></tr>
+
+          <!-- Receivables -->
+          <tr><td><span class="method get">GET</span></td><td class="path">/api/receivables</td><td>Listar contas a receber (filtros)</td><td>Auth + Company</td></tr>
+          <tr><td><span class="method post">POST</span></td><td class="path">/api/receivables</td><td>Criar conta a receber</td><td>Auth + Company</td></tr>
+          <tr><td><span class="method post">POST</span></td><td class="path">/api/receivables/:id/receive</td><td>Registrar recebimento (parcial)</td><td>Auth + Company</td></tr>
+          <tr><td colspan="4" style="padding:4px;background:var(--surface-2)"></td></tr>
+
+          <!-- Tasks -->
+          <tr><td><span class="method get">GET</span></td><td class="path">/api/tasks</td><td>Listar tarefas (cross-company)</td><td>Auth</td></tr>
+          <tr><td><span class="method post">POST</span></td><td class="path">/api/tasks</td><td>Criar tarefa manual</td><td>Auth</td></tr>
+          <tr><td><span class="method post">POST</span></td><td class="path">/api/tasks/:id/complete</td><td>Completar tarefa</td><td>Auth</td></tr>
+          <tr><td colspan="4" style="padding:4px;background:var(--surface-2)"></td></tr>
+
+          <!-- Dashboard -->
+          <tr><td><span class="method get">GET</span></td><td class="path">/api/dashboard/kpis</td><td>KPIs do dashboard</td><td>Auth + Company</td></tr>
+          <tr><td><span class="method get">GET</span></td><td class="path">/api/dashboard/cashflow</td><td>Fluxo de caixa (N dias)</td><td>Auth + Company</td></tr>
+          <tr><td><span class="method get">GET</span></td><td class="path">/api/dashboard/recent</td><td>Movimenta&ccedil;&otilde;es recentes</td><td>Auth + Company</td></tr>
+          <tr><td colspan="4" style="padding:4px;background:var(--surface-2)"></td></tr>
+
+          <!-- Imports -->
+          <tr><td><span class="method post">POST</span></td><td class="path">/api/imports/preview</td><td>Preview de OFX/CSV</td><td>Auth + Company</td></tr>
+          <tr><td><span class="method post">POST</span></td><td class="path">/api/imports/confirm</td><td>Confirmar importa&ccedil;&atilde;o</td><td>Auth + Company</td></tr>
+          <tr><td colspan="4" style="padding:4px;background:var(--surface-2)"></td></tr>
+
+          <!-- Cadastros -->
+          <tr><td><span class="method get">GET</span></td><td class="path">/api/cadastros/suppliers</td><td>Listar fornecedores</td><td>Auth + Company</td></tr>
+          <tr><td><span class="method get">GET</span></td><td class="path">/api/cadastros/customers</td><td>Listar clientes</td><td>Auth + Company</td></tr>
+          <tr><td><span class="method get">GET</span></td><td class="path">/api/cadastros/categories</td><td>Listar categorias</td><td>Auth + Company</td></tr>
+          <tr><td><span class="method get">GET</span></td><td class="path">/api/cadastros/cost-centers</td><td>Listar centros de custo</td><td>Auth + Company</td></tr>
+          <tr><td colspan="4" style="padding:1px"></td></tr>
+          <tr><td><span class="method post">POST</span></td><td class="path">/api/cadastros/{resource}</td><td>Criar (supplier, customer, category, cost-center)</td><td>Auth + Company</td></tr>
+          <tr><td><span class="method put">PUT</span></td><td class="path">/api/cadastros/{resource}/:id</td><td>Atualizar cadastro</td><td>Auth + Company</td></tr>
+          <tr><td><span class="method delete">DELETE</span></td><td class="path">/api/cadastros/{resource}/:id</td><td>Remover cadastro</td><td>Auth + Company</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Database Schema -->
+  <div class="section">
+    <div class="section-title">Modelos do Banco (PostgreSQL)</div>
+    <div class="schema-grid">
+
+      <div class="schema-card">
+        <h4>organizations</h4>
+        <div class="schema-field"><span class="fname">id</span><span class="ftype">uuid PK</span></div>
+        <div class="schema-field"><span class="fname">name</span><span class="ftype">text</span></div>
+        <div class="schema-field"><span class="fname">slug</span><span class="ftype">text (unique)</span></div>
+        <div class="schema-field"><span class="fname">owner_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">created_at</span><span class="ftype">timestamptz</span></div>
+        <div class="schema-field"><span class="fname">updated_at</span><span class="ftype">timestamptz</span></div>
+      </div>
+
+      <div class="schema-card">
+        <h4>profiles</h4>
+        <div class="schema-field"><span class="fname">id</span><span class="ftype">uuid PK (auth.uid)</span></div>
+        <div class="schema-field"><span class="fname">org_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">full_name</span><span class="ftype">text</span></div>
+        <div class="schema-field"><span class="fname">role</span><span class="ftype">enum: admin|operator|owner</span></div>
+        <div class="schema-field"><span class="fname">email</span><span class="ftype">text (unique)</span></div>
+        <div class="schema-field"><span class="fname">created_at</span><span class="ftype">timestamptz</span></div>
+      </div>
+
+      <div class="schema-card">
+        <h4>companies</h4>
+        <div class="schema-field"><span class="fname">id</span><span class="ftype">uuid PK</span></div>
+        <div class="schema-field"><span class="fname">org_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">name</span><span class="ftype">text</span></div>
+        <div class="schema-field"><span class="fname">cnpj</span><span class="ftype">text</span></div>
+        <div class="schema-field"><span class="fname">is_active</span><span class="ftype">boolean</span></div>
+        <div class="schema-field"><span class="fname">created_at</span><span class="ftype">timestamptz</span></div>
+        <div class="schema-field"><span class="fname">updated_at</span><span class="ftype">timestamptz</span></div>
+      </div>
+
+      <div class="schema-card">
+        <h4>user_companies</h4>
+        <div class="schema-field"><span class="fname">user_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">company_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">assigned_at</span><span class="ftype">timestamptz</span></div>
+      </div>
+
+      <div class="schema-card">
+        <h4>payables</h4>
+        <div class="schema-field"><span class="fname">id</span><span class="ftype">uuid PK</span></div>
+        <div class="schema-field"><span class="fname">org_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">company_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">supplier_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">category_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">cost_center_id</span><span class="ftype">uuid FK (nullable)</span></div>
+        <div class="schema-field"><span class="fname">description</span><span class="ftype">text</span></div>
+        <div class="schema-field"><span class="fname">amount</span><span class="ftype">numeric(12,2)</span></div>
+        <div class="schema-field"><span class="fname">due_date</span><span class="ftype">date</span></div>
+        <div class="schema-field"><span class="fname">paid_date</span><span class="ftype">date (nullable)</span></div>
+        <div class="schema-field"><span class="fname">status</span><span class="ftype">enum: open|scheduled|awaiting|approved|paid</span></div>
+        <div class="schema-field"><span class="fname">approved_by</span><span class="ftype">uuid FK (nullable)</span></div>
+        <div class="schema-field"><span class="fname">attachment_url</span><span class="ftype">text (nullable)</span></div>
+        <div class="schema-field"><span class="fname">notes</span><span class="ftype">text (nullable)</span></div>
+        <div class="schema-field"><span class="fname">created_at</span><span class="ftype">timestamptz</span></div>
+        <div class="schema-field"><span class="fname">updated_at</span><span class="ftype">timestamptz</span></div>
+      </div>
+
+      <div class="schema-card">
+        <h4>receivables</h4>
+        <div class="schema-field"><span class="fname">id</span><span class="ftype">uuid PK</span></div>
+        <div class="schema-field"><span class="fname">org_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">company_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">customer_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">category_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">description</span><span class="ftype">text</span></div>
+        <div class="schema-field"><span class="fname">amount</span><span class="ftype">numeric(12,2)</span></div>
+        <div class="schema-field"><span class="fname">received_amount</span><span class="ftype">numeric(12,2)</span></div>
+        <div class="schema-field"><span class="fname">due_date</span><span class="ftype">date</span></div>
+        <div class="schema-field"><span class="fname">received_date</span><span class="ftype">date (nullable)</span></div>
+        <div class="schema-field"><span class="fname">status</span><span class="ftype">enum: pending|received|overdue|partial</span></div>
+        <div class="schema-field"><span class="fname">created_at</span><span class="ftype">timestamptz</span></div>
+        <div class="schema-field"><span class="fname">updated_at</span><span class="ftype">timestamptz</span></div>
+      </div>
+
+      <div class="schema-card">
+        <h4>suppliers</h4>
+        <div class="schema-field"><span class="fname">id</span><span class="ftype">uuid PK</span></div>
+        <div class="schema-field"><span class="fname">org_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">company_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">name</span><span class="ftype">text</span></div>
+        <div class="schema-field"><span class="fname">created_at</span><span class="ftype">timestamptz</span></div>
+      </div>
+
+      <div class="schema-card">
+        <h4>customers</h4>
+        <div class="schema-field"><span class="fname">id</span><span class="ftype">uuid PK</span></div>
+        <div class="schema-field"><span class="fname">org_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">company_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">name</span><span class="ftype">text</span></div>
+        <div class="schema-field"><span class="fname">created_at</span><span class="ftype">timestamptz</span></div>
+      </div>
+
+      <div class="schema-card">
+        <h4>categories</h4>
+        <div class="schema-field"><span class="fname">id</span><span class="ftype">uuid PK</span></div>
+        <div class="schema-field"><span class="fname">org_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">company_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">name</span><span class="ftype">text</span></div>
+        <div class="schema-field"><span class="fname">type</span><span class="ftype">enum: payable|receivable|both</span></div>
+      </div>
+
+      <div class="schema-card">
+        <h4>cost_centers</h4>
+        <div class="schema-field"><span class="fname">id</span><span class="ftype">uuid PK</span></div>
+        <div class="schema-field"><span class="fname">org_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">company_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">name</span><span class="ftype">text</span></div>
+        <div class="schema-field"><span class="fname">is_active</span><span class="ftype">boolean</span></div>
+      </div>
+
+      <div class="schema-card">
+        <h4>tasks</h4>
+        <div class="schema-field"><span class="fname">id</span><span class="ftype">uuid PK</span></div>
+        <div class="schema-field"><span class="fname">org_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">company_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">title</span><span class="ftype">text</span></div>
+        <div class="schema-field"><span class="fname">description</span><span class="ftype">text (nullable)</span></div>
+        <div class="schema-field"><span class="fname">type</span><span class="ftype">enum: auto|manual</span></div>
+        <div class="schema-field"><span class="fname">priority</span><span class="ftype">enum: low|medium|high|urgent</span></div>
+        <div class="schema-field"><span class="fname">status</span><span class="ftype">enum: pending|completed</span></div>
+        <div class="schema-field"><span class="fname">related_type</span><span class="ftype">text (nullable)</span></div>
+        <div class="schema-field"><span class="fname">related_id</span><span class="ftype">uuid (nullable)</span></div>
+        <div class="schema-field"><span class="fname">assigned_to</span><span class="ftype">uuid FK (nullable)</span></div>
+        <div class="schema-field"><span class="fname">due_date</span><span class="ftype">date (nullable)</span></div>
+        <div class="schema-field"><span class="fname">created_at</span><span class="ftype">timestamptz</span></div>
+        <div class="schema-field"><span class="fname">completed_at</span><span class="ftype">timestamptz (nullable)</span></div>
+      </div>
+
+      <div class="schema-card">
+        <h4>imports</h4>
+        <div class="schema-field"><span class="fname">id</span><span class="ftype">uuid PK</span></div>
+        <div class="schema-field"><span class="fname">org_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">company_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">file_name</span><span class="ftype">text</span></div>
+        <div class="schema-field"><span class="fname">file_type</span><span class="ftype">enum: ofx|csv</span></div>
+        <div class="schema-field"><span class="fname">records_count</span><span class="ftype">integer</span></div>
+        <div class="schema-field"><span class="fname">imported_at</span><span class="ftype">timestamptz</span></div>
+      </div>
+
+      <div class="schema-card">
+        <h4>audit_logs</h4>
+        <div class="schema-field"><span class="fname">id</span><span class="ftype">uuid PK</span></div>
+        <div class="schema-field"><span class="fname">org_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">user_id</span><span class="ftype">uuid FK</span></div>
+        <div class="schema-field"><span class="fname">company_id</span><span class="ftype">uuid FK (nullable)</span></div>
+        <div class="schema-field"><span class="fname">action</span><span class="ftype">text</span></div>
+        <div class="schema-field"><span class="fname">entity_type</span><span class="ftype">text</span></div>
+        <div class="schema-field"><span class="fname">entity_id</span><span class="ftype">uuid</span></div>
+        <div class="schema-field"><span class="fname">changes</span><span class="ftype">jsonb (nullable)</span></div>
+        <div class="schema-field"><span class="fname">created_at</span><span class="ftype">timestamptz</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Tech Stack -->
+  <div class="section">
+    <div class="section-title">Stack Tecnol&oacute;gica</div>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h3><span class="dot" style="background:var(--blue)"></span> Frontend</h3>
+        <ul class="feature-list">
+          <li>React 18</li>
+          <li>Vite 5</li>
+          <li>TypeScript 5</li>
+          <li>Tailwind CSS v4</li>
+          <li>React Router v6</li>
+          <li>Zustand 5 (state management)</li>
+          <li>CVA (class-variance-authority)</li>
+          <li>lucide-react (icons)</li>
+          <li>Recharts (gr&aacute;ficos)</li>
+          <li>Axios (HTTP client)</li>
+        </ul>
+      </div>
+      <div class="feature-card">
+        <h3><span class="dot" style="background:var(--green)"></span> Backend</h3>
+        <ul class="feature-list">
+          <li>Express 5</li>
+          <li>TypeScript 5</li>
+          <li>Supabase (PostgreSQL + Auth + Storage)</li>
+          <li>Node.js 20</li>
+          <li>Row Level Security (RLS)</li>
+          <li>JWT Auth (GoTrue)</li>
+          <li>Cron jobs (tarefas autom&aacute;ticas)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Gfin F&aacute;cil &mdash; Diagrama gerado em Mar&ccedil;o 2026
+  </div>
+
+</div>
+</body>
+</html>

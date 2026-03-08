@@ -15,6 +15,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { Card, CardHeader, CardTitle, Badge, Skeleton, EmptyState, Button } from '@/components/ui';
 import { TEAM_LABELS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+import { AuditLogTable } from '@/components/features/admin/AuditLogTable';
 
 /* ---------- Types ---------- */
 
@@ -852,6 +853,9 @@ export function AdminPage() {
         onSaveTeams={handleSaveTeams}
         onSaveGroups={handleSaveGroups}
       />
+
+      {/* Section 3: Audit Logs */}
+      <AuditLogTable />
     </div>
   );
 }

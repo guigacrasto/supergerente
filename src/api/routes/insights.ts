@@ -1,14 +1,13 @@
 import { Router } from "express";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { KommoService } from "../../services/kommo.js";
-import { TeamKey } from "../../config.js";
-import { requireAuth, AuthRequest } from "../middleware/requireAuth.js";
+import { getTeamConfigsFromTenant } from "../../config.js";
+import { AuthRequest } from "../middleware/requireAuth.js";
 import { fetchFilteredInsights, clearInsightsCache } from "../cache/conversation-cache.js";
 import { getCrmMetrics } from "../cache/crm-cache.js";
 
-export function insightsRouter(services: Record<TeamKey, KommoService>) {
+export function insightsRouter() {
   const router = Router();
-  router.use(requireAuth as any);
 
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
@@ -21,21 +20,41 @@ export function insightsRouter(services: Record<TeamKey, KommoService>) {
     next();
   }
 
+  // Helper: build services map from tenant for fetchFilteredInsights
+  function buildServicesFromTenant(req: AuthRequest): Record<string, KommoService> {
+    const tenant = req.tenant!;
+    const tenantId = req.tenantId!;
+    const teamConfigs = getTeamConfigsFromTenant(tenant);
+    const result: Record<string, KommoService> = {};
+    for (const [key, cfg] of Object.entries(teamConfigs)) {
+      if (cfg.subdomain) {
+        result[key] = new KommoService(cfg, key, tenantId);
+      }
+    }
+    return result;
+  }
+
   // GET /filters — returns available funis and agentes for the user's teams
-  router.get("/filters", requireAdmin, async (req: AuthRequest, res) => {
-    const userTeams = req.userTeams || [];
+  router.get("/filters", requireAdmin, async (req, res) => {
+    const authReq = req as AuthRequest;
+    const tenant = authReq.tenant!;
+    const tenantId = authReq.tenantId!;
+    const userTeams = authReq.userTeams || [];
+    const teamConfigs = getTeamConfigsFromTenant(tenant);
     const teamParam = (req.query.team as string) || "";
 
     const targetTeams = teamParam
-      ? userTeams.filter((t) => t === teamParam && !!services[t])
-      : userTeams.filter((t) => !!services[t]);
+      ? userTeams.filter((t) => t === teamParam && !!teamConfigs[t])
+      : userTeams.filter((t) => !!teamConfigs[t]);
 
     const funisSet = new Set<string>();
     const agentesSet = new Set<string>();
 
     for (const team of targetTeams) {
       try {
-        const metrics = await getCrmMetrics(team, services[team]);
+        const cfg = teamConfigs[team];
+        const kommoService = new KommoService(cfg, team, tenantId);
+        const metrics = await getCrmMetrics(team, kommoService, tenantId, cfg.excludePipelineNames);
 
         // Collect funis (pipeline names)
         for (const name of Object.values(metrics.pipelineNames)) {
@@ -61,8 +80,9 @@ export function insightsRouter(services: Record<TeamKey, KommoService>) {
   });
 
   // GET /conversations — fetch insights with filters (admin only)
-  router.get("/conversations", requireAdmin, async (req: AuthRequest, res) => {
-    const userTeams = req.userTeams || [];
+  router.get("/conversations", requireAdmin, async (req, res) => {
+    const authReq = req as AuthRequest;
+    const userTeams = authReq.userTeams || [];
     const team = (req.query.team as string) || "";
     const funil = (req.query.funil as string) || "";
     const agente = (req.query.agente as string) || "";
@@ -79,6 +99,7 @@ export function insightsRouter(services: Record<TeamKey, KommoService>) {
     }
 
     try {
+      const services = buildServicesFromTenant(authReq);
       const result = await fetchFilteredInsights(
         services,
         genAI,
@@ -97,8 +118,9 @@ export function insightsRouter(services: Record<TeamKey, KommoService>) {
   const REFRESH_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
   const lastRefreshAt: Record<string, number> = {};
 
-  router.post("/refresh", requireAdmin, async (req: AuthRequest, res) => {
-    const userTeams = req.userTeams || [];
+  router.post("/refresh", requireAdmin, async (req, res) => {
+    const authReq = req as AuthRequest;
+    const userTeams = authReq.userTeams || [];
     const team = (req.query.team as string) || (req.body?.team as string) || "";
     const funil = (req.query.funil as string) || (req.body?.funil as string) || "";
     const agente = (req.query.agente as string) || (req.body?.agente as string) || "";
@@ -109,7 +131,7 @@ export function insightsRouter(services: Record<TeamKey, KommoService>) {
     }
 
     // Rate-limit: 1 refresh per 5 minutes per user
-    const userId = req.userId || "anonymous";
+    const userId = authReq.userId || "anonymous";
     const now = Date.now();
     if (lastRefreshAt[userId] && now - lastRefreshAt[userId] < REFRESH_COOLDOWN_MS) {
       const waitSec = Math.ceil((REFRESH_COOLDOWN_MS - (now - lastRefreshAt[userId])) / 1000);
@@ -119,6 +141,8 @@ export function insightsRouter(services: Record<TeamKey, KommoService>) {
     lastRefreshAt[userId] = now;
 
     try {
+      const services = buildServicesFromTenant(authReq);
+
       // Clear cache for user's teams
       for (const t of userTeams) {
         if (services[t]) {

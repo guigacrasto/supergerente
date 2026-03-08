@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SuperGerente — Arquitetura do Sistema</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@500;600;700;800&family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg-primary: #12081E;
+    --bg-surface: #22182D;
+    --bg-elevated: #2F233C;
+    --sidebar-bg: #270E5F;
+    --accent: #9566F2;
+    --accent-glow: rgba(149, 102, 242, 0.1);
+    --accent-blue: #1F74EC;
+    --gold: #F9AA3C;
+    --success: #10B981;
+    --danger: #EF4444;
+    --text-primary: #E0E3E9;
+    --text-secondary: #959CA6;
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-bg: rgba(34, 24, 45, 0.7);
+  }
+
+  body {
+    font-family: 'Mulish', -apple-system, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 13px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6,
+  .section-title,
+  .arch-box .label,
+  .ai-layer-title,
+  .ai-mode .mode-title,
+  .feature-title,
+  .step-title,
+  .pos-card h3,
+  .tech-label {
+    font-family: 'Libre Franklin', -apple-system, sans-serif;
+  }
+
+  .page {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 32px;
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--glass-border);
+  }
+  .header-left { flex: 1; }
+  .badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--accent), var(--accent-blue));
+    color: white;
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .header h1 span {
+    background: linear-gradient(135deg, var(--accent), var(--accent-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header-sub {
+    font-size: 13px;
+    color: var(--text-secondary);
+    max-width: 520px;
+    line-height: 1.7;
+  }
+  .header-right {
+    text-align: right;
+    font-size: 11px;
+    color: var(--text-secondary);
+    padding-top: 4px;
+  }
+  .header-right strong {
+    display: block;
+    font-family: 'Libre Franklin', sans-serif;
+    font-size: 13px;
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  /* ── Section titles ── */
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--glass-border);
+  }
+
+  /* ── Architecture Diagram ── */
+  .arch {
+    margin-bottom: 36px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(5.4px);
+    -webkit-backdrop-filter: blur(5.4px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 28px;
+  }
+
+  .arch-flow {
+    display: grid;
+    grid-template-columns: 1fr 32px 1fr 32px 1fr 32px 1fr;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 20px;
+  }
+
+  .arch-box {
+    border-radius: 12px;
+    padding: 14px 12px;
+    text-align: center;
+  }
+  .arch-box .icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+  }
+  .arch-box .label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 3px;
+  }
+  .arch-box .desc { font-size: 10.5px; color: inherit; opacity: 0.7; line-height: 1.4; }
+
+  .arch-box.blue {
+    background: rgba(31, 116, 236, 0.1);
+    border: 1.5px solid rgba(31, 116, 236, 0.25);
+    color: #7EB8FF;
+  }
+  .arch-box.blue .icon { background: var(--accent-blue); }
+
+  .arch-box.purple {
+    background: rgba(149, 102, 242, 0.1);
+    border: 1.5px solid rgba(149, 102, 242, 0.25);
+    color: #C4ADFF;
+  }
+  .arch-box.purple .icon { background: var(--accent); }
+
+  .arch-box.green {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1.5px solid rgba(16, 185, 129, 0.25);
+    color: #6EE7B7;
+  }
+  .arch-box.green .icon { background: var(--success); }
+
+  .arch-box.slate {
+    background: rgba(149, 156, 166, 0.08);
+    border: 1.5px solid rgba(149, 156, 166, 0.18);
+    color: var(--text-secondary);
+  }
+  .arch-box.slate .icon { background: var(--bg-elevated); border: 1px solid var(--glass-border); }
+
+  .arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 18px;
+    opacity: 0.5;
+  }
+  .arrow svg {
+    width: 20px;
+    height: 20px;
+    stroke: var(--accent);
+    opacity: 0.6;
+  }
+
+  /* AI Layer */
+  .ai-layer {
+    background: linear-gradient(135deg, rgba(149, 102, 242, 0.08) 0%, rgba(31, 116, 236, 0.06) 100%);
+    border: 1.5px solid rgba(149, 102, 242, 0.2);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-top: 12px;
+  }
+  .ai-layer-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ai-layer-title .title-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-blue));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .ai-layer-title .title-icon svg {
+    width: 12px;
+    height: 12px;
+    stroke: white;
+  }
+  .ai-modes {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+  }
+  .ai-mode {
+    background: rgba(34, 24, 45, 0.6);
+    border: 1px solid rgba(149, 102, 242, 0.15);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .ai-mode .mode-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #C4ADFF;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .ai-mode .mode-title .mode-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .ai-mode .mode-title .mode-icon svg {
+    width: 11px;
+    height: 11px;
+    stroke: white;
+  }
+  .mode-icon.standard { background: var(--accent-blue); }
+  .mode-icon.mentor { background: var(--gold); }
+  .mode-icon.council { background: var(--accent); }
+  .ai-mode p {
+    font-size: 10.5px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* ── Feature Grid ── */
+  .features {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 36px;
+  }
+
+  .feature-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(5.4px);
+    -webkit-backdrop-filter: blur(5.4px);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 12px 12px 0 0;
+  }
+  .feature-card.c-blue::before { background: var(--accent-blue); }
+  .feature-card.c-purple::before { background: var(--accent); }
+  .feature-card.c-green::before { background: var(--success); }
+  .feature-card.c-amber::before { background: var(--gold); }
+  .feature-card.c-red::before { background: var(--danger); }
+  .feature-card.c-indigo::before { background: linear-gradient(135deg, var(--accent), var(--accent-blue)); }
+
+  .feature-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+  .feature-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: white;
+    stroke-width: 2;
+  }
+  .c-blue .feature-icon { background: rgba(31, 116, 236, 0.2); }
+  .c-blue .feature-icon svg { stroke: #7EB8FF; }
+  .c-red .feature-icon { background: rgba(239, 68, 68, 0.2); }
+  .c-red .feature-icon svg { stroke: #FCA5A5; }
+  .c-purple .feature-icon { background: rgba(149, 102, 242, 0.2); }
+  .c-purple .feature-icon svg { stroke: #C4ADFF; }
+  .c-amber .feature-icon { background: rgba(249, 170, 60, 0.2); }
+  .c-amber .feature-icon svg { stroke: #FBBF24; }
+  .c-green .feature-icon { background: rgba(16, 185, 129, 0.2); }
+  .c-green .feature-icon svg { stroke: #6EE7B7; }
+  .c-indigo .feature-icon { background: linear-gradient(135deg, rgba(149,102,242,0.2), rgba(31,116,236,0.2)); }
+  .c-indigo .feature-icon svg { stroke: #C4ADFF; }
+
+  .feature-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+  }
+  .feature-desc {
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.55;
+  }
+  .feature-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 10px;
+  }
+  .tag {
+    font-family: 'Mulish', sans-serif;
+    font-size: 9.5px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: rgba(149, 156, 166, 0.1);
+    color: var(--text-secondary);
+    border: 1px solid var(--glass-border);
+  }
+  .tag.blue { background: rgba(31, 116, 236, 0.15); color: #7EB8FF; border-color: rgba(31, 116, 236, 0.2); }
+  .tag.purple { background: rgba(149, 102, 242, 0.15); color: #C4ADFF; border-color: rgba(149, 102, 242, 0.2); }
+  .tag.green { background: rgba(16, 185, 129, 0.15); color: #6EE7B7; border-color: rgba(16, 185, 129, 0.2); }
+  .tag.amber { background: rgba(249, 170, 60, 0.15); color: #FBBF24; border-color: rgba(249, 170, 60, 0.2); }
+
+  /* ── How it works flow ── */
+  .flow {
+    background: var(--glass-bg);
+    backdrop-filter: blur(5.4px);
+    -webkit-backdrop-filter: blur(5.4px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-bottom: 36px;
+  }
+  .flow-steps {
+    display: flex;
+    gap: 0;
+    align-items: stretch;
+  }
+  .flow-step {
+    flex: 1;
+    position: relative;
+    padding: 0 16px 0 0;
+  }
+  .flow-step:last-child { padding-right: 0; }
+  .flow-step::after {
+    content: '';
+    position: absolute;
+    right: 2px;
+    top: 8px;
+    width: 16px;
+    height: 16px;
+    border-right: 2px solid var(--accent);
+    border-top: 2px solid var(--accent);
+    transform: rotate(45deg);
+    opacity: 0.35;
+  }
+  .flow-step:last-child::after { display: none; }
+  .step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-blue));
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+  .step-title {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+  .step-desc { font-size: 10.5px; color: var(--text-secondary); line-height: 1.5; }
+
+  /* ── White label / positioning ── */
+  .positioning {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+  .pos-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(5.4px);
+    -webkit-backdrop-filter: blur(5.4px);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 18px;
+  }
+  .pos-card h3 {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pos-card h3 .pos-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .pos-card h3 .pos-icon svg {
+    width: 13px;
+    height: 13px;
+    stroke: white;
+  }
+  .pos-icon.target { background: var(--accent-blue); }
+  .pos-icon.star { background: var(--gold); }
+  .pos-icon.wrench { background: var(--accent); }
+  .pos-icon.dollar { background: var(--success); }
+
+  .pos-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .pos-card ul li {
+    font-size: 11px;
+    color: var(--text-secondary);
+    padding-left: 18px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .pos-card ul li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 5px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(16, 185, 129, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pos-card ul li::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 8px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--success);
+  }
+
+  /* ── Tech stack ── */
+  .tech-stack {
+    background: var(--sidebar-bg);
+    border: 1px solid rgba(149, 102, 242, 0.15);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 36px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .tech-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(196, 173, 255, 0.6);
+    white-space: nowrap;
+  }
+  .tech-items { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tech-item {
+    background: rgba(149, 102, 242, 0.12);
+    border: 1px solid rgba(149, 102, 242, 0.2);
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #C4ADFF;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    border-top: 1px solid var(--glass-border);
+    padding-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10.5px;
+    color: var(--text-secondary);
+  }
+  .footer .footer-brand {
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  /* ── SVG icon helper ── */
+  .inline-svg {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── Print styles ── */
+  @media print {
+    body {
+      background: white !important;
+      color: #1a1a2e !important;
+      font-size: 11.5px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .page { padding: 20px 24px; }
+    .header { margin-bottom: 24px; padding-bottom: 16px; border-bottom-color: #ddd; }
+    .header h1 { color: #1a1a2e !important; }
+    .header h1 span {
+      -webkit-text-fill-color: #6d28d9;
+      color: #6d28d9;
+    }
+    .header-sub, .step-desc, .feature-desc, .pos-card ul li, .ai-mode p {
+      color: #555 !important;
+    }
+    .section-title { color: #777 !important; }
+    .section-title::after { background: #ddd; }
+    .arch, .flow, .pos-card, .feature-card {
+      break-inside: avoid;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      background: #f8f8fc !important;
+      border-color: #ddd !important;
+    }
+    .feature-title, .step-title, .pos-card h3, .tech-label {
+      color: #1a1a2e !important;
+    }
+    .tech-stack {
+      background: #2d1b69 !important;
+    }
+    .tag {
+      border-color: #ccc !important;
+    }
+    .footer { border-top-color: #ddd; }
+  }
+
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="badge">White Label &middot; SaaS</div>
+      <h1>Super<span>Gerente</span></h1>
+      <p class="header-sub">
+        Plataforma que transforma dados do CRM em inteligencia de vendas &mdash; com chat analitico,
+        alertas de atividade, relatorios em tempo real e mentores de IA personalizados.
+      </p>
+    </div>
+    <div class="header-right">
+      <strong>Arquitetura do Sistema</strong>
+      Versao 2.0 &middot; 2026
+    </div>
+  </div>
+
+  <!-- Architecture Diagram -->
+  <p class="section-title">Arquitetura e Fluxo de Dados</p>
+  <div class="arch">
+    <div class="arch-flow">
+      <div class="arch-box blue">
+        <div class="icon">
+          <!-- Building icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>
+        </div>
+        <div class="label">CRM</div>
+        <div class="desc">Kommo CRM<br>Leads, funis,<br>vendedores, tarefas</div>
+      </div>
+      <div class="arrow">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </div>
+      <div class="arch-box slate">
+        <div class="icon">
+          <!-- Zap icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <div class="label">Cache Inteligente</div>
+        <div class="desc">TTL 30 min<br>Stale-while-revalidate<br>Zero requests extras</div>
+      </div>
+      <div class="arrow">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </div>
+      <div class="arch-box purple">
+        <div class="icon">
+          <!-- Brain / CPU icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></svg>
+        </div>
+        <div class="label">Motor de IA</div>
+        <div class="desc">Gemini 2.5 Flash<br>Prompt contextual<br>com dados ao vivo</div>
+      </div>
+      <div class="arrow">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </div>
+      <div class="arch-box green">
+        <div class="icon">
+          <!-- Monitor icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <div class="label">Dashboard</div>
+        <div class="desc">React &middot; Interface<br>glassmorphism<br>Multi-equipe</div>
+      </div>
+    </div>
+
+    <div class="ai-layer">
+      <div class="ai-layer-title">
+        <span class="title-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></svg>
+        </span>
+        Camada de IA &mdash; Tres Modos de Operacao
+      </div>
+      <div class="ai-modes">
+        <div class="ai-mode">
+          <div class="mode-title">
+            <span class="mode-icon standard">
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4m0 14v4M4.22 4.22l2.83 2.83m9.9 9.9l2.83 2.83M1 12h4m14 0h4M4.22 19.78l2.83-2.83m9.9-9.9l2.83-2.83"/></svg>
+            </span>
+            Modo Padrao
+          </div>
+          <p>Assistente analitico com acesso completo aos dados do CRM. Responde perguntas sobre leads, funis, performance de vendedores e alertas de atividade com tabelas e insights estruturados.</p>
+        </div>
+        <div class="ai-mode">
+          <div class="mode-title">
+            <span class="mode-icon mentor">
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </span>
+            Modo Mentor
+          </div>
+          <p>A IA assume a persona de um mentor configurado pelo admin (ex: "Coach Agressivo de Vendas"). Responde com a metodologia e estilo daquele mentor, enriquecida com os dados reais do CRM.</p>
+        </div>
+        <div class="ai-mode">
+          <div class="mode-title">
+            <span class="mode-icon council">
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </span>
+            Modo Conselho
+          </div>
+          <p>Multiplos mentores respondem em paralelo (chamadas simultaneas a IA), depois um moderador sintetiza as perspectivas em um <strong>Veredito Final</strong> &mdash; como um board de consultores.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feature Cards -->
+  <p class="section-title">Modulos do Sistema</p>
+  <div class="features">
+
+    <div class="feature-card c-blue">
+      <div class="feature-icon">
+        <!-- BarChart3 -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+      </div>
+      <div class="feature-title">Relatorios em Tempo Real</div>
+      <div class="feature-desc">Relatorio de performance por agente com ranking, conversao, e funis. Resumo geral por equipe. Filtros por agente, funil e equipe &mdash; sem exportacao manual.</div>
+      <div class="feature-tags">
+        <span class="tag blue">Cache 30min</span>
+        <span class="tag">Multi-equipe</span>
+        <span class="tag">Filtros client-side</span>
+      </div>
+    </div>
+
+    <div class="feature-card c-red">
+      <div class="feature-icon">
+        <!-- AlertTriangle -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="feature-title">Painel de Alertas de Atividade</div>
+      <div class="feature-desc">Detecta automaticamente leads sem atividade ha +48h (em risco) e +7 dias (critico), alem de tarefas vencidas. Links diretos para o CRM em cada alerta.</div>
+      <div class="feature-tags">
+        <span class="tag">+48h sem atividade</span>
+        <span class="tag">+7d critico</span>
+        <span class="tag">Links Kommo</span>
+      </div>
+    </div>
+
+    <div class="feature-card c-purple">
+      <div class="feature-icon">
+        <!-- MessageSquare -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <div class="feature-title">Chat Analitico com IA</div>
+      <div class="feature-desc">Chat conversacional com contexto completo do CRM. Respostas em Markdown com tabelas e insights. Historico de sessao por usuario.</div>
+      <div class="feature-tags">
+        <span class="tag purple">Gemini 2.5 Flash</span>
+        <span class="tag">Markdown</span>
+        <span class="tag">Sessao persistente</span>
+      </div>
+    </div>
+
+    <div class="feature-card c-amber">
+      <div class="feature-icon">
+        <!-- Users -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <div class="feature-title">Sistema de Mentores / Agentes</div>
+      <div class="feature-desc">Admin configura personas com nome, instrucoes de personalidade e upload de metodologia em .txt ou .md. Usuarios escolhem o mentor antes de conversar.</div>
+      <div class="feature-tags">
+        <span class="tag amber">Upload metodologia</span>
+        <span class="tag">Personas</span>
+        <span class="tag">Admin CRUD</span>
+      </div>
+    </div>
+
+    <div class="feature-card c-green">
+      <div class="feature-icon">
+        <!-- Lock -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div class="feature-title">Autenticacao e Multi-Tenant</div>
+      <div class="feature-desc">JWT com expiracao. Aprovacao manual de usuarios pelo admin. Controle granular de acesso por equipe &mdash; cada usuario ve apenas os dados autorizados.</div>
+      <div class="feature-tags">
+        <span class="tag green">JWT</span>
+        <span class="tag">Aprovacao manual</span>
+        <span class="tag">Por equipe</span>
+      </div>
+    </div>
+
+    <div class="feature-card c-indigo">
+      <div class="feature-icon">
+        <!-- Settings -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4m0 14v4M4.22 4.22l2.83 2.83m9.9 9.9l2.83 2.83M1 12h4m14 0h4M4.22 19.78l2.83-2.83m9.9-9.9l2.83-2.83"/></svg>
+      </div>
+      <div class="feature-title">Painel Admin Completo</div>
+      <div class="feature-desc">Gestao de usuarios, tokens OAuth do CRM, criacao de mentores, e monitoramento de uso e custo da IA por usuario nos ultimos 30 dias.</div>
+      <div class="feature-tags">
+        <span class="tag">Gestao usuarios</span>
+        <span class="tag">OAuth CRM</span>
+        <span class="tag">Custo IA</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- How it works -->
+  <p class="section-title">Como Funciona &mdash; Jornada do Gerente</p>
+  <div class="flow">
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="step-num">1</div>
+        <div class="step-title">Login e Acesso</div>
+        <div class="step-desc">Gerente entra com e-mail e senha. Admin aprova e libera acesso as equipes permitidas.</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">2</div>
+        <div class="step-title">Dados ao Vivo</div>
+        <div class="step-desc">Sistema busca automaticamente leads, conversoes e atividades do CRM em cache de 30 min.</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">3</div>
+        <div class="step-title">Escolhe o Mentor</div>
+        <div class="step-desc">Seleciona o assistente padrao, um mentor especifico, ou ativa o modo conselho com multiplos mentores.</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">4</div>
+        <div class="step-title">Pergunta a IA</div>
+        <div class="step-desc">Digita a duvida em linguagem natural. A IA responde com analise, tabelas, rankings e recomendacoes.</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">5</div>
+        <div class="step-title">Age com Dados</div>
+        <div class="step-desc">Ve alertas de leads em risco, acessa o CRM com um clique e age com base em dados concretos.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- White label positioning -->
+  <p class="section-title">Posicionamento White Label</p>
+  <div class="positioning">
+    <div class="pos-card">
+      <h3>
+        <span class="pos-icon target">
+          <!-- Target -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+        </span>
+        Para Quem e Ideal
+      </h3>
+      <ul>
+        <li>Agencias e consultorias de vendas que atendem multiplos clientes</li>
+        <li>Gestores comerciais com equipes de 3 a 50+ vendedores</li>
+        <li>Empresas que usam Kommo, Pipedrive ou qualquer CRM com API</li>
+        <li>Operacoes de vendas que precisam de BI sem equipe tecnica</li>
+        <li>Empresas que querem treinar equipes com metodologias proprias via IA</li>
+      </ul>
+    </div>
+    <div class="pos-card">
+      <h3>
+        <span class="pos-icon star">
+          <!-- Star -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </span>
+        Diferencial Competitivo
+      </h3>
+      <ul>
+        <li>IA com contexto real do CRM &mdash; nao e chatbot generico</li>
+        <li>Mentores personalizaveis com metodologias proprietarias</li>
+        <li>Modo Conselho: perspectivas paralelas de multiplos especialistas</li>
+        <li>Alertas proativos sem configuracao &mdash; detecta risco automaticamente</li>
+        <li>Deploy em minutos (Railway / Vercel) &mdash; zero infraestrutura gerenciada</li>
+        <li>Totalmente white label: marca, cores e dominio do cliente</li>
+      </ul>
+    </div>
+    <div class="pos-card">
+      <h3>
+        <span class="pos-icon wrench">
+          <!-- Wrench -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        </span>
+        Customizacoes White Label
+      </h3>
+      <ul>
+        <li>Nome, logo e esquema de cores no frontend</li>
+        <li>Mentores configurados com a metodologia de vendas do cliente</li>
+        <li>Conexao com o CRM do cliente via chaves OAuth proprias</li>
+        <li>Subdomain proprio (ex: ia.suaempresa.com.br)</li>
+        <li>Usuarios e equipes configuradas pelo admin do cliente</li>
+      </ul>
+    </div>
+    <div class="pos-card">
+      <h3>
+        <span class="pos-icon dollar">
+          <!-- DollarSign -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </span>
+        Modelos de Comercializacao
+      </h3>
+      <ul>
+        <li><strong>SaaS por assento:</strong> R$ X/usuario/mes &mdash; escalavel com o time</li>
+        <li><strong>Licenca por empresa:</strong> fee fixo mensal independente de usuarios</li>
+        <li><strong>Setup + mensalidade:</strong> implantacao + suporte continuo</li>
+        <li><strong>White label puro:</strong> licenca do codigo + customizacao</li>
+        <li>Custo de IA (~$0.001/mensagem) repassado ou absorvido no plano</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Tech stack -->
+  <div class="tech-stack">
+    <span class="tech-label">Stack Tecnologico</span>
+    <div class="tech-items">
+      <span class="tech-item">Node.js + TypeScript</span>
+      <span class="tech-item">Express API</span>
+      <span class="tech-item">React 18 + Vite</span>
+      <span class="tech-item">Google Gemini 2.5 Flash</span>
+      <span class="tech-item">Supabase (PostgreSQL)</span>
+      <span class="tech-item">JWT Auth</span>
+      <span class="tech-item">Railway Deploy</span>
+      <span class="tech-item">Kommo CRM API</span>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span><span class="footer-brand">SuperGerente</span> &middot; Arquitetura do Sistema &middot; 2026</span>
+    <span>Versao 2.0</span>
+  </div>
+
+</div>
+</body>
+</html>

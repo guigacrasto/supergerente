@@ -1,10 +1,9 @@
 import { KommoService } from "../../services/kommo.js";
-import { TeamKey, TEAMS } from "../../config.js";
 
 export interface VendedorMetrics {
   nome: string;
   funil: string;
-  team: TeamKey;
+  team: string;
   total: number;
   ganhos: number;
   ganhosHoje: number;
@@ -18,7 +17,7 @@ export interface VendedorMetrics {
 
 export interface FunilMetrics {
   nome: string;
-  team: TeamKey;
+  team: string;
   total: number;
   ganhos: number;
   perdidos: number;
@@ -91,10 +90,17 @@ interface CacheEntry {
   fetchPromise: Promise<CrmMetrics> | null;
 }
 
-const caches: Record<TeamKey, CacheEntry> = {
-  azul: { metrics: null, expiresAt: 0, fetchPromise: null },
-  amarela: { metrics: null, expiresAt: 0, fetchPromise: null },
-};
+// Cache keyed by "tenantId:team"
+const caches = new Map<string, CacheEntry>();
+
+function getOrCreateEntry(key: string): CacheEntry {
+  let entry = caches.get(key);
+  if (!entry) {
+    entry = { metrics: null, expiresAt: 0, fetchPromise: null };
+    caches.set(key, entry);
+  }
+  return entry;
+}
 
 function toConversao(ganhos: number, total: number): string {
   if (total === 0) return "0.0%";
@@ -135,10 +141,12 @@ function countCurrentMonth(leads: any[]): number {
   return leads.filter((l) => l.created_at >= cutoff).length;
 }
 
-async function fetchAndCompute(team: TeamKey, service: KommoService): Promise<CrmMetrics> {
+async function fetchAndCompute(
+  team: string,
+  service: KommoService,
+  excludeNames: string[] = []
+): Promise<CrmMetrics> {
   console.log(`[CrmCache:${team}] Buscando dados do CRM...`);
-
-  const excludeNames = TEAMS[team].excludePipelineNames;
 
   // Fetch all pipelines dynamically
   const allPipelines = await service.getPipelines();
@@ -305,7 +313,6 @@ async function fetchAndCompute(team: TeamKey, service: KommoService): Promise<Cr
 
   // If bulk /groups returned empty, try account endpoint and individual resolution
   if (groups.length === 0 && uniqueGroupIds.size > 0) {
-    // Try 1: account endpoint may contain users_groups
     const accountInfo = await service.getAccountInfo();
     if (accountInfo) {
       const accountGroups = accountInfo?._embedded?.groups
@@ -326,7 +333,6 @@ async function fetchAndCompute(team: TeamKey, service: KommoService): Promise<Cr
       }
     }
 
-    // Try 2: resolve individually if still empty
     if (Object.keys(groupNamesMap).length === 0) {
       console.log(`[CrmCache:${team}] Resolving ${uniqueGroupIds.size} groups by ID: ${[...uniqueGroupIds]}`);
       const resolved = await Promise.all(
@@ -379,21 +385,27 @@ async function fetchAndCompute(team: TeamKey, service: KommoService): Promise<Cr
   };
 }
 
-export async function getCrmMetrics(team: TeamKey, service: KommoService): Promise<CrmMetrics> {
-  const entry = caches[team];
+export async function getCrmMetrics(
+  team: string,
+  service: KommoService,
+  tenantId?: string,
+  excludeNames: string[] = []
+): Promise<CrmMetrics> {
+  const cacheKey = tenantId ? `${tenantId}:${team}` : team;
+  const entry = getOrCreateEntry(cacheKey);
   const now = Date.now();
 
   if (entry.metrics && now < entry.expiresAt) return entry.metrics;
 
   if (entry.metrics && !entry.fetchPromise) {
-    entry.fetchPromise = fetchAndCompute(team, service)
+    entry.fetchPromise = fetchAndCompute(team, service, excludeNames)
       .then((metrics) => {
         entry.metrics = metrics;
         entry.expiresAt = Date.now() + CACHE_TTL_MS;
         return metrics;
       })
       .catch((err) => {
-        console.error(`[CrmCache:${team}] Erro no refresh:`, err);
+        console.error(`[CrmCache:${cacheKey}] Erro no refresh:`, err);
         return entry.metrics!;
       })
       .finally(() => { entry.fetchPromise = null; });
@@ -401,14 +413,14 @@ export async function getCrmMetrics(team: TeamKey, service: KommoService): Promi
   }
 
   if (!entry.fetchPromise) {
-    entry.fetchPromise = fetchAndCompute(team, service)
+    entry.fetchPromise = fetchAndCompute(team, service, excludeNames)
       .then((metrics) => {
         entry.metrics = metrics;
         entry.expiresAt = Date.now() + CACHE_TTL_MS;
         return metrics;
       })
       .catch((err) => {
-        console.error(`[CrmCache:${team}] Erro no fetch inicial:`, err);
+        console.error(`[CrmCache:${cacheKey}] Erro no fetch inicial:`, err);
         throw err;
       })
       .finally(() => { entry.fetchPromise = null; });
@@ -419,27 +431,33 @@ export async function getCrmMetrics(team: TeamKey, service: KommoService): Promi
 
 // Proactive background refresh — keeps cache always warm so no user ever waits
 const PROACTIVE_REFRESH_MS = 4 * 60 * 1000; // 4 min (before 5 min TTL expires)
-const registeredTeams: Array<{ team: TeamKey; service: KommoService }> = [];
+const registeredTeams: Array<{ cacheKey: string; team: string; service: KommoService; excludeNames: string[] }> = [];
 
-export function startProactiveRefresh(team: TeamKey, service: KommoService): void {
-  registeredTeams.push({ team, service });
+export function startProactiveRefresh(
+  team: string,
+  service: KommoService,
+  tenantId?: string,
+  excludeNames: string[] = []
+): void {
+  const cacheKey = tenantId ? `${tenantId}:${team}` : team;
+  registeredTeams.push({ cacheKey, team, service, excludeNames });
 }
 
 // Single interval refreshes all registered teams
 setInterval(async () => {
-  for (const { team, service } of registeredTeams) {
-    const entry = caches[team];
+  for (const { cacheKey, team, service, excludeNames } of registeredTeams) {
+    const entry = getOrCreateEntry(cacheKey);
     if (entry.fetchPromise) continue; // already refreshing
-    console.log(`[CrmCache:${team}] Proactive refresh...`);
-    entry.fetchPromise = fetchAndCompute(team, service)
+    console.log(`[CrmCache:${cacheKey}] Proactive refresh...`);
+    entry.fetchPromise = fetchAndCompute(team, service, excludeNames)
       .then((metrics) => {
         entry.metrics = metrics;
         entry.expiresAt = Date.now() + CACHE_TTL_MS;
-        console.log(`[CrmCache:${team}] Proactive refresh OK`);
+        console.log(`[CrmCache:${cacheKey}] Proactive refresh OK`);
         return metrics;
       })
       .catch((err) => {
-        console.error(`[CrmCache:${team}] Proactive refresh error:`, err.message);
+        console.error(`[CrmCache:${cacheKey}] Proactive refresh error:`, err.message);
         return entry.metrics!;
       })
       .finally(() => { entry.fetchPromise = null; });

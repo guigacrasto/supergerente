@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { KommoService } from "../../services/kommo.js";
-import { TeamKey, TEAMS } from "../../config.js";
-import { requireAuth, AuthRequest } from "../middleware/requireAuth.js";
+import { getTeamConfigsFromTenant } from "../../config.js";
+import { AuthRequest } from "../middleware/requireAuth.js";
 
 function formatDateOnly(timestamp: number): string {
   const date = new Date(timestamp * 1000);
@@ -22,15 +22,18 @@ function formatDateTimeGMT3(date: Date): string {
   return `${dd}/${mm}/${yyyy} ${hh}:${min} (GMT-3)`;
 }
 
-export function leadsRouter(services: Record<TeamKey, KommoService>) {
+export function leadsRouter() {
   const router = Router();
-  router.use(requireAuth as any);
 
   // GET /api/leads/new/:pipelineId — find which team owns this pipeline, then fetch leads
-  router.get("/new/:pipelineId", async (req: AuthRequest, res) => {
+  router.get("/new/:pipelineId", async (req, res) => {
+    const authReq = req as AuthRequest;
+    const tenant = authReq.tenant!;
+    const tenantId = authReq.tenantId!;
     const { pipelineId } = req.params;
     const { from, to } = req.query;
-    const userTeams = req.userTeams || [];
+    const userTeams = authReq.userTeams || [];
+    const teamConfigs = getTeamConfigsFromTenant(tenant);
 
     try {
       // Find the team that owns this pipeline ID
@@ -38,11 +41,13 @@ export function leadsRouter(services: Record<TeamKey, KommoService>) {
       let pipe: any = null;
 
       for (const team of userTeams) {
-        if (!TEAMS[team].subdomain || !services[team]) continue;
-        const pipelines = await services[team].getPipelines();
+        const cfg = teamConfigs[team];
+        if (!cfg || !cfg.subdomain) continue;
+        const kommoService = new KommoService(cfg, team, tenantId);
+        const pipelines = await kommoService.getPipelines();
         const found = pipelines.find((p: any) => p.id === parseInt(pipelineId as string));
         if (found) {
-          service = services[team];
+          service = kommoService;
           pipe = found;
           break;
         }

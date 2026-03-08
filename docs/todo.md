@@ -4,6 +4,17 @@
 - [x] Renomear projeto para SuperGerente
 - [x] Configurar API Kommo equipe amarela
 - [x] Página Diário (leads/vendas/conversão dia/mês + date picker)
+- [x] Multi-Tenant Architecture (Single DB + tenant_id + RLS)
+  - [x] Migration 009 — tabela tenants + tenant_id em 7 tabelas + RLS
+  - [x] Tenant service com CRUD + cache
+  - [x] Auth middleware injeta tenant em toda request
+  - [x] Todas as rotas filtram por tenant_id
+  - [x] KommoService tenant-aware (tokens por tenant)
+  - [x] Cache dinâmico (CRM + Activity + Conversation)
+  - [x] Super-admin API (/api/super)
+  - [x] Frontend: TenantSwitcher, SuperAdminPage, TenantTable, TenantForm
+  - [x] Sidebar + routing para /super (superadmin only)
+  - [x] Build passa sem erros
 
 ## Prioridade Alta
 

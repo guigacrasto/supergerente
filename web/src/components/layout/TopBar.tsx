@@ -1,6 +1,8 @@
 import { Menu } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useSidebarStore } from '@/stores/sidebarStore';
+import { NotificationBell } from '@/components/features/notifications/NotificationBell';
+import { TenantSwitcher } from '@/components/features/super/TenantSwitcher';
 
 export function TopBar() {
   const user = useAuthStore((s) => s.user);
@@ -21,8 +23,12 @@ export function TopBar() {
           Ola, <span className="font-heading font-semibold text-[#E0E3E9]">{user?.name || 'Usuario'}</span>
         </span>
       </div>
-      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent-blue font-heading text-body-md font-semibold text-white">
-        {initial}
+      <div className="flex items-center gap-3">
+        <TenantSwitcher />
+        <NotificationBell />
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent-blue font-heading text-body-md font-semibold text-white">
+          {initial}
+        </div>
       </div>
     </header>
   );

@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gfin Fácil — Apresentação Comercial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* ═══════════════════════════════════════════
+     GFIN FÁCIL — APRESENTAÇÃO COMERCIAL
+     Standalone dark-theme pitch deck
+     ═══════════════════════════════════════════ */
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0a0f;
+    --bg-surface: #111118;
+    --bg-elevated: #1a1a24;
+    --bg-card: rgba(26, 26, 36, 0.6);
+    --accent: #6C63FF;
+    --accent-light: #8B83FF;
+    --accent-glow: rgba(108, 99, 255, 0.15);
+    --accent-green: #10B981;
+    --accent-green-glow: rgba(16, 185, 129, 0.12);
+    --accent-amber: #F59E0B;
+    --accent-amber-glow: rgba(245, 158, 11, 0.12);
+    --accent-rose: #F43F5E;
+    --accent-rose-glow: rgba(244, 63, 94, 0.12);
+    --accent-cyan: #06B6D4;
+    --accent-cyan-glow: rgba(6, 182, 212, 0.12);
+    --accent-purple: #A855F7;
+    --accent-purple-glow: rgba(168, 85, 247, 0.12);
+    --text: #E8E8ED;
+    --text-secondary: #8E8E9A;
+    --text-muted: #5A5A66;
+    --glass-border: rgba(255, 255, 255, 0.07);
+    --glass-border-hover: rgba(255, 255, 255, 0.14);
+    --glass-bg: rgba(17, 17, 24, 0.7);
+    --gradient-1: linear-gradient(135deg, #6C63FF, #06B6D4);
+    --gradient-2: linear-gradient(135deg, #6C63FF, #A855F7);
+    --gradient-3: linear-gradient(135deg, #10B981, #06B6D4);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 16px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3 {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-weight: 400;
+    line-height: 1.2;
+  }
+
+  /* ── Background noise texture ── */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Page container ── */
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 32px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── Section spacing ── */
+  .section {
+    padding: 100px 0;
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.7s cubic-bezier(0.23, 1, 0.32, 1),
+                transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .section.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .section-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .section-label::before {
+    content: '';
+    width: 24px;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 1px;
+  }
+
+  .section-title {
+    font-size: clamp(32px, 5vw, 48px);
+    margin-bottom: 20px;
+    letter-spacing: -0.01em;
+  }
+
+  .section-subtitle {
+    font-size: 18px;
+    color: var(--text-secondary);
+    max-width: 600px;
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  .section-divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+    margin: 0;
+    border: none;
+  }
+
+
+  /* ═══════════════════════════
+     1. HERO
+     ═══════════════════════════ */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero.visible { opacity: 1; transform: none; }
+
+  /* Radial glow behind hero */
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(circle, rgba(108, 99, 255, 0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: 10%;
+    right: 20%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(56px, 8vw, 96px);
+    background: linear-gradient(135deg, #6C63FF 0%, #06B6D4 50%, #A855F7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .hero-tagline {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(16px, 2.5vw, 22px);
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 16px;
+    letter-spacing: 0.02em;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-subtitle {
+    font-size: clamp(15px, 2vw, 18px);
+    color: var(--text-secondary);
+    max-width: 580px;
+    line-height: 1.7;
+    font-weight: 300;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-scroll-hint {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    animation: float 2.5s ease-in-out infinite;
+  }
+  .hero-scroll-hint svg {
+    width: 20px;
+    height: 20px;
+    stroke: var(--text-muted);
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(8px); }
+  }
+
+
+  /* ═══════════════════════════
+     2. O PROBLEMA
+     ═══════════════════════════ */
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 48px;
+  }
+
+  .problem-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 32px 28px;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .problem-card:hover {
+    border-color: var(--glass-border-hover);
+    transform: translateY(-4px);
+  }
+  .problem-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent-rose);
+    opacity: 0.7;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .problem-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    background: var(--accent-rose-glow);
+    border: 1px solid rgba(244, 63, 94, 0.2);
+  }
+  .problem-icon svg {
+    width: 24px;
+    height: 24px;
+    stroke: var(--accent-rose);
+    fill: none;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .problem-card h3 {
+    font-size: 22px;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+  .problem-card p {
+    color: var(--text-secondary);
+    font-size: 15px;
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+
+  /* ═══════════════════════════
+     3. A SOLUÇÃO
+     ═══════════════════════════ */
+  .solution-hero {
+    margin-top: 48px;
+    background: linear-gradient(135deg, rgba(108, 99, 255, 0.08), rgba(6, 182, 212, 0.06));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(108, 99, 255, 0.15);
+    border-radius: 20px;
+    padding: 48px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .solution-hero::before {
+    content: '';
+    position: absolute;
+    top: -100px; right: -100px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(108, 99, 255, 0.1), transparent 70%);
+    pointer-events: none;
+  }
+
+  .solution-headline {
+    font-size: clamp(24px, 3.5vw, 34px);
+    margin-bottom: 40px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+    z-index: 1;
+  }
+  .solution-headline em {
+    font-style: normal;
+    background: var(--gradient-1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .solution-benefits {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .benefit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .benefit-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+  }
+  .benefit-icon svg {
+    width: 28px;
+    height: 28px;
+    fill: none;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .benefit-icon.green {
+    background: var(--accent-green-glow);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+  }
+  .benefit-icon.green svg { stroke: var(--accent-green); }
+
+  .benefit-icon.blue {
+    background: var(--accent-cyan-glow);
+    border: 1px solid rgba(6, 182, 212, 0.2);
+  }
+  .benefit-icon.blue svg { stroke: var(--accent-cyan); }
+
+  .benefit-icon.purple {
+    background: var(--accent-purple-glow);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+  }
+  .benefit-icon.purple svg { stroke: var(--accent-purple); }
+
+  .benefit h3 {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+  .benefit p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 1.6;
+    max-width: 260px;
+  }
+
+
+  /* ═══════════════════════════
+     4. COMO FUNCIONA
+     ═══════════════════════════ */
+  .steps-flow {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 48px;
+    position: relative;
+  }
+
+  /* Connecting line between steps */
+  .steps-flow::before {
+    content: '';
+    position: absolute;
+    top: 44px;
+    left: calc(16.67% + 24px);
+    right: calc(16.67% + 24px);
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-cyan));
+    opacity: 0.3;
+    z-index: 0;
+  }
+
+  .step-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 32px 24px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+  }
+  .step-card:hover {
+    border-color: var(--glass-border-hover);
+    transform: translateY(-4px);
+  }
+
+  .step-number {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--gradient-1);
+    color: white;
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    box-shadow: 0 4px 20px rgba(108, 99, 255, 0.3);
+  }
+
+  .step-card h3 {
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+  .step-card p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.7;
+    font-weight: 300;
+  }
+  .step-card .step-arrow {
+    display: none;
+  }
+
+
+  /* ═══════════════════════════
+     5. MÓDULOS DO MVP
+     ═══════════════════════════ */
+  .modules-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-top: 48px;
+  }
+
+  .module-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    padding: 28px 22px;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+  }
+  .module-card:hover {
+    border-color: var(--glass-border-hover);
+    transform: translateY(-4px);
+  }
+
+  .module-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+  .module-icon svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .module-card h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+  .module-card p {
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  /* Module color variants */
+  .mod-blue .module-icon { background: var(--accent-cyan-glow); border: 1px solid rgba(6, 182, 212, 0.2); }
+  .mod-blue .module-icon svg { stroke: var(--accent-cyan); }
+  .mod-green .module-icon { background: var(--accent-green-glow); border: 1px solid rgba(16, 185, 129, 0.2); }
+  .mod-green .module-icon svg { stroke: var(--accent-green); }
+  .mod-purple .module-icon { background: var(--accent-purple-glow); border: 1px solid rgba(168, 85, 247, 0.2); }
+  .mod-purple .module-icon svg { stroke: var(--accent-purple); }
+  .mod-amber .module-icon { background: var(--accent-amber-glow); border: 1px solid rgba(245, 158, 11, 0.2); }
+  .mod-amber .module-icon svg { stroke: var(--accent-amber); }
+  .mod-accent .module-icon { background: var(--accent-glow); border: 1px solid rgba(108, 99, 255, 0.2); }
+  .mod-accent .module-icon svg { stroke: var(--accent); }
+  .mod-rose .module-icon { background: var(--accent-rose-glow); border: 1px solid rgba(244, 63, 94, 0.2); }
+  .mod-rose .module-icon svg { stroke: var(--accent-rose); }
+
+
+  /* ═══════════════════════════
+     6. DIFERENCIAIS
+     ═══════════════════════════ */
+  .comparison-wrapper {
+    margin-top: 48px;
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .comparison-table thead th {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+    padding: 20px 20px;
+    text-align: center;
+    border-bottom: 1px solid var(--glass-border);
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .comparison-table thead th:first-child {
+    text-align: left;
+    padding-left: 28px;
+  }
+  .comparison-table thead th.highlight {
+    color: var(--accent);
+    background: rgba(108, 99, 255, 0.06);
+    border-bottom-color: rgba(108, 99, 255, 0.2);
+  }
+
+  .comparison-table tbody td {
+    padding: 16px 20px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    color: var(--text-secondary);
+    font-weight: 400;
+  }
+  .comparison-table tbody td:first-child {
+    text-align: left;
+    padding-left: 28px;
+    color: var(--text);
+    font-weight: 500;
+  }
+  .comparison-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .comparison-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .comparison-table td.highlight {
+    background: rgba(108, 99, 255, 0.04);
+  }
+
+  .check {
+    color: var(--accent-green);
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .cross {
+    color: var(--accent-rose);
+    font-size: 16px;
+    font-weight: 500;
+    opacity: 0.7;
+  }
+  .partial {
+    color: var(--accent-amber);
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+
+  /* ═══════════════════════════
+     7. PERFIS DE ACESSO
+     ═══════════════════════════ */
+  .profiles-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 48px;
+  }
+
+  .profile-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 36px 28px;
+    text-align: center;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .profile-card:hover {
+    border-color: var(--glass-border-hover);
+    transform: translateY(-4px);
+  }
+
+  .profile-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+  }
+  .profile-avatar svg {
+    width: 32px;
+    height: 32px;
+    fill: none;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .profile-card h3 {
+    font-size: 22px;
+    margin-bottom: 12px;
+  }
+  .profile-card p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  .profile-card.admin .profile-avatar {
+    background: var(--accent-glow);
+    border: 1px solid rgba(108, 99, 255, 0.2);
+  }
+  .profile-card.admin .profile-avatar svg { stroke: var(--accent); }
+  .profile-card.admin::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent);
+    opacity: 0.6;
+  }
+
+  .profile-card.operator .profile-avatar {
+    background: var(--accent-green-glow);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+  }
+  .profile-card.operator .profile-avatar svg { stroke: var(--accent-green); }
+  .profile-card.operator::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent-green);
+    opacity: 0.6;
+  }
+
+  .profile-card.owner .profile-avatar {
+    background: var(--accent-amber-glow);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+  }
+  .profile-card.owner .profile-avatar svg { stroke: var(--accent-amber); }
+  .profile-card.owner::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent-amber);
+    opacity: 0.6;
+  }
+
+
+  /* ═══════════════════════════
+     8. ROADMAP
+     ═══════════════════════════ */
+  .roadmap {
+    margin-top: 48px;
+    position: relative;
+    padding-left: 40px;
+  }
+
+  /* Vertical line */
+  .roadmap::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, var(--accent), var(--accent-cyan), var(--accent-purple));
+    opacity: 0.4;
+    border-radius: 1px;
+  }
+
+  .roadmap-phase {
+    position: relative;
+    margin-bottom: 48px;
+    padding-left: 24px;
+  }
+  .roadmap-phase:last-child { margin-bottom: 0; }
+
+  /* Dot on timeline */
+  .roadmap-phase::before {
+    content: '';
+    position: absolute;
+    left: -33px;
+    top: 6px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 3px solid;
+    background: var(--bg);
+  }
+  .roadmap-phase.phase-1::before { border-color: var(--accent); box-shadow: 0 0 12px rgba(108, 99, 255, 0.4); }
+  .roadmap-phase.phase-2::before { border-color: var(--accent-cyan); box-shadow: 0 0 12px rgba(6, 182, 212, 0.4); }
+  .roadmap-phase.phase-3::before { border-color: var(--accent-purple); box-shadow: 0 0 12px rgba(168, 85, 247, 0.4); }
+
+  .phase-label {
+    font-family: 'Outfit', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 14px;
+    border-radius: 20px;
+  }
+  .phase-1 .phase-label {
+    color: var(--accent);
+    background: var(--accent-glow);
+  }
+  .phase-2 .phase-label {
+    color: var(--accent-cyan);
+    background: var(--accent-cyan-glow);
+  }
+  .phase-3 .phase-label {
+    color: var(--accent-purple);
+    background: var(--accent-purple-glow);
+  }
+
+  .roadmap-phase h3 {
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+  .roadmap-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .roadmap-tag {
+    font-size: 13px;
+    font-weight: 400;
+    padding: 6px 14px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    transition: border-color 0.2s ease;
+  }
+  .roadmap-tag:hover {
+    border-color: var(--glass-border-hover);
+  }
+
+
+  /* ═══════════════════════════
+     9. STACK TÉCNICA
+     ═══════════════════════════ */
+  .stack-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 48px;
+  }
+
+  .stack-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 24px;
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    transition: border-color 0.3s ease, transform 0.3s ease;
+  }
+  .stack-badge:hover {
+    border-color: var(--glass-border-hover);
+    transform: translateY(-2px);
+  }
+  .stack-badge .stack-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+
+  /* ═══════════════════════════
+     10. CTA / PRÓXIMOS PASSOS
+     ═══════════════════════════ */
+  .cta-section {
+    text-align: center;
+    padding: 100px 0 60px;
+  }
+
+  .cta-title {
+    font-size: clamp(36px, 5vw, 56px);
+    margin-bottom: 40px;
+    background: var(--gradient-1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .cta-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 500px;
+    margin: 0 auto 60px;
+    text-align: left;
+  }
+
+  .cta-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 24px;
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+  }
+  .cta-step:hover {
+    border-color: var(--glass-border-hover);
+    transform: translateX(4px);
+  }
+
+  .cta-step-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--gradient-1);
+    color: white;
+    font-family: 'DM Serif Display', serif;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 12px rgba(108, 99, 255, 0.3);
+  }
+
+  .cta-step p {
+    font-size: 16px;
+    color: var(--text);
+    line-height: 1.5;
+    font-weight: 400;
+    padding-top: 4px;
+  }
+
+
+  /* ═══════════════════════════
+     FOOTER
+     ═══════════════════════════ */
+  .footer {
+    text-align: center;
+    padding: 40px 32px 48px;
+    border-top: 1px solid var(--glass-border);
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+  }
+  .footer span {
+    background: var(--gradient-1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 600;
+  }
+
+
+  /* ═══════════════════════════
+     RESPONSIVE
+     ═══════════════════════════ */
+  @media (max-width: 900px) {
+    .problem-grid,
+    .solution-benefits,
+    .steps-flow,
+    .profiles-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .modules-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    .steps-flow::before { display: none; }
+    .comparison-wrapper { overflow-x: auto; }
+    .comparison-table { min-width: 600px; }
+  }
+
+  @media (max-width: 600px) {
+    .page { padding: 0 20px; }
+    .section { padding: 64px 0; }
+    .hero { padding: 60px 20px; min-height: auto; padding-top: 100px; padding-bottom: 100px; }
+    .hero-scroll-hint { display: none; }
+    .modules-grid { grid-template-columns: 1fr; }
+    .solution-hero { padding: 32px 24px; }
+    .roadmap { padding-left: 32px; }
+    .roadmap::before { left: 11px; }
+    .roadmap-phase::before { left: -29px; }
+    .stack-grid { flex-direction: column; align-items: stretch; }
+    .stack-badge { justify-content: center; }
+  }
+
+
+  /* ═══════════════════════════
+     PRINT STYLES
+     ═══════════════════════════ */
+  @media print {
+    body { background: #0a0a0f !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .section { opacity: 1 !important; transform: none !important; }
+    .hero { min-height: auto; padding: 48px 0; }
+    .hero-scroll-hint { display: none; }
+    .section { padding: 40px 0; page-break-inside: avoid; }
+    .problem-card, .step-card, .module-card, .profile-card, .cta-step {
+      transform: none !important;
+    }
+    .comparison-wrapper { overflow: visible; }
+    .comparison-table { min-width: auto; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════
+     1. HERO
+     ═══════════════════════════════════ -->
+<section class="hero section visible">
+  <div class="hero-logo">Gfin Fácil</div>
+  <p class="hero-tagline">Gestão Financeira &amp; Contábil para BPO Financeiro</p>
+  <p class="hero-subtitle">Uma plataforma que organiza o caos financeiro de múltiplas empresas em um só lugar.</p>
+  <div class="hero-scroll-hint">
+    <span>Scroll</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 5v14M19 12l-7 7-7-7"/>
+    </svg>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ═══════════════════════════════════
+     2. O PROBLEMA
+     ═══════════════════════════════════ -->
+<section class="section" id="problema">
+  <div class="page">
+    <div class="section-label">O Problema</div>
+    <h2 class="section-title">Por que BPOs sofrem<br>com gestão financeira?</h2>
+    <p class="section-subtitle">A maioria dos escritórios de BPO Financeiro ainda opera com ferramentas desconectadas, gerando retrabalho e falta de visibilidade.</p>
+
+    <div class="problem-grid">
+      <!-- Card 1 -->
+      <div class="problem-card">
+        <div class="problem-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="9" y1="13" x2="15" y2="13"/>
+            <line x1="9" y1="17" x2="15" y2="17"/>
+          </svg>
+        </div>
+        <h3>Planilhas Caóticas</h3>
+        <p>BPOs gerenciam 5 a 15 empresas com planilhas Excel, perdendo horas conciliando dados manualmente todos os dias.</p>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="problem-card">
+        <div class="problem-icon">
+          <svg viewBox="0 0 24 24">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+            <path d="M8 21h8"/>
+            <path d="M12 17v4"/>
+            <path d="M7 8l3 3-3 3"/>
+            <line x1="13" y1="14" x2="17" y2="14"/>
+          </svg>
+        </div>
+        <h3>Ferramentas Fragmentadas</h3>
+        <p>Sistema contábil + banco + planilha + WhatsApp = retrabalho constante e informação descentralizada.</p>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="problem-card">
+        <div class="problem-icon">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <h3>Zero Visibilidade</h3>
+        <p>Dono da empresa não sabe o status financeiro sem ligar pro BPO. Sem dashboards, sem autonomia, sem controle.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ═══════════════════════════════════
+     3. A SOLUÇÃO
+     ═══════════════════════════════════ -->
+<section class="section" id="solucao">
+  <div class="page">
+    <div class="section-label">A Solução</div>
+    <h2 class="section-title">Tudo em um só painel</h2>
+    <p class="section-subtitle">O Gfin Fácil centraliza a gestão financeira de todas as empresas do seu BPO em uma única plataforma intuitiva.</p>
+
+    <div class="solution-hero">
+      <h3 class="solution-headline">Um painel único para gerenciar <em>todas as empresas</em> do seu BPO</h3>
+
+      <div class="solution-benefits">
+        <div class="benefit">
+          <div class="benefit-icon green">
+            <svg viewBox="0 0 24 24">
+              <rect x="2" y="3" width="20" height="18" rx="2"/>
+              <path d="M8 7v4M12 7v8M16 7v2"/>
+              <path d="M2 15h20"/>
+            </svg>
+          </div>
+          <h3>Multi-empresa</h3>
+          <p>Gerencie de 5 a 15 empresas de um único lugar, com troca rápida de contexto.</p>
+        </div>
+
+        <div class="benefit">
+          <div class="benefit-icon blue">
+            <svg viewBox="0 0 24 24">
+              <path d="M9 11l3 3L22 4"/>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+            </svg>
+          </div>
+          <h3>Tarefas Inteligentes</h3>
+          <p>O sistema gera pendências automaticamente com base nos vencimentos e status.</p>
+        </div>
+
+        <div class="benefit">
+          <div class="benefit-icon purple">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="M9 12l2 2 4-4"/>
+            </svg>
+          </div>
+          <h3>Aprovação Digital</h3>
+          <p>Dono aprova pagamentos direto no sistema, sem ligações ou WhatsApp.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ═══════════════════════════════════
+     4. COMO FUNCIONA
+     ═══════════════════════════════════ -->
+<section class="section" id="como-funciona">
+  <div class="page">
+    <div class="section-label">Como Funciona</div>
+    <h2 class="section-title">Três passos simples</h2>
+    <p class="section-subtitle">Do login ao resultado, em minutos. A plataforma foi desenhada para simplificar o dia a dia do operador BPO.</p>
+
+    <div class="steps-flow">
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <h3>Operador abre o painel</h3>
+        <p>Vê o Dashboard com KPIs de todas as empresas, tarefas do dia, alertas de vencimento e movimentações recentes.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <h3>Seleciona uma empresa</h3>
+        <p>Acessa Contas a Pagar, Contas a Receber, Fluxo de Caixa e Importação de extratos OFX/CSV em segundos.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-number">3</div>
+        <h3>Dono da empresa aprova</h3>
+        <p>Recebe notificação, visualiza o pagamento pendente e aprova ou recusa direto no portal simplificado.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ═══════════════════════════════════
+     5. MÓDULOS DO MVP
+     ═══════════════════════════════════ -->
+<section class="section" id="modulos">
+  <div class="page">
+    <div class="section-label">Módulos do MVP</div>
+    <h2 class="section-title">Tudo que o BPO precisa,<br>nada que não precisa</h2>
+    <p class="section-subtitle">Oito módulos essenciais projetados para cobrir 100% do fluxo operacional de um BPO Financeiro.</p>
+
+    <div class="modules-grid">
+      <!-- 1. Dashboard -->
+      <div class="module-card mod-blue">
+        <div class="module-icon">
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="3" width="7" height="7" rx="1"/>
+            <rect x="14" y="3" width="7" height="4" rx="1"/>
+            <rect x="14" y="10" width="7" height="7" rx="1"/>
+            <rect x="3" y="13" width="7" height="4" rx="1"/>
+            <rect x="3" y="20" width="7" height="1" rx="0.5"/>
+            <rect x="14" y="20" width="7" height="1" rx="0.5"/>
+          </svg>
+        </div>
+        <h3>Dashboard</h3>
+        <p>KPIs, gráficos de fluxo de caixa, movimentações recentes e tarefas urgentes em uma única visão.</p>
+      </div>
+
+      <!-- 2. Contas a Pagar -->
+      <div class="module-card mod-rose">
+        <div class="module-icon">
+          <svg viewBox="0 0 24 24">
+            <line x1="12" y1="1" x2="12" y2="23"/>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+        <h3>Contas a Pagar</h3>
+        <p>CRUD completo com fluxo de aprovação, categorização automática e controle multi-status.</p>
+      </div>
+
+      <!-- 3. Contas a Receber -->
+      <div class="module-card mod-green">
+        <div class="module-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            <path d="M2 12h4M18 12h4"/>
+          </svg>
+        </div>
+        <h3>Contas a Receber</h3>
+        <p>CRUD com recebimento parcial, alertas de atraso e conciliação de valores.</p>
+      </div>
+
+      <!-- 4. Fluxo de Caixa -->
+      <div class="module-card mod-accent">
+        <div class="module-icon">
+          <svg viewBox="0 0 24 24">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+        </div>
+        <h3>Fluxo de Caixa</h3>
+        <p>Gráfico realizado vs projetado com detalhamento por período e visão consolidada.</p>
+      </div>
+
+      <!-- 5. Tarefas -->
+      <div class="module-card mod-amber">
+        <div class="module-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M9 11l3 3L22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+        </div>
+        <h3>Tarefas</h3>
+        <p>Auto-geradas e manuais, agrupadas por empresa com prioridade e status em tempo real.</p>
+      </div>
+
+      <!-- 6. Cadastros -->
+      <div class="module-card mod-purple">
+        <div class="module-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <h3>Cadastros</h3>
+        <p>Fornecedores, clientes, categorias financeiras e centros de custo organizados.</p>
+      </div>
+
+      <!-- 7. Importação -->
+      <div class="module-card mod-blue">
+        <div class="module-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+        </div>
+        <h3>Importação</h3>
+        <p>Upload de extratos OFX/CSV com preview, matching automático e categorização inteligente.</p>
+      </div>
+
+      <!-- 8. Portal do Dono -->
+      <div class="module-card mod-amber">
+        <div class="module-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
+        <h3>Portal do Dono</h3>
+        <p>Dashboard read-only com aprovação de pagamentos. Simples, direto, sem complexidade.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ═══════════════════════════════════
+     6. DIFERENCIAIS COMPETITIVOS
+     ═══════════════════════════════════ -->
+<section class="section" id="diferenciais">
+  <div class="page">
+    <div class="section-label">Diferenciais Competitivos</div>
+    <h2 class="section-title">Por que escolher<br>o Gfin Fácil?</h2>
+    <p class="section-subtitle">Comparação direta com as principais alternativas do mercado. O Gfin Fácil foi construído exclusivamente para BPOs Financeiros.</p>
+
+    <div class="comparison-wrapper">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th class="highlight">Gfin Fácil</th>
+            <th>Nibo</th>
+            <th>Conta Azul</th>
+            <th>Controlle</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Multi-empresa nativo</td>
+            <td class="highlight"><span class="check">&#10003;</span></td>
+            <td><span class="partial">Parcial</span></td>
+            <td><span class="cross">&#10007;</span></td>
+            <td><span class="partial">Parcial</span></td>
+          </tr>
+          <tr>
+            <td>Gestor de tarefas integrado</td>
+            <td class="highlight"><span class="check">&#10003;</span></td>
+            <td><span class="cross">&#10007;</span></td>
+            <td><span class="cross">&#10007;</span></td>
+            <td><span class="cross">&#10007;</span></td>
+          </tr>
+          <tr>
+            <td>Aprovação digital pelo dono</td>
+            <td class="highlight"><span class="check">&#10003;</span></td>
+            <td><span class="cross">&#10007;</span></td>
+            <td><span class="cross">&#10007;</span></td>
+            <td><span class="cross">&#10007;</span></td>
+          </tr>
+          <tr>
+            <td>Importação OFX/CSV</td>
+            <td class="highlight"><span class="check">&#10003;</span></td>
+            <td><span class="check">&#10003;</span></td>
+            <td><span class="check">&#10003;</span></td>
+            <td><span class="check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Focado em BPO Financeiro</td>
+            <td class="highlight"><span class="check">&#10003;</span></td>
+            <td><span class="partial">Parcial</span></td>
+            <td><span class="cross">&#10007;</span></td>
+            <td><span class="cross">&#10007;</span></td>
+          </tr>
+          <tr>
+            <td>Preço acessível</td>
+            <td class="highlight" style="color: var(--accent-green); font-weight: 600;">A partir de R$79/mês</td>
+            <td>R$99+</td>
+            <td>R$119+</td>
+            <td>R$89+</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ═══════════════════════════════════
+     7. PERFIS DE ACESSO
+     ═══════════════════════════════════ -->
+<section class="section" id="perfis">
+  <div class="page">
+    <div class="section-label">Perfis de Acesso</div>
+    <h2 class="section-title">Cada usuário vê<br>o que precisa</h2>
+    <p class="section-subtitle">Três níveis de acesso projetados para o fluxo real de um BPO Financeiro.</p>
+
+    <div class="profiles-grid">
+      <!-- Admin BPO -->
+      <div class="profile-card admin">
+        <div class="profile-avatar">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+        </div>
+        <h3>Admin BPO</h3>
+        <p>Acesso total ao sistema. Gerencia operadores e empresas, visualiza relatórios globais e configura a plataforma.</p>
+      </div>
+
+      <!-- Operador BPO -->
+      <div class="profile-card operator">
+        <div class="profile-avatar">
+          <svg viewBox="0 0 24 24">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+            <path d="M8 21h8"/>
+            <path d="M12 17v4"/>
+          </svg>
+        </div>
+        <h3>Operador BPO</h3>
+        <p>Executa tarefas financeiras do dia a dia: CRUD de contas, importações de extrato, lançamentos e conciliação.</p>
+      </div>
+
+      <!-- Dono da Empresa -->
+      <div class="profile-card owner">
+        <div class="profile-avatar">
+          <svg viewBox="0 0 24 24">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
+        <h3>Dono da Empresa</h3>
+        <p>Visualiza o dashboard financeiro, aprova pagamentos pendentes e tem uma visão simplificada do negócio.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ═══════════════════════════════════
+     8. ROADMAP
+     ═══════════════════════════════════ -->
+<section class="section" id="roadmap">
+  <div class="page">
+    <div class="section-label">Roadmap</div>
+    <h2 class="section-title">Evolução planejada</h2>
+    <p class="section-subtitle">Três fases de desenvolvimento, priorizando valor imediato para o BPO com evolução contínua.</p>
+
+    <div class="roadmap">
+      <!-- Fase 1 -->
+      <div class="roadmap-phase phase-1">
+        <div class="phase-label">Fase 1 — MVP</div>
+        <h3>Fundação operacional</h3>
+        <div class="roadmap-items">
+          <span class="roadmap-tag">Contas a Pagar</span>
+          <span class="roadmap-tag">Contas a Receber</span>
+          <span class="roadmap-tag">Fluxo de Caixa</span>
+          <span class="roadmap-tag">Tarefas</span>
+          <span class="roadmap-tag">Dashboard</span>
+          <span class="roadmap-tag">Importação OFX/CSV</span>
+          <span class="roadmap-tag">Portal do Dono</span>
+        </div>
+      </div>
+
+      <!-- Fase 2 -->
+      <div class="roadmap-phase phase-2">
+        <div class="phase-label">Fase 2 — Integrações</div>
+        <h3>Automação e conectividade</h3>
+        <div class="roadmap-items">
+          <span class="roadmap-tag">NF-e / NFS-e</span>
+          <span class="roadmap-tag">Boletos</span>
+          <span class="roadmap-tag">Cobrança</span>
+          <span class="roadmap-tag">Pix</span>
+          <span class="roadmap-tag">Integração Bancária</span>
+          <span class="roadmap-tag">Pluggy / Belvo</span>
+        </div>
+      </div>
+
+      <!-- Fase 3 -->
+      <div class="roadmap-phase phase-3">
+        <div class="phase-label">Fase 3 — Inteligência</div>
+        <h3>Relatórios avançados e IA</h3>
+        <div class="roadmap-items">
+          <span class="roadmap-tag">DRE</span>
+          <span class="roadmap-tag">SPED</span>
+          <span class="roadmap-tag">Folha de Pagamento</span>
+          <span class="roadmap-tag">OCR de Documentos</span>
+          <span class="roadmap-tag">WhatsApp Alertas</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ═══════════════════════════════════
+     9. STACK TÉCNICA
+     ═══════════════════════════════════ -->
+<section class="section" id="stack">
+  <div class="page" style="text-align: center;">
+    <div class="section-label" style="justify-content: center;">Stack Técnica</div>
+    <h2 class="section-title" style="text-align: center;">Tecnologia moderna,<br>deploy simples</h2>
+    <p class="section-subtitle" style="margin: 0 auto 0; text-align: center;">Construído com as mesmas ferramentas usadas por startups de alto crescimento.</p>
+
+    <div class="stack-grid">
+      <div class="stack-badge">
+        <span class="stack-dot" style="background: #61DAFB;"></span>
+        React + Vite + Tailwind
+      </div>
+      <div class="stack-badge">
+        <span class="stack-dot" style="background: #3178C6;"></span>
+        Express + TypeScript
+      </div>
+      <div class="stack-badge">
+        <span class="stack-dot" style="background: #3ECF8E;"></span>
+        Supabase (PostgreSQL)
+      </div>
+      <div class="stack-badge">
+        <span class="stack-dot" style="background: #A855F7;"></span>
+        Railway Deploy
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ═══════════════════════════════════
+     10. PRÓXIMOS PASSOS
+     ═══════════════════════════════════ -->
+<section class="section cta-section" id="proximos-passos">
+  <div class="page">
+    <h2 class="cta-title">Pronto para começar?</h2>
+
+    <div class="cta-steps">
+      <div class="cta-step">
+        <div class="cta-step-num">1</div>
+        <p>Criar projeto Supabase com schema de banco e autenticação</p>
+      </div>
+      <div class="cta-step">
+        <div class="cta-step-num">2</div>
+        <p>Executar plano de implementação (21 tasks estruturadas)</p>
+      </div>
+      <div class="cta-step">
+        <div class="cta-step-num">3</div>
+        <p>MVP rodando em semanas, pronto para os primeiros clientes</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════
+     FOOTER
+     ═══════════════════════════════════ -->
+<footer class="footer">
+  <span>Gfin Fácil</span> &mdash; Apresentação Comercial &middot; Março 2026
+</footer>
+
+<!-- ═══════════════════════════════════
+     INTERSECTION OBSERVER (fade-in)
+     ═══════════════════════════════════ -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var sections = document.querySelectorAll('.section:not(.visible)');
+
+    if ('IntersectionObserver' in window) {
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, {
+        threshold: 0.12,
+        rootMargin: '0px 0px -60px 0px'
+      });
+
+      sections.forEach(function(section) {
+        observer.observe(section);
+      });
+    } else {
+      // Fallback: show all
+      sections.forEach(function(section) {
+        section.classList.add('visible');
+      });
+    }
+  });
+</script>
+
+</body>
+</html>

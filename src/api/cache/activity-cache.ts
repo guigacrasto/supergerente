@@ -1,5 +1,4 @@
 import { KommoService } from "../../services/kommo.js";
-import { TeamKey, TEAMS } from "../../config.js";
 import { CrmMetrics } from "./crm-cache.js";
 
 export interface AlertLead {
@@ -42,19 +41,16 @@ interface ActivityCacheEntry {
   fetchPromise: Promise<ActivityMetrics> | null;
 }
 
-const activityCaches: Record<TeamKey, ActivityCacheEntry> = {
-  azul: { metrics: null, expiresAt: 0, fetchPromise: null },
-  amarela: { metrics: null, expiresAt: 0, fetchPromise: null },
-};
+const activityCaches = new Map<string, ActivityCacheEntry>();
 
 async function fetchActivity(
-  team: TeamKey,
+  team: string,
   service: KommoService,
   crmMetrics: CrmMetrics
 ): Promise<ActivityMetrics> {
   console.log(`[ActivityCache:${team}] Buscando dados de atividade...`);
 
-  const subdomain = TEAMS[team].subdomain;
+  const subdomain = service.config.subdomain;
   const now = Math.floor(Date.now() / 1000);
   const cutoff48h = now - 48 * 3600;
   const cutoff7d = now - 7 * 24 * 3600;
@@ -199,11 +195,15 @@ async function fetchActivity(
 }
 
 export async function getActivityMetrics(
-  team: TeamKey,
+  team: string,
   service: KommoService,
   crmMetrics: CrmMetrics
 ): Promise<ActivityMetrics> {
-  const entry = activityCaches[team];
+  let entry = activityCaches.get(team);
+  if (!entry) {
+    entry = { metrics: null, expiresAt: 0, fetchPromise: null };
+    activityCaches.set(team, entry);
+  }
   const now = Date.now();
 
   if (entry.metrics && now < entry.expiresAt) return entry.metrics;
