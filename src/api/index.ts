@@ -69,7 +69,12 @@ app.listen(PORT, async () => {
 
   // Load tenants from database
   await loadTenants();
-  const tenants = await getAllTenants();
+  let tenants: Awaited<ReturnType<typeof getAllTenants>> = [];
+  try {
+    tenants = await getAllTenants();
+  } catch (e: any) {
+    console.warn(`[Startup] Erro ao carregar tenants (fallback para env vars):`, e.message);
+  }
   const activeTenants = tenants.filter(t => t.isActive);
 
   if (activeTenants.length > 0) {
