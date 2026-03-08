@@ -4,6 +4,7 @@ import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
 import { Button, Input, Card, Badge } from '@/components/ui';
 import { Spinner } from '@/components/ui';
+import { TwoFactorSection } from '@/components/features/profile/TwoFactorSection';
 
 interface ProfileData {
   id: string;
@@ -197,6 +198,9 @@ export function ProfilePage() {
           </Button>
         </form>
       </Card>
+
+      {/* Two-Factor Authentication */}
+      <TwoFactorSection />
 
       {/* Change Password Card */}
       <Card className="p-6">

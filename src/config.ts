@@ -45,6 +45,14 @@ export const kommoConfig = {
 
 export const PORT = parseInt(process.env.PORT || "3000", 10);
 
+// TOTP 2FA
+export const totpConfig = {
+  encryptionKey: process.env.TOTP_ENCRYPTION_KEY || "",
+  issuer: "SuperGerente",
+  challengeTtlMs: 5 * 60 * 1000, // 5 minutos
+  backupCodeCount: 8,
+};
+
 // Email (Resend)
 export const emailConfig = {
   apiKey: process.env.RESEND_API_KEY || "",
@@ -59,11 +67,34 @@ export const corsOrigins = (process.env.CORS_ORIGINS || "")
   .filter(Boolean);
 
 export function validateConfig() {
+  // Em modo multi-tenant, as credenciais Kommo vêm da tabela tenants.
+  // Env vars são opcionais (usadas apenas para backward compatibility).
   if (!TEAMS.azul.subdomain) {
-    console.error("Erro: KOMMO_SUBDOMAIN é obrigatório no .env");
-    process.exit(1);
+    console.warn("[Config] KOMMO_SUBDOMAIN não configurado — usando credenciais do tenant");
   }
   if (!TEAMS.amarela.subdomain) {
-    console.warn("[Config] KOMMO_AMARELA_SUBDOMAIN não configurado — Equipe Amarela desativada");
+    console.warn("[Config] KOMMO_AMARELA_SUBDOMAIN não configurado — Equipe Amarela via tenant");
   }
+}
+
+// Build TeamConfig from tenant settings (multi-tenant)
+import type { Tenant } from './types/index.js';
+
+export function getTeamConfigsFromTenant(tenant: Tenant): Record<string, TeamConfig> {
+  const teamsSettings = tenant.settings?.teams;
+  if (!teamsSettings) return {};
+
+  const result: Record<string, TeamConfig> = {};
+  for (const [key, teamCfg] of Object.entries(teamsSettings)) {
+    result[key] = {
+      label: teamCfg.label,
+      subdomain: teamCfg.subdomain,
+      clientId: teamCfg.clientId,
+      clientSecret: teamCfg.clientSecret,
+      redirectUri: teamCfg.redirectUri,
+      accessToken: '',
+      excludePipelineNames: teamCfg.excludePipelineNames || [],
+    };
+  }
+  return result;
 }

@@ -1,11 +1,32 @@
+export interface Tenant {
+  id: string;
+  name: string;
+  slug: string;
+  logoUrl: string | null;
+  primaryColor: string;
+  kommoBaseUrl: string | null;
+  isActive: boolean;
+}
+
 export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'user';
+  role: 'admin' | 'user' | 'superadmin';
   teams?: string[];
   phone?: string;
   created_at?: string;
+  tenantId?: string;
+  tenant?: Tenant;
+  totpEnabled?: boolean;
+}
+
+export interface LoginResponse {
+  token?: string;
+  user?: User;
+  requires2FA?: boolean;
+  challengeToken?: string;
+  requires2FASetup?: boolean;
 }
 
 export interface Pipeline {

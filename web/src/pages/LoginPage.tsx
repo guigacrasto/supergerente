@@ -1,18 +1,17 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
 import { Button, Input, Card } from '@/components/ui';
 import { APP_NAME, APP_DESCRIPTION } from '@/lib/constants';
-import type { User } from '@/types';
-
-interface LoginResponse {
-  token: string;
-  user: User;
-}
+import type { LoginResponse } from '@/types';
 
 export function LoginPage() {
   const login = useAuthStore((s) => s.login);
+  const setPendingChallenge = useAuthStore((s) => s.setPendingChallenge);
+  const setRequires2FASetup = useAuthStore((s) => s.setRequires2FASetup);
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -28,7 +27,24 @@ export function LoginPage() {
         email,
         password,
       });
-      login(data.token, data.user);
+
+      if (data.requires2FA && data.challengeToken) {
+        // 2FA ativo: redirecionar para tela de codigo
+        setPendingChallenge(data.challengeToken);
+        navigate('/login/2fa');
+        return;
+      }
+
+      if (data.token && data.user) {
+        login(data.token, data.user);
+
+        if (data.requires2FASetup) {
+          // Admin sem 2FA: forcar setup
+          setRequires2FASetup(true);
+          navigate('/setup-2fa');
+          return;
+        }
+      }
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { error?: string } } })?.response?.data

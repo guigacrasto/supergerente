@@ -10,7 +10,9 @@
     "web": "node build/api/index.js",
     "mcp": "node build/mcp/index.js",
     "dev:web": "tsx watch src/api/index.ts",
-    "dev:mcp": "tsx watch src/mcp/index.ts"
+    "dev:mcp": "tsx watch src/mcp/index.ts",
+    "monitor": "tsx scripts/api-monitor.ts",
+    "monitor:watch": "tsx scripts/api-monitor.ts --watch"
   },
   "keywords": [],
   "author": "",
@@ -19,13 +21,17 @@
     "@google/generative-ai": "^0.24.1",
     "@modelcontextprotocol/sdk": "^0.6.0",
     "@supabase/supabase-js": "^2.98.0",
+    "@types/qrcode": "^1.5.6",
     "axios": "^1.6.0",
     "concurrently": "^9.2.1",
     "cors": "^2.8.6",
     "dotenv": "^16.3.1",
     "express": "^5.2.1",
+    "otplib": "^13.3.0",
+    "qrcode": "^1.5.4",
     "qs": "^6.15.0",
-    "resend": "^6.9.3"
+    "resend": "^6.9.3",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

@@ -3,9 +3,15 @@ import crypto from "crypto";
 import { supabase } from "../supabase.js";
 import { sendPasswordResetEmail } from "../services/email.js";
 import { requireAuth, AuthRequest } from "../middleware/requireAuth.js";
+import { getTenantById } from "../services/tenant.js";
+import { createChallengeToken } from "../services/totp.js";
+import { totpRouter } from "./totp.js";
 
 export function authRouter(): Router {
   const router = Router();
+
+  // Mount 2FA sub-router
+  router.use("/2fa", totpRouter());
 
   // POST /api/auth/register
   router.post("/register", async (req, res) => {
@@ -72,7 +78,7 @@ export function authRouter(): Router {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("status, role, name, teams")
+      .select("status, role, name, teams, tenant_id")
       .eq("id", data.user.id)
       .single();
 
@@ -85,6 +91,44 @@ export function authRouter(): Router {
       return;
     }
 
+    // Check 2FA status
+    const { data: totpProfile } = await supabase
+      .from("profiles")
+      .select("totp_enabled")
+      .eq("id", data.user.id)
+      .single();
+
+    if (totpProfile?.totp_enabled) {
+      // 2FA ativo: emitir challenge token em vez de sessao
+      const challengeToken = await createChallengeToken(data.user.id);
+      // Sign out to invalidate the session created by signInWithPassword
+      await supabase.auth.signOut();
+      res.json({
+        requires2FA: true,
+        challengeToken,
+      });
+      return;
+    }
+
+    // Fetch tenant info (safe fields only)
+    let tenantInfo = null;
+    if (profile.tenant_id) {
+      const tenant = await getTenantById(profile.tenant_id);
+      if (tenant) {
+        tenantInfo = {
+          id: tenant.id,
+          name: tenant.name,
+          slug: tenant.slug,
+          logoUrl: tenant.logoUrl,
+          primaryColor: tenant.primaryColor,
+          isActive: tenant.isActive,
+        };
+      }
+    }
+
+    // Check if admin/superadmin needs to setup 2FA
+    const requires2FASetup = (profile.role === "admin" || profile.role === "superadmin") && !totpProfile?.totp_enabled;
+
     res.json({
       token: data.session.access_token,
       user: {
@@ -93,7 +137,11 @@ export function authRouter(): Router {
         name: profile.name,
         role: profile.role,
         teams: profile.teams || [],
+        tenantId: profile.tenant_id,
+        tenant: tenantInfo,
+        totpEnabled: totpProfile?.totp_enabled || false,
       },
+      ...(requires2FASetup ? { requires2FASetup: true } : {}),
     });
   });
 
@@ -192,7 +240,7 @@ export function authRouter(): Router {
   router.get("/profile", requireAuth, async (req: AuthRequest, res) => {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("id, name, email, role, teams, phone, created_at")
+      .select("id, name, email, role, teams, phone, created_at, totp_enabled")
       .eq("id", req.userId)
       .single();
 
