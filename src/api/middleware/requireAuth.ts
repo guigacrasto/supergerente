@@ -1,8 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { supabase } from "../supabase.js";
 import { TeamKey, TEAMS } from "../../config.js";
-import { getTenantById } from "../services/tenant.js";
-import type { Tenant } from "../../types/index.js";
 
 // All configured teams (those with a subdomain set)
 const ALL_CONFIGURED_TEAMS = (Object.keys(TEAMS) as TeamKey[]).filter(
@@ -17,7 +15,7 @@ export interface AuthRequest extends Request {
   allowedGroups?: Record<string, string[]>;
   pausedPipelines?: number[];
   tenantId?: string;
-  tenant?: Tenant;
+  tenant?: any;
 }
 
 // In-memory auth profile cache — avoids Supabase queries per request
@@ -28,8 +26,8 @@ interface CachedProfile {
   allowedFunnels: Record<string, number[]>;
   allowedGroups: Record<string, string[]>;
   pausedPipelines: number[];
-  tenantId: string;
-  tenant: Tenant;
+  tenantId?: string;
+  tenant?: any;
   expiresAt: number;
 }
 
@@ -66,19 +64,6 @@ export async function requireAuth(
     req.pausedPipelines = cached.pausedPipelines;
     req.tenantId = cached.tenantId;
     req.tenant = cached.tenant;
-
-    // Superadmin tenant switching via header
-    if (cached.role === "superadmin") {
-      const headerTenantId = req.headers["x-tenant-id"] as string;
-      if (headerTenantId && headerTenantId !== cached.tenantId) {
-        const switchedTenant = await getTenantById(headerTenantId);
-        if (switchedTenant) {
-          req.tenantId = headerTenantId;
-          req.tenant = switchedTenant;
-        }
-      }
-    }
-
     return next();
   }
 
@@ -91,7 +76,7 @@ export async function requireAuth(
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("status, role, teams, tenant_id")
+    .select("status, role, teams")
     .eq("id", user.id)
     .single();
 
@@ -100,73 +85,24 @@ export async function requireAuth(
     return;
   }
 
-  // Tenant lookup
-  const tenantId = profile.tenant_id;
-  if (!tenantId) {
-    res.status(403).json({ error: "Usuário sem tenant associado." });
-    return;
-  }
-
-  const tenant = await getTenantById(tenantId);
-  if (!tenant || !tenant.isActive) {
-    res.status(403).json({ error: "Tenant inativo ou não encontrado." });
-    return;
-  }
-
-  // Fetch funnel permissions + paused pipelines + group permissions in parallel
-  const [permissionsResult, pausedResult, groupResult] = await Promise.all([
-    supabase
+  // Fetch funnel permissions (user_funnel_permissions may not exist yet)
+  const allowedFunnels: Record<string, number[]> = {};
+  try {
+    const { data: perms } = await supabase
       .from("user_funnel_permissions")
       .select("team, allowed_funnels")
-      .eq("user_id", user.id),
-    supabase
-      .from("settings")
-      .select("value")
-      .eq("key", "paused_pipelines")
-      .eq("tenant_id", tenantId)
-      .single(),
-    supabase
-      .from("settings")
-      .select("value")
-      .eq("key", `user_groups:${user.id}`)
-      .eq("tenant_id", tenantId)
-      .single(),
-  ]);
-
-  const allowedFunnels: Record<string, number[]> = {};
-  if (permissionsResult.data) {
-    for (const row of permissionsResult.data) {
-      const funnels = Array.isArray(row.allowed_funnels) ? row.allowed_funnels : [];
-      allowedFunnels[row.team] = funnels;
-    }
-  }
-
-  let pausedPipelines: number[] = [];
-  if (pausedResult.data?.value) {
-    try {
-      pausedPipelines = Array.isArray(pausedResult.data.value)
-        ? pausedResult.data.value
-        : JSON.parse(pausedResult.data.value);
-    } catch {
-      pausedPipelines = [];
-    }
-  }
-
-  const allowedGroups: Record<string, string[]> = {};
-  if (groupResult.data?.value) {
-    try {
-      const val = typeof groupResult.data.value === "string"
-        ? JSON.parse(groupResult.data.value)
-        : groupResult.data.value;
-      for (const [team, groups] of Object.entries(val)) {
-        if (Array.isArray(groups)) allowedGroups[team] = groups;
+      .eq("user_id", user.id);
+    if (perms) {
+      for (const row of perms) {
+        const funnels = Array.isArray(row.allowed_funnels) ? row.allowed_funnels : [];
+        allowedFunnels[row.team] = funnels;
       }
-    } catch {
-      // ignore
     }
+  } catch {
+    // Table may not exist yet
   }
 
-  // Determine teams: superadmin/admin see all configured, users see their own
+  // Determine teams: admin see all configured, users see their own
   const teams: string[] = (profile.role === "admin" || profile.role === "superadmin")
     ? ALL_CONFIGURED_TEAMS
     : (profile.teams || []);
@@ -177,10 +113,8 @@ export async function requireAuth(
     role: profile.role,
     teams,
     allowedFunnels,
-    allowedGroups,
-    pausedPipelines,
-    tenantId,
-    tenant,
+    allowedGroups: {},
+    pausedPipelines: [],
     expiresAt: Date.now() + AUTH_CACHE_TTL_MS,
   });
 
@@ -188,22 +122,8 @@ export async function requireAuth(
   req.userRole = profile.role;
   req.userTeams = teams;
   req.allowedFunnels = allowedFunnels;
-  req.allowedGroups = allowedGroups;
-  req.pausedPipelines = pausedPipelines;
-  req.tenantId = tenantId;
-  req.tenant = tenant;
-
-  // Superadmin tenant switching via header
-  if (profile.role === "superadmin") {
-    const headerTenantId = req.headers["x-tenant-id"] as string;
-    if (headerTenantId && headerTenantId !== tenantId) {
-      const switchedTenant = await getTenantById(headerTenantId);
-      if (switchedTenant) {
-        req.tenantId = headerTenantId;
-        req.tenant = switchedTenant;
-      }
-    }
-  }
+  req.allowedGroups = {};
+  req.pausedPipelines = [];
 
   next();
 }

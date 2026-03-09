@@ -3,7 +3,6 @@ import crypto from "crypto";
 import { supabase } from "../supabase.js";
 import { sendPasswordResetEmail } from "../services/email.js";
 import { requireAuth, AuthRequest } from "../middleware/requireAuth.js";
-import { getTenantById } from "../services/tenant.js";
 import { createChallengeToken } from "../services/totp.js";
 import { totpRouter } from "./totp.js";
 
@@ -78,7 +77,7 @@ export function authRouter(): Router {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("status, role, name, teams, tenant_id")
+      .select("status, role, name, teams")
       .eq("id", data.user.id)
       .single();
 
@@ -110,22 +109,6 @@ export function authRouter(): Router {
       return;
     }
 
-    // Fetch tenant info (safe fields only)
-    let tenantInfo = null;
-    if (profile.tenant_id) {
-      const tenant = await getTenantById(profile.tenant_id);
-      if (tenant) {
-        tenantInfo = {
-          id: tenant.id,
-          name: tenant.name,
-          slug: tenant.slug,
-          logoUrl: tenant.logoUrl,
-          primaryColor: tenant.primaryColor,
-          isActive: tenant.isActive,
-        };
-      }
-    }
-
     // Check if admin/superadmin needs to setup 2FA
     const requires2FASetup = (profile.role === "admin" || profile.role === "superadmin") && !totpProfile?.totp_enabled;
 
@@ -137,8 +120,8 @@ export function authRouter(): Router {
         name: profile.name,
         role: profile.role,
         teams: profile.teams || [],
-        tenantId: profile.tenant_id,
-        tenant: tenantInfo,
+        tenantId: null,
+        tenant: null,
         totpEnabled: totpProfile?.totp_enabled || false,
       },
       ...(requires2FASetup ? { requires2FASetup: true } : {}),
