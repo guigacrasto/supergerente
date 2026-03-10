@@ -427,20 +427,7 @@ async function fetchAndCompute(
 
   const lossReasonNamesMap: Record<number, string> = {};
   lossReasons.forEach((r: { id: number; name: string }) => { lossReasonNamesMap[r.id] = r.name; });
-  console.log(`[CrmCache:${team}] Loss reasons from API: ${lossReasons.length} items`, JSON.stringify(lossReasonNamesMap));
-
-  // Debug: scan lost leads for custom field names to find where motivo de perda lives
-  const STATUS_LOST_DBG = 143;
-  let debugLostCount = 0;
-  for (const snap of leadSnapshots) {
-    if (snap.status_id === STATUS_LOST_DBG && snap.loss_reason_id && debugLostCount < 3) {
-      const cfNames = (snap.custom_fields_values || []).map((cf: any) => `${cf.field_name}(${cf.field_id})`);
-      console.log(`[CrmCache:${team}:DEBUG] Lost lead ${snap.id}: loss_reason_id=${snap.loss_reason_id}, CFs=[${cfNames.join(', ')}]`);
-      const motivoCf = (snap.custom_fields_values || []).find((cf: any) => /motivo\s*de?\s*perd/i.test(cf.field_name || ""));
-      if (motivoCf) console.log(`[CrmCache:${team}:DEBUG] Motivo CF values:`, JSON.stringify(motivoCf.values));
-      debugLostCount++;
-    }
-  }
+  console.log(`[CrmCache:${team}] Loss reasons from API: ${lossReasons.length} items`);
 
   // Coletar todas as tags únicas
   const tagMap = new Map<number, string>();

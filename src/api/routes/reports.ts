@@ -628,22 +628,6 @@ export function reportsRouter() {
       }
 
       const totalPerdidos = lostLeads.length;
-      console.log(`[LossReasons] lossReasonNamesMap keys: ${Object.keys(lossReasonNamesMap).length}`, JSON.stringify(lossReasonNamesMap));
-      console.log(`[LossReasons] Sample lost leads motivos:`, lostLeads.slice(0, 5).map(l => l.motivo));
-
-      // Debug: dump sample lead data to understand where loss reasons live
-      let debugCount = 0;
-      for (const { metrics } of allMetrics) {
-        for (const lead of metrics.leadSnapshots) {
-          if (lead.status_id === STATUS_LOST && lead.loss_reason_id && debugCount < 3) {
-            const cfNames = (lead.custom_fields_values || []).map((cf: any) => cf.field_name);
-            console.log(`[LossReasons:DEBUG] Lead ${lead.id}: loss_reason_id=${lead.loss_reason_id}, cf_names=${JSON.stringify(cfNames)}`);
-            const motivoCf = (lead.custom_fields_values || []).find((cf: any) => /motivo|perda|loss|reason/i.test(cf.field_name || ""));
-            if (motivoCf) console.log(`[LossReasons:DEBUG] Found motivo CF:`, JSON.stringify(motivoCf));
-            debugCount++;
-          }
-        }
-      }
 
       // Group by motivo
       const motivosMap: Record<string, number> = {};
