@@ -31,7 +31,7 @@ interface CachedProfile {
   expiresAt: number;
 }
 
-const AUTH_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const AUTH_CACHE_TTL_MS = 60 * 1000; // 1 minute — reflect permission changes quickly
 const authCache = new Map<string, CachedProfile>();
 
 // Cleanup stale entries every 10 minutes

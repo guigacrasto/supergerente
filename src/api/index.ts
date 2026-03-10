@@ -89,8 +89,10 @@ app.listen(PORT, async () => {
     const warmups: Promise<unknown>[] = [];
     for (const { service, label } of allServices) {
       const [, team] = label.split(":");
+      const teamKey = team || label;
+      const exclude = TEAMS[teamKey as keyof typeof TEAMS]?.excludePipelineNames || [];
       warmups.push(
-        getCrmMetrics(team || label, service).catch(e => {
+        getCrmMetrics(teamKey, service, undefined, exclude).catch(e => {
           console.error(`[WarmUp] Erro no cache de ${label}:`, e.message);
         })
       );
