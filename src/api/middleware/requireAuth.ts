@@ -117,6 +117,23 @@ export async function requireAuth(
     // Table may not exist yet
   }
 
+  // Fetch group permissions for this user from settings
+  let allowedGroups: Record<string, string[]> = {};
+  try {
+    const { data: groupSetting } = await supabase
+      .from("settings")
+      .select("value")
+      .eq("key", `user_groups:${user.id}`)
+      .single();
+    if (groupSetting?.value) {
+      allowedGroups = typeof groupSetting.value === "string"
+        ? JSON.parse(groupSetting.value)
+        : groupSetting.value;
+    }
+  } catch {
+    // No group permissions set
+  }
+
   // Determine teams: admin see all configured, users see their own
   const teams: string[] = (profile.role === "admin" || profile.role === "superadmin")
     ? ALL_CONFIGURED_TEAMS
@@ -128,7 +145,7 @@ export async function requireAuth(
     role: profile.role,
     teams,
     allowedFunnels,
-    allowedGroups: {},
+    allowedGroups,
     pausedPipelines,
     expiresAt: Date.now() + AUTH_CACHE_TTL_MS,
   });
@@ -137,7 +154,7 @@ export async function requireAuth(
   req.userRole = profile.role;
   req.userTeams = teams;
   req.allowedFunnels = allowedFunnels;
-  req.allowedGroups = {};
+  req.allowedGroups = allowedGroups;
   req.pausedPipelines = pausedPipelines;
 
   next();

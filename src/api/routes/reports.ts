@@ -1024,50 +1024,54 @@ export function reportsRouter() {
             nome: f.nome, team, novosHoje: f.novosHoje, novosMes: f.novosMes, ativos: f.ativos,
           }));
 
-          const byAgent: Record<string, {
-            nome: string; total: number; ganhos: number;
-            ganhosHoje: number; ganhosSemana: number; ativos: number;
-          }> = {};
-          for (const v of metrics.vendedores) {
-            if (!byAgent[v.nome]) {
-              byAgent[v.nome] = { nome: v.nome, total: 0, ganhos: 0, ganhosHoje: 0, ganhosSemana: 0, ativos: 0 };
-            }
-            byAgent[v.nome].total += v.total;
-            byAgent[v.nome].ganhos += v.ganhos;
-            byAgent[v.nome].ganhosHoje += v.ganhosHoje;
-            byAgent[v.nome].ganhosSemana += v.ganhosSemana;
-            byAgent[v.nome].ativos += v.ativos;
-          }
-          const agents = Object.values(byAgent).sort((a, b) => b.total - a.total);
-
           let activity = null;
           try {
             activity = await getActivityMetrics(team, kommoService, metrics);
           } catch {}
 
-          // Map vendedores to include group name
-          const vendedores = metrics.vendedores.map((v) => {
-            // Find userId for this vendedor
-            const userId = Object.entries(metrics.userNames).find(([, name]) => name === v.nome)?.[0];
-            const grupo = userId ? (metrics.userGroups[Number(userId)] || "") : "";
-            return {
-              nome: v.nome,
-              funil: v.funil,
-              team,
-              grupo,
-              total: v.total,
-              ganhos: v.ganhos,
-              ganhosHoje: v.ganhosHoje,
-              ganhosSemana: v.ganhosSemana,
-              ativos: v.ativos,
-            };
-          });
+          // Map vendedores to include group name + filter by allowed groups
+          const teamAllowedGroups = (req.allowedGroups || {})[team] || [];
+          const hasGroupRestriction = teamAllowedGroups.length > 0;
+
+          const vendedores = metrics.vendedores
+            .map((v) => {
+              const userId = Object.entries(metrics.userNames).find(([, name]) => name === v.nome)?.[0];
+              const grupo = userId ? (metrics.userGroups[Number(userId)] || "") : "";
+              return {
+                nome: v.nome,
+                funil: v.funil,
+                team,
+                grupo,
+                total: v.total,
+                ganhos: v.ganhos,
+                ganhosHoje: v.ganhosHoje,
+                ganhosSemana: v.ganhosSemana,
+                ativos: v.ativos,
+              };
+            })
+            .filter((v) => !hasGroupRestriction || teamAllowedGroups.includes(v.grupo));
+
+          // Re-aggregate agents from filtered vendedores (respects group permissions)
+          const byAgentFiltered: Record<string, {
+            nome: string; total: number; ganhos: number;
+            ganhosHoje: number; ganhosSemana: number; ativos: number;
+          }> = {};
+          for (const v of vendedores) {
+            if (!byAgentFiltered[v.nome]) {
+              byAgentFiltered[v.nome] = { nome: v.nome, total: 0, ganhos: 0, ganhosHoje: 0, ganhosSemana: 0, ativos: 0 };
+            }
+            byAgentFiltered[v.nome].total += v.total;
+            byAgentFiltered[v.nome].ganhos += v.ganhos;
+            byAgentFiltered[v.nome].ganhosHoje += v.ganhosHoje;
+            byAgentFiltered[v.nome].ganhosSemana += v.ganhosSemana;
+            byAgentFiltered[v.nome].ativos += v.ativos;
+          }
+          const agents = Object.values(byAgentFiltered).sort((a, b) => b.total - a.total);
 
           // Collect unique groups for this team (filtered by permissions)
-          const teamAllowed = (req.allowedGroups || {})[team] || [];
           const gruposSet = new Set<string>();
           for (const gName of Object.values(metrics.userGroups)) {
-            if (teamAllowed.length === 0 || teamAllowed.includes(gName)) {
+            if (!hasGroupRestriction || teamAllowedGroups.includes(gName)) {
               gruposSet.add(gName);
             }
           }
@@ -1137,12 +1141,40 @@ export function reportsRouter() {
               ativos: f.ativos,
             }));
 
-            // Dashboard agents aggregated
+            // Activity
+            let activity = null;
+            try {
+              activity = await getActivityMetrics(team, kommoService, metrics);
+            } catch {}
+
+            // Map vendedores + filter by allowed groups
+            const sseTeamGroups = (req.allowedGroups || {})[team] || [];
+            const sseHasGroupRestriction = sseTeamGroups.length > 0;
+
+            const vendedores = metrics.vendedores
+              .map((v) => {
+                const userId = Object.entries(metrics.userNames).find(([, name]) => name === v.nome)?.[0];
+                const grupo = userId ? (metrics.userGroups[Number(userId)] || "") : "";
+                return {
+                  nome: v.nome,
+                  funil: v.funil,
+                  team,
+                  grupo,
+                  total: v.total,
+                  ganhos: v.ganhos,
+                  ganhosHoje: v.ganhosHoje,
+                  ganhosSemana: v.ganhosSemana,
+                  ativos: v.ativos,
+                };
+              })
+              .filter((v) => !sseHasGroupRestriction || sseTeamGroups.includes(v.grupo));
+
+            // Agents aggregated from filtered vendedores
             const byAgent: Record<string, {
               nome: string; total: number; ganhos: number;
               ganhosHoje: number; ganhosSemana: number; ativos: number;
             }> = {};
-            for (const v of metrics.vendedores) {
+            for (const v of vendedores) {
               if (!byAgent[v.nome]) {
                 byAgent[v.nome] = { nome: v.nome, total: 0, ganhos: 0, ganhosHoje: 0, ganhosSemana: 0, ativos: 0 };
               }
@@ -1154,29 +1186,14 @@ export function reportsRouter() {
             }
             const agents = Object.values(byAgent).sort((a, b) => b.total - a.total);
 
-            // Activity
-            let activity = null;
-            try {
-              activity = await getActivityMetrics(team, kommoService, metrics);
-            } catch {}
-
-            const vendedores = metrics.vendedores.map((v) => {
-              const userId = Object.entries(metrics.userNames).find(([, name]) => name === v.nome)?.[0];
-              const grupo = userId ? (metrics.userGroups[Number(userId)] || "") : "";
-              return {
-                nome: v.nome,
-                funil: v.funil,
-                team,
-                grupo,
-                total: v.total,
-                ganhos: v.ganhos,
-                ganhosHoje: v.ganhosHoje,
-                ganhosSemana: v.ganhosSemana,
-                ativos: v.ativos,
-              };
-            });
-
-            const grupos = Array.from(new Set(Object.values(metrics.userGroups))).sort();
+            // Collect unique groups (filtered by permissions)
+            const gruposSet = new Set<string>();
+            for (const gName of Object.values(metrics.userGroups)) {
+              if (!sseHasGroupRestriction || sseTeamGroups.includes(gName)) {
+                gruposSet.add(gName);
+              }
+            }
+            const grupos = Array.from(gruposSet).sort();
 
             return {
               team,
