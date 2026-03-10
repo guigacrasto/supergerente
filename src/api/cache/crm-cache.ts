@@ -427,6 +427,7 @@ async function fetchAndCompute(
 
   const lossReasonNamesMap: Record<number, string> = {};
   lossReasons.forEach((r: { id: number; name: string }) => { lossReasonNamesMap[r.id] = r.name; });
+  console.log(`[CrmCache:${team}] Loss reasons from API: ${lossReasons.length} items`, JSON.stringify(lossReasonNamesMap));
 
   // Coletar todas as tags únicas
   const tagMap = new Map<number, string>();

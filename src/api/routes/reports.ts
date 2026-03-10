@@ -609,9 +609,14 @@ export function reportsRouter() {
             // Apply group filter
             if (groupUserIds && !groupUserIds.has(lead.responsible_user_id)) continue;
 
-            // Extract loss reason from custom field "Motivo de perda"
-            const motivoCf = getCustomFieldValue(lead, /motivo\s*de?\s*perd/i);
-            const motivo = motivoCf || "Sem motivo";
+            // Resolve loss reason: 1) native loss_reason_id map, 2) custom field, 3) fallback
+            let motivo = "Sem motivo";
+            if (lead.loss_reason_id && lossReasonNamesMap[lead.loss_reason_id]) {
+              motivo = lossReasonNamesMap[lead.loss_reason_id];
+            } else {
+              const motivoCf = getCustomFieldValue(lead, /motivo\s*de?\s*perd/i);
+              if (motivoCf) motivo = motivoCf;
+            }
 
             lostLeads.push({
               responsible_user_id: lead.responsible_user_id,
@@ -623,8 +628,10 @@ export function reportsRouter() {
       }
 
       const totalPerdidos = lostLeads.length;
+      console.log(`[LossReasons] lossReasonNamesMap keys: ${Object.keys(lossReasonNamesMap).length}`, JSON.stringify(lossReasonNamesMap));
+      console.log(`[LossReasons] Sample lost leads motivos:`, lostLeads.slice(0, 5).map(l => l.motivo));
 
-      // Group by motivo (custom field value)
+      // Group by motivo
       const motivosMap: Record<string, number> = {};
       for (const lead of lostLeads) {
         motivosMap[lead.motivo] = (motivosMap[lead.motivo] || 0) + 1;
