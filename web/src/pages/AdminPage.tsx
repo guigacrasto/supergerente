@@ -494,6 +494,7 @@ function UsersSection({
   onSaveFunnels,
   onSaveTeams,
   onSaveGroups,
+  onApproveUser,
 }: {
   users: AdminUser[];
   pipelines: AdminPipeline[];
@@ -502,6 +503,7 @@ function UsersSection({
   onSaveFunnels: (userId: string, team: string, funnelIds: number[]) => Promise<void>;
   onSaveTeams: (userId: string, teams: string[]) => Promise<void>;
   onSaveGroups: (userId: string, team: string, groups: string[]) => Promise<void>;
+  onApproveUser: (userId: string, status: 'approved' | 'denied') => Promise<void>;
 }) {
   const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
 
@@ -622,7 +624,24 @@ function UsersSection({
                         </div>
                         <div className="px-4 py-3">{roleBadge(user.role)}</div>
                         <div className="px-4 py-3">
-                          {statusBadge(user.status)}
+                          {user.status === 'pending' ? (
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); onApproveUser(user.id, 'approved'); }}
+                                className="rounded-button bg-success/20 px-2.5 py-1 text-body-sm font-medium text-success hover:bg-success/30 transition-colors cursor-pointer"
+                              >
+                                Aprovar
+                              </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); onApproveUser(user.id, 'denied'); }}
+                                className="rounded-button bg-danger/20 px-2.5 py-1 text-body-sm font-medium text-danger hover:bg-danger/30 transition-colors cursor-pointer"
+                              >
+                                Negar
+                              </button>
+                            </div>
+                          ) : (
+                            statusBadge(user.status)
+                          )}
                         </div>
                         <div className="px-4 py-3">
                           <div className="flex flex-wrap gap-1">
@@ -852,6 +871,10 @@ export function AdminPage() {
         onSaveFunnels={handleSaveFunnels}
         onSaveTeams={handleSaveTeams}
         onSaveGroups={handleSaveGroups}
+        onApproveUser={async (userId, status) => {
+          await api.patch(`/admin/users/${userId}/approve`, { status });
+          fetchUsers();
+        }}
       />
 
       {/* Section 3: Audit Logs */}
