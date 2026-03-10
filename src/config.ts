@@ -80,21 +80,29 @@ export function validateConfig() {
 // Build TeamConfig from tenant settings (multi-tenant)
 import type { Tenant } from './types/index.js';
 
-export function getTeamConfigsFromTenant(tenant: Tenant): Record<string, TeamConfig> {
-  const teamsSettings = tenant.settings?.teams;
-  if (!teamsSettings) return {};
-
-  const result: Record<string, TeamConfig> = {};
-  for (const [key, teamCfg] of Object.entries(teamsSettings)) {
-    result[key] = {
-      label: teamCfg.label,
-      subdomain: teamCfg.subdomain,
-      clientId: teamCfg.clientId,
-      clientSecret: teamCfg.clientSecret,
-      redirectUri: teamCfg.redirectUri,
-      accessToken: '',
-      excludePipelineNames: teamCfg.excludePipelineNames || [],
-    };
+export function getTeamConfigsFromTenant(tenant?: Tenant | null): Record<string, TeamConfig> {
+  // If tenant has team settings, use them (multi-tenant mode)
+  const teamsSettings = tenant?.settings?.teams;
+  if (teamsSettings) {
+    const result: Record<string, TeamConfig> = {};
+    for (const [key, teamCfg] of Object.entries(teamsSettings)) {
+      result[key] = {
+        label: teamCfg.label,
+        subdomain: teamCfg.subdomain,
+        clientId: teamCfg.clientId,
+        clientSecret: teamCfg.clientSecret,
+        redirectUri: teamCfg.redirectUri,
+        accessToken: '',
+        excludePipelineNames: teamCfg.excludePipelineNames || [],
+      };
+    }
+    return result;
   }
-  return result;
+
+  // Fallback: use static TEAMS from env vars
+  const fallback: Record<string, TeamConfig> = {};
+  for (const [key, cfg] of Object.entries(TEAMS)) {
+    if (cfg.subdomain) fallback[key] = cfg;
+  }
+  return fallback;
 }
