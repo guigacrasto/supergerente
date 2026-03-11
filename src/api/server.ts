@@ -61,7 +61,7 @@ export function createServer() {
   // Auth routes (mostly public)
   app.use("/api/auth", authRouter());
 
-  // Temporary debug endpoint (public) — remove after diagnosing "Não informado"
+  // Temporary debug endpoint (public, lightweight — uses cached data only)
   app.get("/api/debug/custom-fields", async (_req, res) => {
     try {
       const { getTeamConfigsFromTenant } = await import("../config.js");
@@ -70,7 +70,6 @@ export function createServer() {
 
       const teamConfigs = getTeamConfigsFromTenant();
       const rendaPattern = /renda|sal[aá]rio|income|faixa.*sal|receita/i;
-      const profPattern = /profiss[aã]o|ocupa[cç][aã]o|cargo|profession|job/i;
 
       const result: any = { teams: [] };
 
@@ -84,28 +83,8 @@ export function createServer() {
         let totalLeads = 0;
         let leadsWithCf = 0;
         let leadsWithContactCf = 0;
+        let leadsWithEmbeddedContacts = 0;
         const rendaSamples: any[] = [];
-        const profSamples: any[] = [];
-
-        // Debug: fetch raw contacts directly to check
-        let rawContactsCount = 0;
-        let rawContactsWithCf = 0;
-        const rawContactFieldNames: Record<string, number> = {};
-        try {
-          const rawContacts = await service.getContacts();
-          rawContactsCount = rawContacts.length;
-          for (const c of rawContacts) {
-            if (c.custom_fields_values && c.custom_fields_values.length > 0) {
-              rawContactsWithCf++;
-              for (const cf of c.custom_fields_values) {
-                const name = cf.field_name || cf.field_code || "unknown";
-                rawContactFieldNames[name] = (rawContactFieldNames[name] || 0) + 1;
-              }
-            }
-          }
-        } catch (e: any) {
-          console.error(`Debug: error fetching contacts for ${teamKey}:`, e.message);
-        }
 
         for (const lead of metrics.leadSnapshots) {
           totalLeads++;
@@ -114,11 +93,8 @@ export function createServer() {
             for (const cf of lead.custom_fields_values) {
               const name = cf.field_name || cf.field_code || "unknown";
               leadFieldCounts[name] = (leadFieldCounts[name] || 0) + 1;
-              if (rendaPattern.test(name) && rendaSamples.length < 30) {
+              if (rendaPattern.test(name) && rendaSamples.length < 20) {
                 rendaSamples.push({ leadId: lead.id, field: name, value: cf.values?.[0]?.value, source: "lead" });
-              }
-              if (profPattern.test(name) && profSamples.length < 30) {
-                profSamples.push({ leadId: lead.id, field: name, value: cf.values?.[0]?.value, source: "lead" });
               }
             }
           }
@@ -128,29 +104,25 @@ export function createServer() {
             for (const cf of contactCfs) {
               const name = cf.field_name || cf.field_code || "unknown";
               contactFieldCounts[name] = (contactFieldCounts[name] || 0) + 1;
-              if (rendaPattern.test(name) && rendaSamples.length < 30) {
+              if (rendaPattern.test(name) && rendaSamples.length < 20) {
                 rendaSamples.push({ leadId: lead.id, field: name, value: cf.values?.[0]?.value, source: "contact" });
-              }
-              if (profPattern.test(name) && profSamples.length < 30) {
-                profSamples.push({ leadId: lead.id, field: name, value: cf.values?.[0]?.value, source: "contact" });
               }
             }
           }
         }
 
+        // Check embedded contacts from raw lead data (sample first 500 leads)
+        // This helps debug if leads have _embedded.contacts at all
+        // Note: leadSnapshots don't preserve _embedded, so this is from the cache stats
         result.teams.push({
           team: teamKey,
           totalLeads,
           leadsWithCf,
           leadsWithContactCf,
           contactCfByLeadCount: Object.keys(metrics.contactCfByLead).length,
-          rawContactsCount,
-          rawContactsWithCf,
-          rawContactFieldNames: Object.entries(rawContactFieldNames).sort((a, b) => b[1] - a[1]).map(([name, count]) => ({ name, count })),
-          leadFields: Object.entries(leadFieldCounts).sort((a, b) => b[1] - a[1]).map(([name, count]) => ({ name, count })),
-          contactFields: Object.entries(contactFieldCounts).sort((a, b) => b[1] - a[1]).map(([name, count]) => ({ name, count })),
+          leadFields: Object.entries(leadFieldCounts).sort((a, b) => b[1] - a[1]).slice(0, 30).map(([name, count]) => ({ name, count })),
+          contactFields: Object.entries(contactFieldCounts).sort((a, b) => b[1] - a[1]).slice(0, 30).map(([name, count]) => ({ name, count })),
           rendaSamples,
-          profSamples,
         });
       }
 
