@@ -153,6 +153,12 @@ export function reportsRouter() {
         }
       }
 
+      // Collect ALL funnel names so every agent gets a 0 for missing funnels
+      const allFunnelNames = new Set<string>();
+      for (const a of Object.values(byAgent)) {
+        for (const f of Object.keys(a.funnels)) allFunnelNames.add(f);
+      }
+
       const rows = Object.values(byAgent)
         .sort((a, b) => b["Total Leads"] - a["Total Leads"])
         .map((a) => {
@@ -160,13 +166,18 @@ export function reportsRouter() {
           const wonPct = ((a._won / total) * 100).toFixed(1);
           const lostPct = ((a._lost / total) * 100).toFixed(1);
           const convPct = total > 0 ? ((a._won / a["Total Leads"]) * 100).toFixed(1) : "0.0";
+          // Ensure every funnel column has a value (0 if not present)
+          const funnelValues: Record<string, number> = {};
+          for (const f of allFunnelNames) {
+            funnelValues[f] = a.funnels[f] ?? 0;
+          }
           return {
             Agente: a.Agente,
             "Total Leads": a["Total Leads"],
             "Venda Ganha": `${a._won} (${wonPct}%)`,
             "Venda Perdida": `${a._lost} (${lostPct}%)`,
             "Conversão %": `${convPct}%`,
-            ...a.funnels,
+            ...funnelValues,
           };
         });
 
@@ -781,38 +792,79 @@ export function reportsRouter() {
       }
       faixasMap["Não informado"] = { volume: 0, fechamentos: 0, totalPrice: 0 };
 
-      // Helper: parse Brazilian currency/number format (e.g. "R$ 5.000,50" → 5000.5)
-      function parseBrazilianNumber(raw: string): number {
-        let digits = raw.replace(/[^\d.,]/g, "");
-        // If has both dot and comma, dot is thousands separator and comma is decimal
+      // Helper: parse any renda value into a number (handles Brazilian formats, "mil", "k", etc.)
+      function parseRendaValue(raw: string): number {
+        const s = raw.trim().toLowerCase();
+
+        // "mil" / "k" multiplier: "5 mil" → 5000, "5k" → 5000, "1.5k" → 1500
+        const milMatch = s.match(/^[r$\s]*([\d.,]+)\s*(mil|k)\b/i);
+        if (milMatch) {
+          const num = parseSimpleNumber(milMatch[1]);
+          return isNaN(num) ? NaN : num * 1000;
+        }
+
+        // Standalone "mil" → 1000
+        if (/^\s*(um\s+)?mil\s*$/i.test(s)) return 1000;
+
+        // Strip currency symbols, spaces: "R$ 5.000" → "5.000"
+        let digits = raw.replace(/[r$\s]/gi, "").trim();
+
+        return parseSimpleNumber(digits);
+      }
+
+      // Parse a number string handling both Brazilian (5.000,50) and English (5,000.50) formats
+      function parseSimpleNumber(digits: string): number {
+        if (!digits) return NaN;
+        // Both dot and comma present
         if (digits.includes(".") && digits.includes(",")) {
-          digits = digits.replace(/\./g, "").replace(",", ".");
+          const lastDot = digits.lastIndexOf(".");
+          const lastComma = digits.lastIndexOf(",");
+          if (lastComma > lastDot) {
+            // Brazilian: 5.000,50 → dot is thousands, comma is decimal
+            digits = digits.replace(/\./g, "").replace(",", ".");
+          } else {
+            // English: 5,000.50 → comma is thousands, dot is decimal
+            digits = digits.replace(/,/g, "");
+          }
         } else if (digits.includes(",")) {
-          // Only comma → decimal separator
-          digits = digits.replace(",", ".");
+          // Only comma: could be "5,000" (English thousands) or "5,50" (Brazilian decimal)
+          const parts = digits.split(",");
+          if (parts.length === 2 && parts[1].length === 3) {
+            digits = digits.replace(",", ""); // English thousands: "5,000" → "5000"
+          } else {
+            digits = digits.replace(",", "."); // Decimal: "5,50" → "5.50"
+          }
         } else if (digits.includes(".")) {
-          // Only dot — check if it's thousands separator (e.g. "5.000" = 5000)
+          // Only dot: could be "5.000" (Brazilian thousands) or "5.5" (decimal)
           const parts = digits.split(".");
           if (parts.length === 2 && parts[1].length === 3) {
-            digits = digits.replace(".", ""); // thousands separator
+            digits = digits.replace(".", ""); // Brazilian thousands: "5.000" → "5000"
           }
-          // else keep as decimal (e.g. "5.5")
+          // Multiple dots: "5.000.000" → thousands separators
+          if (parts.length > 2) {
+            digits = digits.replace(/\./g, "");
+          }
         }
         return parseFloat(digits);
       }
 
-      // Helper: match renda string directly against bracket labels
+      // Helper: match renda string directly against bracket labels or common text patterns
       function matchBracketLabel(raw: string): string | null {
-        const lower = raw.toLowerCase();
+        const lower = raw.toLowerCase().trim();
+        // Direct label match
         for (const b of brackets) {
           if (lower.includes(b.label.toLowerCase())) return b.label;
         }
-        // Heuristic matches for common enum values
-        if (/at[eé]\s*(r\$\s*)?2[\.\s]?000/i.test(raw)) return brackets[0].label;
-        if (/2[\.\s]?001|2[\.\s]?000\s*a\s*5[\.\s]?000/i.test(raw)) return brackets[1].label;
-        if (/5[\.\s]?001|5[\.\s]?000\s*a\s*10[\.\s]?000/i.test(raw)) return brackets[2].label;
-        if (/10[\.\s]?001|10[\.\s]?000\s*a\s*20[\.\s]?000/i.test(raw)) return brackets[3].label;
-        if (/acima|20[\.\s]?001|mais\s*de\s*20/i.test(raw)) return brackets[4].label;
+        // Common enum/text patterns
+        if (/at[eé]\s*(r\$\s*)?2[\.\s,]?000/i.test(raw)) return brackets[0].label;
+        if (/2[\.\s,]?00[01]\s*(a|[-–])\s*(r\$\s*)?5[\.\s,]?000/i.test(raw)) return brackets[1].label;
+        if (/5[\.\s,]?00[01]\s*(a|[-–])\s*(r\$\s*)?10[\.\s,]?000/i.test(raw)) return brackets[2].label;
+        if (/10[\.\s,]?00[01]\s*(a|[-–])\s*(r\$\s*)?20[\.\s,]?000/i.test(raw)) return brackets[3].label;
+        if (/acima|mais\s*de\s*20|20[\.\s,]?00[01].*acima/i.test(raw)) return brackets[4].label;
+        // Text ranges: "2 a 5 mil", "de 5 a 10 mil"
+        if (/\b(de\s+)?2\s*(a|[-–])\s*5\s*(mil|k)/i.test(raw)) return brackets[1].label;
+        if (/\b(de\s+)?5\s*(a|[-–])\s*10\s*(mil|k)/i.test(raw)) return brackets[2].label;
+        if (/\b(de\s+)?10\s*(a|[-–])\s*20\s*(mil|k)/i.test(raw)) return brackets[3].label;
         return null;
       }
 
@@ -831,8 +883,8 @@ export function reportsRouter() {
           if (labelMatch) {
             bracketLabel = labelMatch;
           } else {
-            // 2. Try parsing as number
-            const rendaValue = parseBrazilianNumber(lead.renda);
+            // 2. Try parsing as number (handles "5 mil", "5k", "5.000", "5,000", etc.)
+            const rendaValue = parseRendaValue(lead.renda);
             if (!isNaN(rendaValue) && rendaValue > 0) {
               for (const b of brackets) {
                 if (rendaValue >= b.min && rendaValue <= b.max) {

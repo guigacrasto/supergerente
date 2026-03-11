@@ -100,7 +100,10 @@ export function AgentsPage() {
       })
     : filteredRows;
 
-  const allCols = [...FIXED_COLS, ...funnelCols];
+  // Only show funnel columns when a funil filter is selected
+  const allCols = selectedFunil
+    ? [...FIXED_COLS, ...funnelCols.filter((f) => f === selectedFunil)]
+    : FIXED_COLS;
 
   return (
     <div className="flex flex-col gap-4">
