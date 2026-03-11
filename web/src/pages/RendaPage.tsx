@@ -79,8 +79,21 @@ interface PieSlice {
 function buildPieData(rows: IncomeRow[] | null): PieSlice[] {
   if (!rows) return [];
   return rows
-    .filter((r) => r.volume > 0)
+    .filter((r) => r.volume > 0 && r.faixa !== 'Não informado')
     .map((r) => ({ name: r.faixa, value: r.volume }));
+}
+
+function PieLabel({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) {
+  if (percent < 0.05) return null; // hide labels for slices < 5%
+  const RADIAN = Math.PI / 180;
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+  return (
+    <text x={x} y={y} fill="#fff" textAnchor="middle" dominantBaseline="central" fontSize={11} fontWeight={600}>
+      {(percent * 100).toFixed(0)}%
+    </text>
+  );
 }
 
 function IncomePieChart({ title, data, loading: isLoading }: { title: string; data: PieSlice[]; loading: boolean }) {
@@ -122,6 +135,8 @@ function IncomePieChart({ title, data, loading: isLoading }: { title: string; da
               dataKey="value"
               stroke="none"
               paddingAngle={2}
+              label={PieLabel}
+              labelLine={false}
             >
               {data.map((entry) => (
                 <Cell key={entry.name} fill={PIE_COLORS[entry.name] || '#64748B'} />
@@ -270,7 +285,7 @@ export function RendaPage() {
       {/* Legenda */}
       {!loading && (
         <div className="flex flex-wrap items-center gap-3">
-          {faixas.filter((f) => f.volume > 0).map((f) => (
+          {faixas.filter((f) => f.volume > 0 && f.faixa !== 'Não informado').map((f) => (
             <div key={f.faixa} className="flex items-center gap-1.5">
               <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: PIE_COLORS[f.faixa] || '#64748B' }} />
               <span className="text-body-xs text-muted">{f.faixa}</span>
