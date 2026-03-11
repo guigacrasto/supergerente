@@ -828,9 +828,17 @@ export function reportsRouter() {
         for (const v of metrics.vendedores) {
           allFunilNames.add(v.funil.replace(/^FUNIL\s+/i, ""));
         }
+        let teamTotal = 0;
+        let teamInRange = 0;
+        let teamGroupFiltered = 0;
         for (const lead of metrics.leadSnapshots) {
+          teamTotal++;
           if (lead.created_at >= fromTs && lead.created_at <= toTs) {
-            if (groupUserIds && !groupUserIds.has(lead.responsible_user_id)) continue;
+            teamInRange++;
+            if (groupUserIds && !groupUserIds.has(lead.responsible_user_id)) {
+              teamGroupFiltered++;
+              continue;
+            }
             if (funilFilter) {
               const pName = (pipelineNamesMap[lead.pipeline_id] || "").replace(/^FUNIL\s+/i, "");
               if (pName !== funilFilter) continue;
@@ -842,6 +850,7 @@ export function reportsRouter() {
             });
           }
         }
+        console.log(`[Income:${team}] snapshots=${teamTotal}, inDateRange(${req.query.from}→${req.query.to})=${teamInRange}, groupFiltered=${teamGroupFiltered}, collected=${leads.length}, contactCfByLead=${Object.keys(metrics.contactCfByLead).length}`);
       }
 
       // Initialize brackets + "Não informado"
