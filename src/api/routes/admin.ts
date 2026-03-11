@@ -192,15 +192,18 @@ export function adminRouter() {
         return;
       }
 
-      let permissionsMap: Record<string, number[]> = {};
+      let permissionsMap: Record<string, Record<string, number[]>> = {};
       try {
         const { data: permissions, error: permError } = await supabase
           .from("user_funnel_permissions")
-          .select("user_id, allowed_funnels");
+          .select("user_id, team, allowed_funnels");
 
         if (!permError && permissions) {
           for (const perm of permissions) {
-            permissionsMap[perm.user_id] = perm.allowed_funnels || [];
+            if (!permissionsMap[perm.user_id]) {
+              permissionsMap[perm.user_id] = {};
+            }
+            permissionsMap[perm.user_id][perm.team] = perm.allowed_funnels || [];
           }
         }
       } catch {
@@ -232,7 +235,7 @@ export function adminRouter() {
         role: p.role,
         status: p.status,
         teams: p.teams,
-        allowed_funnels: permissionsMap[p.id] || [],
+        allowed_funnels: permissionsMap[p.id] || {},
         allowed_groups: groupPermMap[p.id] || {},
       }));
 

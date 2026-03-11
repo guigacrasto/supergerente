@@ -344,25 +344,48 @@ async function fetchAndCompute(
 
   // Build contact custom fields map: contactId → custom_fields_values
   const contactCfMap = new Map<number, any[]>();
+  let contactsWithCf = 0;
   for (const c of contacts) {
     if (c.custom_fields_values && c.custom_fields_values.length > 0) {
       contactCfMap.set(c.id, c.custom_fields_values);
+      contactsWithCf++;
     }
   }
+  console.log(`[CrmCache:${team}] Contatos: ${contacts.length}, com CF: ${contactsWithCf}, no mapa: ${contactCfMap.size}`);
 
   // Build leadId → contact custom fields (from embedded contacts in lead response)
   const contactCfByLead: Record<number, any[]> = {};
+  let leadsWithEmbeddedContacts = 0;
+  let leadsWithMatchedCf = 0;
   for (const l of allLeads) {
     const linkedContacts = l._embedded?.contacts ?? [];
     if (linkedContacts.length === 0) continue;
+    leadsWithEmbeddedContacts++;
     const merged: any[] = [];
     for (const lc of linkedContacts) {
       const cf = contactCfMap.get(lc.id);
       if (cf) merged.push(...cf);
     }
-    if (merged.length > 0) contactCfByLead[l.id] = merged;
+    if (merged.length > 0) {
+      contactCfByLead[l.id] = merged;
+      leadsWithMatchedCf++;
+    }
   }
-  console.log(`[CrmCache:${team}] Contatos: ${contacts.length}, leads com CF de contato: ${Object.keys(contactCfByLead).length}`);
+  console.log(`[CrmCache:${team}] Leads com _embedded.contacts: ${leadsWithEmbeddedContacts}/${allLeads.length}, com CF de contato: ${leadsWithMatchedCf}`);
+
+  // Debug: log sample lead's embedded contacts structure (first 3 leads with contacts)
+  if (leadsWithEmbeddedContacts > 0 && leadsWithMatchedCf === 0) {
+    let sampled = 0;
+    for (const l of allLeads) {
+      const lc = l._embedded?.contacts;
+      if (lc && lc.length > 0 && sampled < 3) {
+        const contactIds = lc.map((c: any) => c.id);
+        const inMap = contactIds.filter((id: number) => contactCfMap.has(id));
+        console.log(`[CrmCache:${team}] DEBUG lead ${l.id}: embedded contact IDs=${JSON.stringify(contactIds)}, found in contactCfMap=${inMap.length}`);
+        sampled++;
+      }
+    }
+  }
 
   const pipelineNames: Record<number, string> = {};
   pipelines.forEach((p: any) => { pipelineNames[p.id] = p.name; });
