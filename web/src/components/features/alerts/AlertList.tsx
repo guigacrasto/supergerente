@@ -25,7 +25,7 @@ interface RawAlertTask {
   kommoUrl: string;
 }
 
-export type AlertTab = 'ativos' | 'concluidos' | 'arquivados';
+export type AlertTab = 'ativos' | 'concluidos' | 'arquivados' | 'excluidos';
 
 interface AlertListProps {
   alerts48h: RawAlertLead[];
@@ -34,9 +34,11 @@ interface AlertListProps {
   alertsDDD: RawAlertLead[];
   archivedKeys: Set<string>;
   completedKeys: Set<string>;
+  deletedKeys: Set<string>;
   alertHistory: Record<string, Array<{ type: string; date: string }>>;
   onArchive: (key: string, leadId: number, type: string) => void;
   onComplete: (key: string, leadId: number, type: string) => void;
+  onDelete: (key: string, leadId: number, type: string) => void;
   onCountClick: (leadId: number) => void;
   tab: AlertTab;
 }
@@ -80,9 +82,11 @@ function CollapsibleSection({
   items,
   archivedKeys,
   completedKeys,
+  deletedKeys,
   alertHistory,
   onArchive,
   onComplete,
+  onDelete,
   onCountClick,
   tab,
 }: {
@@ -98,23 +102,23 @@ function CollapsibleSection({
   }>;
   archivedKeys: Set<string>;
   completedKeys: Set<string>;
+  deletedKeys: Set<string>;
   alertHistory: Record<string, Array<{ type: string; date: string }>>;
   onArchive: (key: string, leadId: number, type: string) => void;
   onComplete: (key: string, leadId: number, type: string) => void;
+  onDelete: (key: string, leadId: number, type: string) => void;
   onCountClick: (leadId: number) => void;
   tab: AlertTab;
 }) {
-  // Padrao: secoes retraidas (collapsed = true)
   const [collapsed, setCollapsed] = useState(true);
 
   const filteredItems = items.filter((item) => {
     if (tab === 'arquivados') return archivedKeys.has(item.key);
     if (tab === 'concluidos') return completedKeys.has(item.key);
-    // Ativos: nao esta nem arquivado nem concluido
-    return !archivedKeys.has(item.key) && !completedKeys.has(item.key);
+    if (tab === 'excluidos') return deletedKeys.has(item.key);
+    // Ativos: nao esta em nenhum dos 3 estados
+    return !archivedKeys.has(item.key) && !completedKeys.has(item.key) && !deletedKeys.has(item.key);
   });
-
-  if (filteredItems.length === 0) return null;
 
   const Icon = config.icon;
 
@@ -136,7 +140,7 @@ function CollapsibleSection({
           collapsed && '-rotate-90'
         )} />
       </button>
-      {!collapsed && (
+      {!collapsed && filteredItems.length > 0 && (
         <div className="flex flex-col gap-2 p-4">
           {filteredItems.map((item) => {
             const leadHistory = alertHistory[String(item.leadId)] || [];
@@ -152,10 +156,16 @@ function CollapsibleSection({
                 alertCount={leadHistory.length}
                 onArchive={showActions ? () => onArchive(item.key, item.leadId, item.type) : undefined}
                 onComplete={showActions ? () => onComplete(item.key, item.leadId, item.type) : undefined}
+                onDelete={showActions ? () => onDelete(item.key, item.leadId, item.type) : undefined}
                 onCountClick={leadHistory.length > 0 ? () => onCountClick(item.leadId) : undefined}
               />
             );
           })}
+        </div>
+      )}
+      {!collapsed && filteredItems.length === 0 && (
+        <div className="px-5 py-4 text-body-sm text-muted">
+          Nenhum alerta nesta categoria.
         </div>
       )}
     </div>
@@ -169,9 +179,11 @@ export function AlertList({
   alertsDDD,
   archivedKeys,
   completedKeys,
+  deletedKeys,
   alertHistory,
   onArchive,
   onComplete,
+  onDelete,
   onCountClick,
   tab,
 }: AlertListProps) {
@@ -228,20 +240,23 @@ export function AlertList({
     },
   ];
 
+  // Check if ANY section has items for the current tab (for empty state)
   const hasItems = sectionData.some((s) => {
     const filtered = s.items.filter((item) => {
       if (tab === 'arquivados') return archivedKeys.has(item.key);
       if (tab === 'concluidos') return completedKeys.has(item.key);
-      return !archivedKeys.has(item.key) && !completedKeys.has(item.key);
+      if (tab === 'excluidos') return deletedKeys.has(item.key);
+      return !archivedKeys.has(item.key) && !completedKeys.has(item.key) && !deletedKeys.has(item.key);
     });
     return filtered.length > 0;
   });
 
-  if (!hasItems) {
+  if (!hasItems && tab !== 'ativos') {
     const emptyMessages: Record<AlertTab, { title: string; desc: string }> = {
       ativos: { title: 'Tudo em dia!', desc: 'Nenhum alerta ativo no momento.' },
       concluidos: { title: 'Nenhum alerta concluído', desc: 'Alertas marcados como concluídos aparecerão aqui.' },
       arquivados: { title: 'Nenhum alerta arquivado', desc: 'Alertas arquivados aparecerão aqui.' },
+      excluidos: { title: 'Nenhum alerta excluído', desc: 'Alertas excluídos aparecerão aqui.' },
     };
     const msg = emptyMessages[tab];
 
@@ -256,6 +271,19 @@ export function AlertList({
     );
   }
 
+  // Tab ativos sem items = tudo em dia
+  if (!hasItems && tab === 'ativos') {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="mb-4 rounded-card bg-success/10 p-4">
+          <CheckCircle2 className="h-10 w-10 text-success" />
+        </div>
+        <h3 className="font-heading text-heading-sm mb-1">Tudo em dia!</h3>
+        <p className="text-body-md text-muted">Nenhum alerta ativo no momento.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6">
       {sectionData.map(({ config, items }) => (
@@ -265,9 +293,11 @@ export function AlertList({
           items={items}
           archivedKeys={archivedKeys}
           completedKeys={completedKeys}
+          deletedKeys={deletedKeys}
           alertHistory={alertHistory}
           onArchive={onArchive}
           onComplete={onComplete}
+          onDelete={onDelete}
           onCountClick={onCountClick}
           tab={tab}
         />

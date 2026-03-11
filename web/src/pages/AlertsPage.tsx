@@ -63,6 +63,7 @@ const ALERT_TYPES: Array<{ value: AlertFilter; label: string }> = [
 
 const STORAGE_KEY_ARCHIVED = 'sg_archived_alerts';
 const STORAGE_KEY_COMPLETED = 'sg_completed_alerts';
+const STORAGE_KEY_DELETED = 'sg_deleted_alerts';
 const STORAGE_KEY_HISTORY = 'sg_alert_history';
 
 function loadSet(key: string): Set<string> {
@@ -100,6 +101,7 @@ export function AlertsPage() {
   const [tab, setTab] = useState<AlertTab>('ativos');
   const [archivedKeys, setArchivedKeys] = useState<Set<string>>(() => loadSet(STORAGE_KEY_ARCHIVED));
   const [completedKeys, setCompletedKeys] = useState<Set<string>>(() => loadSet(STORAGE_KEY_COMPLETED));
+  const [deletedKeys, setDeletedKeys] = useState<Set<string>>(() => loadSet(STORAGE_KEY_DELETED));
   const [alertHistory, setAlertHistory] = useState<Record<string, Array<{ type: string; date: string }>>>(loadHistory);
   const [historyModal, setHistoryModal] = useState<number | null>(null);
 
@@ -113,21 +115,6 @@ export function AlertsPage() {
       const res = await api.get<ActivityTeamData[]>('/reports/activity');
       setData(res.data);
       setLastFetchTime(new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-
-      // Auto-remover leads concluidos que voltaram a ter alerta
-      // Se um lead concluido aparece nos alertas novos, remove do concluido
-      const allAlertLeadKeys = new Set<string>();
-      for (const td of res.data) {
-        for (const a of td.activity.leadsAbandonados48h) allAlertLeadKeys.add(`48h-${a.id}`);
-        for (const a of td.activity.leadsEmRisco7d) allAlertLeadKeys.add(`7d-${a.id}`);
-        for (const t of td.activity.tarefasVencidas) allAlertLeadKeys.add(`task-${t.id}`);
-        for (const a of (td.activity.leadsDDDProibido || [])) allAlertLeadKeys.add(`ddd-${a.id}`);
-      }
-
-      // Nao precisa remover automaticamente — o lead concluido que continua
-      // no alerta fica como concluido. So volta pra ativo se tiver um NOVO alerta
-      // (com key diferente). A logica eh: se a key do concluido nao existe mais
-      // nos alertas atuais, podemos limpar. Mas se ainda existe, manter.
     } catch (err) {
       console.error('[AlertsPage] Erro ao carregar alertas:', err);
     } finally {
@@ -145,11 +132,16 @@ export function AlertsPage() {
     setArchivedKeys(newArchived);
     saveSet(STORAGE_KEY_ARCHIVED, newArchived);
 
-    // Remove de concluidos se estiver la
+    // Remove de concluidos e excluidos se estiver la
     const newCompleted = new Set(completedKeys);
     newCompleted.delete(key);
     setCompletedKeys(newCompleted);
     saveSet(STORAGE_KEY_COMPLETED, newCompleted);
+
+    const newDeleted = new Set(deletedKeys);
+    newDeleted.delete(key);
+    setDeletedKeys(newDeleted);
+    saveSet(STORAGE_KEY_DELETED, newDeleted);
 
     addHistoryEntry(leadId, type, 'Arquivado');
   };
@@ -161,6 +153,26 @@ export function AlertsPage() {
     saveSet(STORAGE_KEY_COMPLETED, newCompleted);
 
     addHistoryEntry(leadId, type, 'Concluído');
+  };
+
+  const handleDelete = (key: string, leadId: number, type: string) => {
+    const newDeleted = new Set(deletedKeys);
+    newDeleted.add(key);
+    setDeletedKeys(newDeleted);
+    saveSet(STORAGE_KEY_DELETED, newDeleted);
+
+    // Remove de concluidos e arquivados se estiver la
+    const newCompleted = new Set(completedKeys);
+    newCompleted.delete(key);
+    setCompletedKeys(newCompleted);
+    saveSet(STORAGE_KEY_COMPLETED, newCompleted);
+
+    const newArchived = new Set(archivedKeys);
+    newArchived.delete(key);
+    setArchivedKeys(newArchived);
+    saveSet(STORAGE_KEY_ARCHIVED, newArchived);
+
+    addHistoryEntry(leadId, type, 'Excluído');
   };
 
   const addHistoryEntry = (leadId: number, type: string, action: string) => {
@@ -200,7 +212,7 @@ export function AlertsPage() {
     return true;
   }
 
-  // Extract filter dropdown lists from backend response (complete lists, not just from alerts)
+  // Extract filter dropdown lists from backend response
   const { allGrupos, allFunis, allAgentes } = useMemo(() => {
     const gruposSet = new Set<string>();
     const funisSet = new Set<string>();
@@ -250,12 +262,14 @@ export function AlertsPage() {
 
     let concluidos = 0;
     let arquivados = 0;
+    let excluidos = 0;
     for (const k of allKeys) {
       if (completedKeys.has(k)) concluidos++;
       if (archivedKeys.has(k)) arquivados++;
+      if (deletedKeys.has(k)) excluidos++;
     }
-    return { concluidos, arquivados };
-  }, [filteredTeams, completedKeys, archivedKeys, groupFilter, selectedFunil, selectedAgente]);
+    return { concluidos, arquivados, excluidos };
+  }, [filteredTeams, completedKeys, archivedKeys, deletedKeys, groupFilter, selectedFunil, selectedAgente]);
 
   const modalHistory = historyModal !== null ? (alertHistory[String(historyModal)] || []) : [];
 
@@ -289,7 +303,7 @@ export function AlertsPage() {
         </div>
       </div>
 
-      {/* Tabs: Ativos / Concluidos / Arquivados */}
+      {/* Tabs: Ativos / Concluidos / Arquivados / Excluídos */}
       <div className="flex items-center gap-1 border-b border-glass-border">
         <button
           onClick={() => setTab('ativos')}
@@ -334,6 +348,22 @@ export function AlertsPage() {
             </span>
           )}
         </button>
+        <button
+          onClick={() => setTab('excluidos')}
+          className={cn(
+            'px-4 py-2.5 text-body-md font-medium border-b-2 transition-colors cursor-pointer',
+            tab === 'excluidos'
+              ? 'border-danger text-danger'
+              : 'border-transparent text-muted hover:text-foreground'
+          )}
+        >
+          Excluídos
+          {countForTab.excluidos > 0 && (
+            <span className="ml-1.5 inline-flex items-center justify-center h-5 min-w-[20px] px-1 rounded-full bg-danger/10 text-xs text-danger">
+              {countForTab.excluidos}
+            </span>
+          )}
+        </button>
       </div>
 
       {loading ? (
@@ -348,9 +378,11 @@ export function AlertsPage() {
           alertsDDD={alertsDDD}
           archivedKeys={archivedKeys}
           completedKeys={completedKeys}
+          deletedKeys={deletedKeys}
           alertHistory={alertHistory}
           onArchive={handleArchive}
           onComplete={handleComplete}
+          onDelete={handleDelete}
           onCountClick={handleCountClick}
           tab={tab}
         />

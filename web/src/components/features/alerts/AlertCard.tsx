@@ -1,4 +1,4 @@
-import { AlertTriangle, Clock, ListChecks, Archive, Check } from 'lucide-react';
+import { AlertTriangle, Clock, ListChecks, Archive, Check, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui';
 import type { LucideIcon } from 'lucide-react';
 
@@ -31,6 +31,7 @@ interface AlertCardProps {
   alertCount?: number;
   onArchive?: () => void;
   onComplete?: () => void;
+  onDelete?: () => void;
   onCountClick?: () => void;
 }
 
@@ -43,6 +44,7 @@ export function AlertCard({
   alertCount,
   onArchive,
   onComplete,
+  onDelete,
   onCountClick,
 }: AlertCardProps) {
   const config = severityConfig[severity];
@@ -96,6 +98,15 @@ export function AlertCard({
             title="Arquivar alerta"
           >
             <Archive className="h-4 w-4" />
+          </button>
+        )}
+        {onDelete && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="opacity-0 group-hover:opacity-100 p-1 rounded-button text-muted hover:text-danger hover:bg-danger/10 transition-all cursor-pointer"
+            title="Excluir alerta"
+          >
+            <Trash2 className="h-4 w-4" />
           </button>
         )}
       </div>
