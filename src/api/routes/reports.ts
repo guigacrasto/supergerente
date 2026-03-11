@@ -907,23 +907,36 @@ export function reportsRouter() {
         return parseFloat(digits);
       }
 
-      // Helper: match renda string directly against bracket labels or common text patterns
+      // Helper: match renda string directly against known Kommo enum values and patterns
       function matchBracketLabel(raw: string): string | null {
         const lower = raw.toLowerCase().trim();
+
         // Direct label match
         for (const b of brackets) {
           if (lower.includes(b.label.toLowerCase())) return b.label;
         }
-        // Common enum/text patterns
-        if (/at[eé]\s*(r\$\s*)?2[\.\s,]?000/i.test(raw)) return brackets[0].label;
-        if (/2[\.\s,]?00[01]\s*(a|[-–])\s*(r\$\s*)?5[\.\s,]?000/i.test(raw)) return brackets[1].label;
-        if (/5[\.\s,]?00[01]\s*(a|[-–])\s*(r\$\s*)?10[\.\s,]?000/i.test(raw)) return brackets[2].label;
-        if (/10[\.\s,]?00[01]\s*(a|[-–])\s*(r\$\s*)?20[\.\s,]?000/i.test(raw)) return brackets[3].label;
-        if (/acima|mais\s*de\s*20|20[\.\s,]?00[01].*acima/i.test(raw)) return brackets[4].label;
-        // Text ranges: "2 a 5 mil", "de 5 a 10 mil"
-        if (/\b(de\s+)?2\s*(a|[-–])\s*5\s*(mil|k)/i.test(raw)) return brackets[1].label;
-        if (/\b(de\s+)?5\s*(a|[-–])\s*10\s*(mil|k)/i.test(raw)) return brackets[2].label;
-        if (/\b(de\s+)?10\s*(a|[-–])\s*20\s*(mil|k)/i.test(raw)) return brackets[3].label;
+
+        // Kommo enum formats: "De R$1 mil a R$2 mil", "De R$2 mil a R$5 mil", etc.
+        if (/r?\$?\s*1\s*mil\s*(a|[-–])\s*r?\$?\s*2\s*mil/i.test(raw)) return brackets[0].label;
+        if (/at[eé]\s*(r?\$?\s*)?(1|2)\s*(mil|\.?000)/i.test(raw)) return brackets[0].label;
+        if (/r?\$?\s*2\s*mil\s*(a|[-–])\s*r?\$?\s*5\s*mil/i.test(raw)) return brackets[1].label;
+        if (/r?\$?\s*5\s*mil\s*(a|[-–])\s*r?\$?\s*10\s*mil/i.test(raw)) return brackets[2].label;
+        if (/r?\$?\s*10\s*mil\s*(a|[-–])\s*r?\$?\s*(15|20)\s*mil/i.test(raw)) return brackets[3].label;
+        if (/r?\$?\s*(15|20)\s*mil\s*(a|[-–])\s*r?\$?\s*(20|30|50)\s*mil/i.test(raw)) return brackets[4].label;
+        if (/acima|mais\s*de\s*(r?\$?\s*)?(15|20)/i.test(raw)) return brackets[4].label;
+
+        // Numeric patterns with thousands: "2.000 a 5.000", "2,000 a 5,000"
+        if (/2[\.\s,]?00[01]\s*(a|[-–])\s*(r?\$?\s*)?5[\.\s,]?000/i.test(raw)) return brackets[1].label;
+        if (/5[\.\s,]?00[01]\s*(a|[-–])\s*(r?\$?\s*)?10[\.\s,]?000/i.test(raw)) return brackets[2].label;
+        if (/10[\.\s,]?00[01]\s*(a|[-–])\s*(r?\$?\s*)?20[\.\s,]?000/i.test(raw)) return brackets[3].label;
+
+        // Simple ranges: "2 a 5 mil", "5 a 10 mil", "10 a 15 mil"
+        if (/\b(de\s+)?(r?\$?\s*)?1\s*(a|[-–])\s*(r?\$?\s*)?2\s*(mil|k)/i.test(raw)) return brackets[0].label;
+        if (/\b(de\s+)?(r?\$?\s*)?2\s*(a|[-–])\s*(r?\$?\s*)?5\s*(mil|k)/i.test(raw)) return brackets[1].label;
+        if (/\b(de\s+)?(r?\$?\s*)?5\s*(a|[-–])\s*(r?\$?\s*)?10\s*(mil|k)/i.test(raw)) return brackets[2].label;
+        if (/\b(de\s+)?(r?\$?\s*)?10\s*(a|[-–])\s*(r?\$?\s*)?(15|20)\s*(mil|k)/i.test(raw)) return brackets[3].label;
+        if (/\b(de\s+)?(r?\$?\s*)?(15|20)\s*(a|[-–])\s*(r?\$?\s*)?(20|30|50)\s*(mil|k)/i.test(raw)) return brackets[4].label;
+
         return null;
       }
 
