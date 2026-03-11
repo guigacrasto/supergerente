@@ -1,14 +1,14 @@
 import { useEffect, useState, useCallback } from 'react';
-import { CalendarDays, Users, TrendingUp, Calendar, CalendarRange } from 'lucide-react';
+import { CalendarDays } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
 import { useFilterStore } from '@/stores/filterStore';
 import { Skeleton, LiveTimestamp } from '@/components/ui';
-import { KPICard } from '@/components/features/dashboard/KPICard';
 import { TagFilter } from '@/components/features/filters/TagFilter';
 import { FunilFilter } from '@/components/features/filters/FunilFilter';
 import { TimeFilter } from '@/components/features/filters/TimeFilter';
 import { GroupFilter } from '@/components/features/filters/GroupFilter';
+import { cn } from '@/lib/utils';
 
 interface IncomeRow {
   faixa: string;
@@ -26,13 +26,6 @@ interface IncomeData {
   ticketMedioGeral: number;
   funis: string[];
   grupos: string[];
-}
-
-interface PeriodIncome {
-  totalVolume: number;
-  totalFechamentos: number;
-  pctConversao: string;
-  ticketMedioGeral: number;
 }
 
 function getDefaultFrom(): string {
@@ -59,6 +52,15 @@ function getFirstOfMonth(): string {
   return d.toISOString().slice(0, 10);
 }
 
+const ACCENT_COLORS: Record<string, string> = {
+  'Até R$ 2.000': 'border-l-success',
+  'R$ 2.001 a R$ 5.000': 'border-l-accent-blue',
+  'R$ 5.001 a R$ 10.000': 'border-l-primary',
+  'R$ 10.001 a R$ 20.000': 'border-l-warning',
+  'Acima de R$ 20.000': 'border-l-danger',
+  'Não informado': 'border-l-muted',
+};
+
 export function RendaPage() {
   const user = useAuthStore((s) => s.user);
   const selectedFunil = useFilterStore((s) => s.selectedFunil);
@@ -71,9 +73,9 @@ export function RendaPage() {
   const [lastFetchTime, setLastFetchTime] = useState('');
 
   const [periodData, setPeriodData] = useState<{
-    mes: PeriodIncome | null;
-    semana: PeriodIncome | null;
-    dia: PeriodIncome | null;
+    mes: IncomeRow[] | null;
+    semana: IncomeRow[] | null;
+    dia: IncomeRow[] | null;
   }>({ mes: null, semana: null, dia: null });
   const [periodLoading, setPeriodLoading] = useState(true);
 
@@ -112,9 +114,9 @@ export function RendaPage() {
       ]);
 
       setPeriodData({
-        mes: { totalVolume: mesRes.data.totalVolume, totalFechamentos: mesRes.data.totalFechamentos, pctConversao: mesRes.data.pctConversao, ticketMedioGeral: mesRes.data.ticketMedioGeral },
-        semana: { totalVolume: semanaRes.data.totalVolume, totalFechamentos: semanaRes.data.totalFechamentos, pctConversao: semanaRes.data.pctConversao, ticketMedioGeral: semanaRes.data.ticketMedioGeral },
-        dia: { totalVolume: diaRes.data.totalVolume, totalFechamentos: diaRes.data.totalFechamentos, pctConversao: diaRes.data.pctConversao, ticketMedioGeral: diaRes.data.ticketMedioGeral },
+        mes: mesRes.data.faixas,
+        semana: semanaRes.data.faixas,
+        dia: diaRes.data.faixas,
       });
     } catch (err) {
       console.error('[RendaPage] Erro ao carregar períodos:', err);
@@ -134,6 +136,12 @@ export function RendaPage() {
   const faixas = data?.faixas ?? [];
   const funis = data?.funis ?? [];
   const grupos = data?.grupos ?? [];
+
+  // Build lookup maps for period data
+  function getFaixaPeriod(periodFaixas: IncomeRow[] | null, faixaName: string): IncomeRow | null {
+    if (!periodFaixas) return null;
+    return periodFaixas.find((f) => f.faixa === faixaName) || null;
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -164,129 +172,94 @@ export function RendaPage() {
         <TagFilter />
       </div>
 
-      {/* KPI Cards — 4 rows of 2 */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        <KPICard
-          label="Volume Total"
-          value={data?.totalVolume}
-          icon={Users}
-          accent="danger"
-          loading={loading}
-        />
-        <KPICard
-          label="Fechamentos Total"
-          value={data?.totalFechamentos}
-          icon={TrendingUp}
-          accent="danger"
-          loading={loading}
-        />
-        <KPICard
-          label="Volume Mês"
-          value={periodData.mes?.totalVolume}
-          icon={Calendar}
-          accent="warning"
-          loading={periodLoading}
-        />
-        <KPICard
-          label="Fechamentos Mês"
-          value={periodData.mes?.totalFechamentos}
-          icon={TrendingUp}
-          accent="warning"
-          loading={periodLoading}
-        />
-        <KPICard
-          label="Volume Semana"
-          value={periodData.semana?.totalVolume}
-          icon={CalendarRange}
-          accent="info"
-          loading={periodLoading}
-        />
-        <KPICard
-          label="Fechamentos Semana"
-          value={periodData.semana?.totalFechamentos}
-          icon={TrendingUp}
-          accent="info"
-          loading={periodLoading}
-        />
-        <KPICard
-          label="Volume Dia"
-          value={periodData.dia?.totalVolume}
-          icon={CalendarDays}
-          accent="primary"
-          loading={periodLoading}
-        />
-        <KPICard
-          label="Fechamentos Dia"
-          value={periodData.dia?.totalFechamentos}
-          icon={TrendingUp}
-          accent="primary"
-          loading={periodLoading}
-        />
-      </div>
+      {/* Per-bracket KPI rows: TOTAL | MÊS | SEMANA | DIA */}
+      {loading ? (
+        <div className="flex flex-col gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 w-full rounded-card" />
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {faixas.map((faixa) => {
+            const mes = getFaixaPeriod(periodData.mes, faixa.faixa);
+            const semana = getFaixaPeriod(periodData.semana, faixa.faixa);
+            const dia = getFaixaPeriod(periodData.dia, faixa.faixa);
+            const accent = ACCENT_COLORS[faixa.faixa] || 'border-l-muted';
 
-      {/* Table */}
-      <div className="overflow-x-auto rounded-card border border-glass-border bg-surface">
-        <table className="w-max min-w-full">
-          <thead>
-            <tr className="bg-surface-secondary text-muted text-body-sm">
-              <th className="px-3 py-2.5 text-left font-medium">Faixa</th>
-              <th className="px-3 py-2.5 text-right font-medium">Volume</th>
-              <th className="px-3 py-2.5 text-right font-medium">Fechamentos</th>
-              <th className="px-3 py-2.5 text-right font-medium">Conversão %</th>
-              <th className="px-3 py-2.5 text-right font-medium">Ticket Médio</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              Array.from({ length: 6 }).map((_, i) => (
-                <tr key={i}>
-                  <td className="border-t border-glass-border px-3 py-2.5">
-                    <Skeleton className="h-5 w-32" />
-                  </td>
-                  <td className="border-t border-glass-border px-3 py-2.5 text-right">
-                    <Skeleton className="ml-auto h-5 w-12" />
-                  </td>
-                  <td className="border-t border-glass-border px-3 py-2.5 text-right">
-                    <Skeleton className="ml-auto h-5 w-12" />
-                  </td>
-                  <td className="border-t border-glass-border px-3 py-2.5 text-right">
-                    <Skeleton className="ml-auto h-5 w-16" />
-                  </td>
-                  <td className="border-t border-glass-border px-3 py-2.5 text-right">
-                    <Skeleton className="ml-auto h-5 w-20" />
-                  </td>
-                </tr>
-              ))
-            ) : faixas.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="border-t border-glass-border px-3 py-8 text-center text-muted text-body-md">
-                  Nenhum dado encontrado no período selecionado.
-                </td>
-              </tr>
-            ) : (
-              faixas.map((faixa) => (
-                <tr key={faixa.faixa} className="hover:bg-surface-secondary/50 transition-colors">
-                  <td className="border-t border-glass-border px-3 py-2.5 text-body-md text-foreground font-medium">
+            return (
+              <div
+                key={faixa.faixa}
+                className={cn(
+                  'rounded-card border border-glass-border bg-surface border-l-4 px-4 py-3',
+                  accent
+                )}
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="font-heading text-body-md font-semibold text-foreground">
                     {faixa.faixa}
-                  </td>
-                  <td className="border-t border-glass-border px-3 py-2.5 text-right text-body-md text-foreground">
-                    {faixa.volume}
-                  </td>
-                  <td className="border-t border-glass-border px-3 py-2.5 text-right text-body-md text-foreground">
-                    {faixa.fechamentos}
-                  </td>
-                  <td className="border-t border-glass-border px-3 py-2.5 text-right text-body-md text-foreground">
-                    {faixa.conversao}
-                  </td>
-                  <td className="border-t border-glass-border px-3 py-2.5 text-right text-body-md text-foreground">
-                    R$ {faixa.ticketMedio.toLocaleString('pt-BR')}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+                  </span>
+                  <span className="text-body-xs text-muted">
+                    Conv. {faixa.conversao} · Ticket R$ {faixa.ticketMedio.toLocaleString('pt-BR')}
+                  </span>
+                </div>
+                <div className="grid grid-cols-4 gap-3">
+                  {/* TOTAL (date range) */}
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase tracking-wider text-muted font-medium">Total</span>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-lg font-heading font-bold text-foreground">{faixa.volume}</span>
+                      <span className="text-body-xs text-success font-medium">{faixa.fechamentos} fech.</span>
+                    </div>
+                  </div>
+                  {/* MÊS */}
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase tracking-wider text-muted font-medium">Mês</span>
+                    <div className="flex items-baseline gap-1.5">
+                      {periodLoading ? (
+                        <Skeleton className="h-5 w-16" />
+                      ) : (
+                        <>
+                          <span className="text-lg font-heading font-bold text-foreground">{mes?.volume ?? 0}</span>
+                          <span className="text-body-xs text-success font-medium">{mes?.fechamentos ?? 0} fech.</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {/* SEMANA */}
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase tracking-wider text-muted font-medium">Semana</span>
+                    <div className="flex items-baseline gap-1.5">
+                      {periodLoading ? (
+                        <Skeleton className="h-5 w-16" />
+                      ) : (
+                        <>
+                          <span className="text-lg font-heading font-bold text-foreground">{semana?.volume ?? 0}</span>
+                          <span className="text-body-xs text-success font-medium">{semana?.fechamentos ?? 0} fech.</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {/* DIA */}
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase tracking-wider text-muted font-medium">Dia</span>
+                    <div className="flex items-baseline gap-1.5">
+                      {periodLoading ? (
+                        <Skeleton className="h-5 w-16" />
+                      ) : (
+                        <>
+                          <span className="text-lg font-heading font-bold text-foreground">{dia?.volume ?? 0}</span>
+                          <span className="text-body-xs text-success font-medium">{dia?.fechamentos ?? 0} fech.</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
