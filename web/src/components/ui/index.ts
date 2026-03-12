@@ -8,3 +8,4 @@ export { Spinner, PageSpinner } from './Spinner';
 export { Skeleton } from './Skeleton';
 export { EmptyState } from './EmptyState';
 export { LiveTimestamp } from './LiveTimestamp';
+export { ExportPdfButton } from './ExportPdfButton';

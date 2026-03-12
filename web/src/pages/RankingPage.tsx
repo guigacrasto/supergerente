@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   Trophy,
   Users,
@@ -16,7 +16,7 @@ import {
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
-import { Skeleton, LiveTimestamp, EmptyState } from '@/components/ui';
+import { Skeleton, LiveTimestamp, EmptyState, ExportPdfButton } from '@/components/ui';
 import { TimeFilter } from '@/components/features/filters/TimeFilter';
 import { GroupFilter } from '@/components/features/filters/GroupFilter';
 
@@ -549,6 +549,7 @@ function TabPorTime({ data, loading }: { data: RankingData | null; loading: bool
 /* ---------- Main Page ---------- */
 
 export function RankingPage() {
+  const exportRef = useRef<HTMLDivElement>(null);
   const user = useAuthStore((s) => s.user);
   const [data, setData] = useState<RankingData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -606,7 +607,7 @@ export function RankingPage() {
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <div ref={exportRef} className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -618,7 +619,10 @@ export function RankingPage() {
             Ranking de times e agentes por vendas e faturamento
           </p>
         </div>
-        <LiveTimestamp timestamp={lastFetchTime} />
+        <div className="flex items-center gap-3">
+          <LiveTimestamp timestamp={lastFetchTime} />
+          <ExportPdfButton targetRef={exportRef} filename="ranking" />
+        </div>
       </div>
 
       {/* Filters */}

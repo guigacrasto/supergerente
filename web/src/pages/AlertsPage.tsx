@@ -1,8 +1,8 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
 import { useFilterStore } from '@/stores/filterStore';
-import { LiveTimestamp } from '@/components/ui';
+import { LiveTimestamp, ExportPdfButton } from '@/components/ui';
 import { TimeFilter } from '@/components/features/filters/TimeFilter';
 import { GroupFilter } from '@/components/features/filters/GroupFilter';
 import { FunilFilter } from '@/components/features/filters/FunilFilter';
@@ -91,6 +91,7 @@ function saveHistory(history: Record<string, Array<{ type: string; date: string 
 }
 
 export function AlertsPage() {
+  const exportRef = useRef<HTMLDivElement>(null);
   const [data, setData] = useState<ActivityTeamData[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastFetchTime, setLastFetchTime] = useState('');
@@ -274,8 +275,11 @@ export function AlertsPage() {
   const modalHistory = historyModal !== null ? (alertHistory[String(historyModal)] || []) : [];
 
   return (
-    <div className="flex flex-col gap-6">
-      <LiveTimestamp timestamp={lastFetchTime} />
+    <div ref={exportRef} className="flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <LiveTimestamp timestamp={lastFetchTime} />
+        <ExportPdfButton targetRef={exportRef} filename="alertas" />
+      </div>
 
       {/* Filters — Time > Equipe > Funil > Agente > Tags */}
       <div className="flex flex-wrap items-center gap-4">

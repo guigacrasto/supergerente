@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TrendingUp, Users, Target, AlertTriangle } from 'lucide-react';
 import { api } from '@/lib/api';
@@ -7,7 +7,7 @@ import { TEAM_LABELS } from '@/lib/constants';
 import { useFilterStore } from '@/stores/filterStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useSSE } from '@/hooks/useSSE';
-import { Card, CardHeader, CardTitle, Skeleton, LiveTimestamp } from '@/components/ui';
+import { Card, CardHeader, CardTitle, Skeleton, LiveTimestamp, ExportPdfButton } from '@/components/ui';
 import { KPICard } from '@/components/features/dashboard/KPICard';
 import { TeamBarChart } from '@/components/features/dashboard/TeamBarChart';
 import { SalesRanking } from '@/components/features/dashboard/SalesRanking';
@@ -105,6 +105,7 @@ export function DashboardPage() {
   const [gruposByTeam, setGruposByTeam] = useState<Record<string, string[]>>({});
   const [lastFetchTime, setLastFetchTime] = useState<string>('');
 
+  const exportRef = useRef<HTMLDivElement>(null);
   const userTeams = user?.teams ?? [];
 
   const fetchData = useCallback(async (isBackground = false) => {
@@ -298,9 +299,12 @@ export function DashboardPage() {
   }));
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Live timestamp indicator */}
-      <LiveTimestamp timestamp={lastFetchTime} />
+    <div ref={exportRef} className="flex flex-col gap-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <LiveTimestamp timestamp={lastFetchTime} />
+        <ExportPdfButton targetRef={exportRef} filename="dashboard" />
+      </div>
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-4">

@@ -1,10 +1,10 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { CalendarDays, Phone, MapPin, ChevronDown, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
 import { useFilterStore } from '@/stores/filterStore';
-import { Skeleton, LiveTimestamp } from '@/components/ui';
+import { Skeleton, LiveTimestamp, ExportPdfButton } from '@/components/ui';
 import { TagFilter } from '@/components/features/filters/TagFilter';
 import { FunilFilter } from '@/components/features/filters/FunilFilter';
 import { TimeFilter } from '@/components/features/filters/TimeFilter';
@@ -95,6 +95,7 @@ function EstadoFilter({ estados, selected, onChange }: { estados: string[]; sele
 type SortKey = 'ddd' | 'estado' | 'volume' | 'pct' | 'fechamentos' | 'conversao' | 'ticketMedio';
 
 export function DDDPage() {
+  const exportRef = useRef<HTMLDivElement>(null);
   const user = useAuthStore((s) => s.user);
   const selectedFunil = useFilterStore((s) => s.selectedFunil);
   const [data, setData] = useState<DDDData | null>(null);
@@ -175,8 +176,11 @@ export function DDDPage() {
   );
 
   return (
-    <div className="flex flex-col gap-6">
-      <LiveTimestamp timestamp={lastFetchTime} />
+    <div ref={exportRef} className="flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <LiveTimestamp timestamp={lastFetchTime} />
+        <ExportPdfButton targetRef={exportRef} filename="ddd" />
+      </div>
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 sm:gap-4">

@@ -24,6 +24,7 @@ import { AdminPage } from '@/pages/AdminPage';
 import { SuperAdminPage } from '@/pages/SuperAdminPage';
 import { PredictionsPage } from '@/pages/PredictionsPage';
 import { RankingPage } from '@/pages/RankingPage';
+import { RelatoriosPage } from '@/pages/RelatoriosPage';
 
 export default function App() {
   return (
@@ -51,6 +52,7 @@ export default function App() {
           <Route path="/insights" element={<InsightsPage />} />
           <Route path="/predictions" element={<PredictionsPage />} />
           <Route path="/ranking" element={<RankingPage />} />
+          <Route path="/relatorios" element={<RelatoriosPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/super" element={<SuperAdminPage />} />
           <Route path="/profile" element={<ProfilePage />} />

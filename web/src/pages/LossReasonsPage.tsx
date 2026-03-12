@@ -1,10 +1,10 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { CalendarDays, XCircle, Percent, Calendar, CalendarRange } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
 import { useFilterStore } from '@/stores/filterStore';
-import { Skeleton, LiveTimestamp } from '@/components/ui';
+import { Skeleton, LiveTimestamp, ExportPdfButton } from '@/components/ui';
 import { KPICard } from '@/components/features/dashboard/KPICard';
 import { TagFilter } from '@/components/features/filters/TagFilter';
 import { FunilFilter } from '@/components/features/filters/FunilFilter';
@@ -68,6 +68,7 @@ function getFirstOfMonth(): string {
 }
 
 export function LossReasonsPage() {
+  const exportRef = useRef<HTMLDivElement>(null);
   const user = useAuthStore((s) => s.user);
   const selectedFunil = useFilterStore((s) => s.selectedFunil);
   const [data, setData] = useState<LossReasonsData | null>(null);
@@ -160,8 +161,11 @@ export function LossReasonsPage() {
   const chartHeight = Math.max(300, chartData.length * 48 + 40);
 
   return (
-    <div className="flex flex-col gap-6">
-      <LiveTimestamp timestamp={lastFetchTime} />
+    <div ref={exportRef} className="flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <LiveTimestamp timestamp={lastFetchTime} />
+        <ExportPdfButton targetRef={exportRef} filename="motivos-perda" />
+      </div>
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-4">

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Camada_1" data-name="Camada 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1080 1080">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: url(#Gradiente_sem_nome_28);
+      }
+
+      .cls-2 {
+        fill: #fff;
+      }
+    </style>
+    <linearGradient id="Gradiente_sem_nome_28" data-name="Gradiente sem nome 28" x1="-4.61" y1="537.78" x2="1082.56" y2="537.78" gradientUnits="userSpaceOnUse">
+      <stop offset=".49" stop-color="#5f41bc"/>
+      <stop offset="1" stop-color="#706dee"/>
+    </linearGradient>
+  </defs>
+  <rect class="cls-1" x="-4.61" y="-7.14" width="1087.17" height="1089.83"/>
+  <g>
+    <polygon class="cls-2" points="612.7 134.82 422.98 329.76 826.79 329.76 826.79 134.82 612.7 134.82"/>
+    <polygon class="cls-2" points="210.63 737.06 416.02 737.06 416.02 343.69 210.63 531.67 210.63 737.06"/>
+    <polygon class="cls-2" points="438.65 733.57 623.14 738.8 623.14 952.88 825.05 750.98 825.05 539.5 632.72 539.5 438.65 733.57"/>
+  </g>
+</svg>

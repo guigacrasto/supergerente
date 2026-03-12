@@ -1,9 +1,9 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { BarChart3, ArrowUpDown, ArrowUp, ArrowDown, User } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
 import { useFilterStore } from '@/stores/filterStore';
-import { Skeleton, LiveTimestamp, EmptyState } from '@/components/ui';
+import { Skeleton, LiveTimestamp, EmptyState, ExportPdfButton } from '@/components/ui';
 import { TagFilter } from '@/components/features/filters/TagFilter';
 import { FunilFilter } from '@/components/features/filters/FunilFilter';
 import { AgenteFilter } from '@/components/features/filters/AgenteFilter';
@@ -21,6 +21,7 @@ interface AgentsResponse {
 }
 
 export function AgentsPage() {
+  const exportRef = useRef<HTMLDivElement>(null);
   const [data, setData] = useState<AgentRow[]>([]);
   const [grupos, setGrupos] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -143,8 +144,11 @@ export function AgentsPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <LiveTimestamp timestamp={lastFetchTime} />
+    <div ref={exportRef} className="flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <LiveTimestamp timestamp={lastFetchTime} />
+        <ExportPdfButton targetRef={exportRef} filename="agentes" />
+      </div>
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 sm:gap-4">

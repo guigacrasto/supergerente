@@ -1,9 +1,9 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { CalendarDays, Users, TrendingUp, Target, Percent } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
 import { useFilterStore } from '@/stores/filterStore';
-import { LiveTimestamp } from '@/components/ui';
+import { LiveTimestamp, ExportPdfButton } from '@/components/ui';
 import { KPICard } from '@/components/features/dashboard/KPICard';
 import { TagFilter } from '@/components/features/filters/TagFilter';
 import { FunilFilter } from '@/components/features/filters/FunilFilter';
@@ -31,6 +31,7 @@ interface DailyResponse {
 }
 
 export function DiarioPage() {
+  const exportRef = useRef<HTMLDivElement>(null);
   const user = useAuthStore((s) => s.user);
   const selectedFunil = useFilterStore((s) => s.selectedFunil);
   const [data, setData] = useState<DailyMetrics[]>([]);
@@ -94,8 +95,11 @@ export function DiarioPage() {
     : '0.0%';
 
   return (
-    <div className="flex flex-col gap-6">
-      <LiveTimestamp timestamp={lastFetchTime} />
+    <div ref={exportRef} className="flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <LiveTimestamp timestamp={lastFetchTime} />
+        <ExportPdfButton targetRef={exportRef} filename="diario" />
+      </div>
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-4">

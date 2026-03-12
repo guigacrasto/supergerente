@@ -77,7 +77,7 @@ export function authRouter(): Router {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("status, role, name, teams")
+      .select("status, role, name, teams, tenant_id, totp_enabled")
       .eq("id", data.user.id)
       .single();
 
@@ -90,14 +90,7 @@ export function authRouter(): Router {
       return;
     }
 
-    // Check 2FA status
-    const { data: totpProfile } = await supabase
-      .from("profiles")
-      .select("totp_enabled")
-      .eq("id", data.user.id)
-      .single();
-
-    if (totpProfile?.totp_enabled) {
+    if (profile.totp_enabled) {
       // 2FA ativo: emitir challenge token em vez de sessao
       const challengeToken = await createChallengeToken(data.user.id);
       // Sign out to invalidate the session created by signInWithPassword
@@ -109,8 +102,15 @@ export function authRouter(): Router {
       return;
     }
 
+    // Load tenant if user has one
+    let tenant = null;
+    if (profile.tenant_id) {
+      const { getTenantById } = await import("../services/tenant.js");
+      tenant = await getTenantById(profile.tenant_id);
+    }
+
     // Check if admin/superadmin needs to setup 2FA
-    const requires2FASetup = (profile.role === "admin" || profile.role === "superadmin") && !totpProfile?.totp_enabled;
+    const requires2FASetup = (profile.role === "admin" || profile.role === "superadmin") && !profile.totp_enabled;
 
     res.json({
       token: data.session.access_token,
@@ -120,9 +120,9 @@ export function authRouter(): Router {
         name: profile.name,
         role: profile.role,
         teams: profile.teams || [],
-        tenantId: null,
-        tenant: null,
-        totpEnabled: totpProfile?.totp_enabled || false,
+        tenantId: profile.tenant_id || null,
+        tenant: tenant ? { id: tenant.id, name: tenant.name, slug: tenant.slug, primaryColor: tenant.primaryColor, logoUrl: tenant.logoUrl } : null,
+        totpEnabled: profile.totp_enabled || false,
       },
       ...(requires2FASetup ? { requires2FASetup: true } : {}),
     });

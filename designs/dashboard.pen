@@ -1,0 +1,2333 @@
+{
+  "version": "2.8",
+  "children": [
+    {
+      "type": "frame",
+      "id": "n6gmJ",
+      "x": 0,
+      "y": 0,
+      "name": "CRM Dashboard",
+      "width": 1440,
+      "height": 900,
+      "fill": "$bg-primary",
+      "children": [
+        {
+          "type": "frame",
+          "id": "tlpas",
+          "name": "Sidebar",
+          "width": 72,
+          "height": "fill_container",
+          "fill": "$bg-sidebar",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            24,
+            0
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "hzQDl",
+              "name": "Logo",
+              "width": 40,
+              "height": 40,
+              "fill": {
+                "type": "gradient",
+                "gradientType": "linear",
+                "enabled": true,
+                "rotation": 135,
+                "size": {
+                  "height": 1
+                },
+                "colors": [
+                  {
+                    "color": "$accent-purple",
+                    "position": 0
+                  },
+                  {
+                    "color": "$accent-blue",
+                    "position": 1
+                  }
+                ]
+              },
+              "cornerRadius": "$radius-button",
+              "layout": "vertical",
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "rormD",
+                  "name": "logoText",
+                  "fill": "#FFFFFF",
+                  "content": "SG",
+                  "fontFamily": "Libre Franklin",
+                  "fontSize": 14,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "BSymV",
+              "name": "spacer1",
+              "width": 40,
+              "height": 16
+            },
+            {
+              "type": "frame",
+              "id": "X5syM",
+              "name": "NavItem Active",
+              "width": 44,
+              "height": 44,
+              "fill": "#FFFFFF14",
+              "cornerRadius": "$radius-button",
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#9566F240",
+                "blur": 12,
+                "spread": 2
+              },
+              "layout": "vertical",
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "kbpEM",
+                  "name": "iconHome",
+                  "width": 22,
+                  "height": 22,
+                  "iconFontName": "layout-dashboard",
+                  "iconFontFamily": "lucide",
+                  "fill": "$accent-purple"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "3R8Xh",
+              "name": "NavItem",
+              "width": 44,
+              "height": 44,
+              "cornerRadius": "$radius-button",
+              "layout": "vertical",
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "RaheS",
+                  "name": "iconChat",
+                  "width": 22,
+                  "height": 22,
+                  "iconFontName": "message-square",
+                  "iconFontFamily": "lucide",
+                  "fill": "$text-secondary"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "D99Ii",
+              "name": "NavItem",
+              "width": 44,
+              "height": 44,
+              "cornerRadius": "$radius-button",
+              "layout": "vertical",
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "58brs",
+                  "name": "iconUsers",
+                  "width": 22,
+                  "height": 22,
+                  "iconFontName": "users",
+                  "iconFontFamily": "lucide",
+                  "fill": "$text-secondary"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "pxkJi",
+              "name": "NavItem",
+              "width": 44,
+              "height": 44,
+              "cornerRadius": "$radius-button",
+              "layout": "vertical",
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "se5wq",
+                  "name": "iconPipeline",
+                  "width": 22,
+                  "height": 22,
+                  "iconFontName": "trending-up",
+                  "iconFontFamily": "lucide",
+                  "fill": "$text-secondary"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ahhpb",
+              "name": "NavItem",
+              "width": 44,
+              "height": 44,
+              "cornerRadius": "$radius-button",
+              "layout": "none",
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "qsNWl",
+                  "x": 11,
+                  "y": 11,
+                  "name": "iconAlerts",
+                  "width": 22,
+                  "height": 22,
+                  "iconFontName": "bell",
+                  "iconFontFamily": "lucide",
+                  "fill": "$text-secondary"
+                },
+                {
+                  "type": "ellipse",
+                  "id": "ZtKIT",
+                  "x": 28,
+                  "y": 6,
+                  "name": "notifDot",
+                  "fill": "$accent-red",
+                  "width": 8,
+                  "height": 8
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "mwHEI",
+              "name": "NavItem",
+              "width": 44,
+              "height": 44,
+              "cornerRadius": "$radius-button",
+              "layout": "vertical",
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon_font",
+                  "id": "z5I3c",
+                  "name": "iconSettings",
+                  "width": 22,
+                  "height": 22,
+                  "iconFontName": "settings",
+                  "iconFontFamily": "lucide",
+                  "fill": "$text-secondary"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "03EPG",
+          "name": "Main Area",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "frame",
+              "id": "83vuy",
+              "name": "Top Bar",
+              "width": "fill_container",
+              "height": 64,
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "$border-glass"
+              },
+              "padding": [
+                0,
+                32
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "7zgEi",
+                  "name": "leftSection",
+                  "gap": 16,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "DWvV5",
+                      "name": "title",
+                      "fill": "$text-primary",
+                      "content": "Dashboard",
+                      "fontFamily": "Libre Franklin",
+                      "fontSize": 22,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "NI5o6",
+                      "name": "subtitle",
+                      "fill": "$text-muted",
+                      "content": "Visão Geral",
+                      "fontFamily": "Mulish",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "v8QT6",
+                  "name": "rightSection",
+                  "gap": 16,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "d9sxq",
+                      "name": "Filter",
+                      "height": 36,
+                      "fill": "$bg-glass",
+                      "cornerRadius": "$radius-button",
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$border-glass"
+                      },
+                      "gap": 8,
+                      "padding": [
+                        0,
+                        14
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "TVEpE",
+                          "name": "filterIcon",
+                          "width": 16,
+                          "height": 16,
+                          "iconFontName": "calendar",
+                          "iconFontFamily": "lucide",
+                          "fill": "$text-secondary"
+                        },
+                        {
+                          "type": "text",
+                          "id": "2vkz3",
+                          "name": "filterText",
+                          "fill": "$text-secondary",
+                          "content": "Últimos 30 dias",
+                          "fontFamily": "Mulish",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "icon_font",
+                          "id": "d8eDr",
+                          "name": "filterChevron",
+                          "width": 14,
+                          "height": 14,
+                          "iconFontName": "chevron-down",
+                          "iconFontFamily": "lucide",
+                          "fill": "$text-muted"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "znIye",
+                      "name": "Search",
+                      "width": 200,
+                      "height": 36,
+                      "fill": "$bg-glass",
+                      "cornerRadius": "$radius-button",
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$border-glass"
+                      },
+                      "gap": 8,
+                      "padding": [
+                        0,
+                        12
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon_font",
+                          "id": "q4ZpU",
+                          "name": "searchIcon",
+                          "width": 16,
+                          "height": 16,
+                          "iconFontName": "search",
+                          "iconFontFamily": "lucide",
+                          "fill": "$text-muted"
+                        },
+                        {
+                          "type": "text",
+                          "id": "LnUXO",
+                          "name": "searchPlaceholder",
+                          "fill": "$text-muted",
+                          "content": "Buscar...",
+                          "fontFamily": "Mulish",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "GES4z",
+                      "name": "Avatar",
+                      "width": 36,
+                      "height": 36,
+                      "fill": {
+                        "type": "gradient",
+                        "gradientType": "linear",
+                        "enabled": true,
+                        "rotation": 135,
+                        "size": {
+                          "height": 1
+                        },
+                        "colors": [
+                          {
+                            "color": "$accent-purple",
+                            "position": 0
+                          },
+                          {
+                            "color": "$accent-blue",
+                            "position": 1
+                          }
+                        ]
+                      },
+                      "cornerRadius": 18,
+                      "layout": "vertical",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "ByOd3",
+                          "name": "avatarText",
+                          "fill": "#FFFFFF",
+                          "content": "GC",
+                          "fontFamily": "Libre Franklin",
+                          "fontSize": 12,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "26nvW",
+              "name": "Content",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 24,
+              "padding": [
+                24,
+                32
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "QXyLA",
+                  "name": "KPI Row",
+                  "width": "fill_container",
+                  "gap": 20,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "u0JAY",
+                      "name": "KPI Leads",
+                      "width": "fill_container",
+                      "height": 130,
+                      "fill": "$bg-glass",
+                      "cornerRadius": "$radius-card",
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$border-glass"
+                      },
+                      "effect": {
+                        "type": "background_blur",
+                        "radius": 24
+                      },
+                      "layout": "vertical",
+                      "gap": 12,
+                      "padding": 20,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "2fTom",
+                          "name": "kpi1Top",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "fINIV",
+                              "name": "kpi1Label",
+                              "fill": "$text-secondary",
+                              "content": "Novos Leads",
+                              "fontFamily": "Mulish",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "E6lmt",
+                              "name": "kpi1Icon",
+                              "width": 32,
+                              "height": 32,
+                              "fill": "#9566F220",
+                              "cornerRadius": 8,
+                              "layout": "vertical",
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon_font",
+                                  "id": "iNBUM",
+                                  "name": "kpi1IconInner",
+                                  "width": 16,
+                                  "height": 16,
+                                  "iconFontName": "users",
+                                  "iconFontFamily": "lucide",
+                                  "fill": "$accent-purple"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "Vtb7V",
+                          "name": "kpi1Value",
+                          "fill": "$text-primary",
+                          "content": "1.247",
+                          "fontFamily": "Libre Franklin",
+                          "fontSize": 28,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "MvSZV",
+                          "name": "kpi1Bottom",
+                          "gap": 6,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "YKlgn",
+                              "name": "kpi1Change",
+                              "fill": "$accent-green",
+                              "content": "+12.5%",
+                              "fontFamily": "Mulish",
+                              "fontSize": 12,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "VykqF",
+                              "name": "kpi1Period",
+                              "fill": "$text-muted",
+                              "content": "vs mês anterior",
+                              "fontFamily": "Mulish",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "LgAUp",
+                      "name": "KPI Conversão",
+                      "width": "fill_container",
+                      "height": 130,
+                      "fill": "$bg-glass",
+                      "cornerRadius": "$radius-card",
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$border-glass"
+                      },
+                      "effect": {
+                        "type": "background_blur",
+                        "radius": 24
+                      },
+                      "layout": "vertical",
+                      "gap": 12,
+                      "padding": 20,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "JP6YO",
+                          "name": "kpi2Top",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "sLHi8",
+                              "name": "kpi2Label",
+                              "fill": "$text-secondary",
+                              "content": "Taxa de Conversão",
+                              "fontFamily": "Mulish",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "CZ2oE",
+                              "name": "kpi2Icon",
+                              "width": 32,
+                              "height": 32,
+                              "fill": "#1F74EC20",
+                              "cornerRadius": 8,
+                              "layout": "vertical",
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon_font",
+                                  "id": "IJfQC",
+                                  "name": "kpi2IconInner",
+                                  "width": 16,
+                                  "height": 16,
+                                  "iconFontName": "percent",
+                                  "iconFontFamily": "lucide",
+                                  "fill": "$accent-blue"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "s1pCf",
+                          "name": "kpi2Value",
+                          "fill": "$text-primary",
+                          "content": "23.8%",
+                          "fontFamily": "Libre Franklin",
+                          "fontSize": 28,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "URba8",
+                          "name": "kpi2Bottom",
+                          "gap": 6,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "3mbrJ",
+                              "name": "kpi2Change",
+                              "fill": "$accent-green",
+                              "content": "+3.2%",
+                              "fontFamily": "Mulish",
+                              "fontSize": 12,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "DJYeL",
+                              "name": "kpi2Period",
+                              "fill": "$text-muted",
+                              "content": "vs mês anterior",
+                              "fontFamily": "Mulish",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "eHyKe",
+                      "name": "KPI Faturamento",
+                      "width": "fill_container",
+                      "height": 130,
+                      "fill": "$bg-glass",
+                      "cornerRadius": "$radius-card",
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$border-glass"
+                      },
+                      "effect": {
+                        "type": "background_blur",
+                        "radius": 24
+                      },
+                      "layout": "vertical",
+                      "gap": 12,
+                      "padding": 20,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "fK8AH",
+                          "name": "kpi3Top",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "CdEla",
+                              "name": "kpi3Label",
+                              "fill": "$text-secondary",
+                              "content": "Faturamento",
+                              "fontFamily": "Mulish",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "19Ryl",
+                              "name": "kpi3Icon",
+                              "width": 32,
+                              "height": 32,
+                              "fill": "#22C55E20",
+                              "cornerRadius": 8,
+                              "layout": "vertical",
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon_font",
+                                  "id": "QcrK8",
+                                  "name": "kpi3IconInner",
+                                  "width": 16,
+                                  "height": 16,
+                                  "iconFontName": "dollar-sign",
+                                  "iconFontFamily": "lucide",
+                                  "fill": "$accent-green"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "Jo8Is",
+                          "name": "kpi3Value",
+                          "fill": "$text-primary",
+                          "content": "R$ 184.5k",
+                          "fontFamily": "Libre Franklin",
+                          "fontSize": 28,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "vuUx9",
+                          "name": "kpi3Bottom",
+                          "gap": 6,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "CJp83",
+                              "name": "kpi3Change",
+                              "fill": "$accent-green",
+                              "content": "+8.1%",
+                              "fontFamily": "Mulish",
+                              "fontSize": 12,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "NUPTK",
+                              "name": "kpi3Period",
+                              "fill": "$text-muted",
+                              "content": "vs mês anterior",
+                              "fontFamily": "Mulish",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "a076z",
+                      "name": "KPI Tempo",
+                      "width": "fill_container",
+                      "height": 130,
+                      "fill": "$bg-glass",
+                      "cornerRadius": "$radius-card",
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$border-glass"
+                      },
+                      "effect": {
+                        "type": "background_blur",
+                        "radius": 24
+                      },
+                      "layout": "vertical",
+                      "gap": 12,
+                      "padding": 20,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "zbSJn",
+                          "name": "kpi4Top",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "7imoO",
+                              "name": "kpi4Label",
+                              "fill": "$text-secondary",
+                              "content": "Tempo Médio",
+                              "fontFamily": "Mulish",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "qlYxd",
+                              "name": "kpi4Icon",
+                              "width": 32,
+                              "height": 32,
+                              "fill": "#F59E0B20",
+                              "cornerRadius": 8,
+                              "layout": "vertical",
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon_font",
+                                  "id": "2psZS",
+                                  "name": "kpi4IconInner",
+                                  "width": 16,
+                                  "height": 16,
+                                  "iconFontName": "timer",
+                                  "iconFontFamily": "lucide",
+                                  "fill": "$accent-yellow"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "rQkuW",
+                          "name": "kpi4Value",
+                          "fill": "$text-primary",
+                          "content": "4.2 dias",
+                          "fontFamily": "Libre Franklin",
+                          "fontSize": 28,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "aeDri",
+                          "name": "kpi4Bottom",
+                          "gap": 6,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "UUYQ8",
+                              "name": "kpi4Change",
+                              "fill": "$accent-green",
+                              "content": "-1.3 dias",
+                              "fontFamily": "Mulish",
+                              "fontSize": 12,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "LnOqc",
+                              "name": "kpi4Period",
+                              "fill": "$text-muted",
+                              "content": "vs mês anterior",
+                              "fontFamily": "Mulish",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "6Vyf3",
+                  "name": "Bottom Row",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "gap": 20,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "pkJvz",
+                      "name": "Sales Chart",
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "fill": "$bg-glass",
+                      "cornerRadius": "$radius-card",
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$border-glass"
+                      },
+                      "effect": {
+                        "type": "background_blur",
+                        "radius": 24
+                      },
+                      "layout": "vertical",
+                      "gap": 20,
+                      "padding": 24,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "r6hX9",
+                          "name": "chartHeader",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "30lug",
+                              "name": "chartTitle",
+                              "fill": "$text-primary",
+                              "content": "Vendas Mensais",
+                              "fontFamily": "Libre Franklin",
+                              "fontSize": 16,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "SXIit",
+                              "name": "chartLegend",
+                              "gap": 16,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "T3bPm",
+                                  "name": "legendItem1",
+                                  "gap": 6,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "ellipse",
+                                      "id": "9bhy8",
+                                      "name": "legendDot1",
+                                      "fill": "$accent-purple",
+                                      "width": 8,
+                                      "height": 8
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "pliRX",
+                                      "name": "legendLabel1",
+                                      "fill": "$text-secondary",
+                                      "content": "Receita",
+                                      "fontFamily": "Mulish",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "4jmWn",
+                                  "name": "legendItem2",
+                                  "gap": 6,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "ellipse",
+                                      "id": "ZOYCX",
+                                      "name": "legendDot2",
+                                      "fill": "$accent-blue",
+                                      "width": 8,
+                                      "height": 8
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "6hVmT",
+                                      "name": "legendLabel2",
+                                      "fill": "$text-secondary",
+                                      "content": "Metas",
+                                      "fontFamily": "Mulish",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Ar69z",
+                          "name": "Chart Area",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": {
+                              "bottom": 1
+                            },
+                            "fill": "$border-subtle"
+                          },
+                          "gap": 12,
+                          "padding": [
+                            0,
+                            0,
+                            24,
+                            0
+                          ],
+                          "alignItems": "end",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "ZJSDW",
+                              "name": "bar1Group",
+                              "width": "fill_container",
+                              "height": "fill_container",
+                              "gap": 4,
+                              "justifyContent": "center",
+                              "alignItems": "end",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "Vu3tL",
+                                  "name": "bar1a",
+                                  "width": 14,
+                                  "height": 290,
+                                  "fill": {
+                                    "type": "gradient",
+                                    "gradientType": "linear",
+                                    "enabled": true,
+                                    "rotation": 0,
+                                    "size": {
+                                      "height": 1
+                                    },
+                                    "colors": [
+                                      {
+                                        "color": "$accent-purple",
+                                        "position": 0
+                                      },
+                                      {
+                                        "color": "#9566F280",
+                                        "position": 1
+                                      }
+                                    ]
+                                  },
+                                  "cornerRadius": [
+                                    4,
+                                    4,
+                                    0,
+                                    0
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "ofBio",
+                                  "name": "bar1b",
+                                  "width": 14,
+                                  "height": 220,
+                                  "fill": {
+                                    "type": "gradient",
+                                    "gradientType": "linear",
+                                    "enabled": true,
+                                    "rotation": 0,
+                                    "size": {
+                                      "height": 1
+                                    },
+                                    "colors": [
+                                      {
+                                        "color": "$accent-blue",
+                                        "position": 0
+                                      },
+                                      {
+                                        "color": "#1F74EC80",
+                                        "position": 1
+                                      }
+                                    ]
+                                  },
+                                  "cornerRadius": [
+                                    4,
+                                    4,
+                                    0,
+                                    0
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "IW9if",
+                              "name": "bar2Group",
+                              "width": "fill_container",
+                              "height": "fill_container",
+                              "gap": 4,
+                              "justifyContent": "center",
+                              "alignItems": "end",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "qqPSW",
+                                  "name": "bar2a",
+                                  "width": 14,
+                                  "height": 370,
+                                  "fill": {
+                                    "type": "gradient",
+                                    "gradientType": "linear",
+                                    "enabled": true,
+                                    "rotation": 0,
+                                    "size": {
+                                      "height": 1
+                                    },
+                                    "colors": [
+                                      {
+                                        "color": "$accent-purple",
+                                        "position": 0
+                                      },
+                                      {
+                                        "color": "#9566F280",
+                                        "position": 1
+                                      }
+                                    ]
+                                  },
+                                  "cornerRadius": [
+                                    4,
+                                    4,
+                                    0,
+                                    0
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "d3BE1",
+                                  "name": "bar2b",
+                                  "width": 14,
+                                  "height": 270,
+                                  "fill": {
+                                    "type": "gradient",
+                                    "gradientType": "linear",
+                                    "enabled": true,
+                                    "rotation": 0,
+                                    "size": {
+                                      "height": 1
+                                    },
+                                    "colors": [
+                                      {
+                                        "color": "$accent-blue",
+                                        "position": 0
+                                      },
+                                      {
+                                        "color": "#1F74EC80",
+                                        "position": 1
+                                      }
+                                    ]
+                                  },
+                                  "cornerRadius": [
+                                    4,
+                                    4,
+                                    0,
+                                    0
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "rVv9o",
+                              "name": "bar3Group",
+                              "width": "fill_container",
+                              "height": "fill_container",
+                              "gap": 4,
+                              "justifyContent": "center",
+                              "alignItems": "end",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "JVPOZ",
+                                  "name": "bar3a",
+                                  "width": 14,
+                                  "height": 240,
+                                  "fill": {
+                                    "type": "gradient",
+                                    "gradientType": "linear",
+                                    "enabled": true,
+                                    "rotation": 0,
+                                    "size": {
+                                      "height": 1
+                                    },
+                                    "colors": [
+                                      {
+                                        "color": "$accent-purple",
+                                        "position": 0
+                                      },
+                                      {
+                                        "color": "#9566F280",
+                                        "position": 1
+                                      }
+                                    ]
+                                  },
+                                  "cornerRadius": [
+                                    4,
+                                    4,
+                                    0,
+                                    0
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "BLnUY",
+                                  "name": "bar3b",
+                                  "width": 14,
+                                  "height": 320,
+                                  "fill": {
+                                    "type": "gradient",
+                                    "gradientType": "linear",
+                                    "enabled": true,
+                                    "rotation": 0,
+                                    "size": {
+                                      "height": 1
+                                    },
+                                    "colors": [
+                                      {
+                                        "color": "$accent-blue",
+                                        "position": 0
+                                      },
+                                      {
+                                        "color": "#1F74EC80",
+                                        "position": 1
+                                      }
+                                    ]
+                                  },
+                                  "cornerRadius": [
+                                    4,
+                                    4,
+                                    0,
+                                    0
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "3eNfS",
+                              "name": "bar4Group",
+                              "width": "fill_container",
+                              "height": "fill_container",
+                              "gap": 4,
+                              "justifyContent": "center",
+                              "alignItems": "end",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "NblJe",
+                                  "name": "bar4a",
+                                  "width": 14,
+                                  "height": 420,
+                                  "fill": {
+                                    "type": "gradient",
+                                    "gradientType": "linear",
+                                    "enabled": true,
+                                    "rotation": 0,
+                                    "size": {
+                                      "height": 1
+                                    },
+                                    "colors": [
+                                      {
+                                        "color": "$accent-purple",
+                                        "position": 0
+                                      },
+                                      {
+                                        "color": "#9566F280",
+                                        "position": 1
+                                      }
+                                    ]
+                                  },
+                                  "cornerRadius": [
+                                    4,
+                                    4,
+                                    0,
+                                    0
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "EOsra",
+                                  "name": "bar4b",
+                                  "width": 14,
+                                  "height": 290,
+                                  "fill": {
+                                    "type": "gradient",
+                                    "gradientType": "linear",
+                                    "enabled": true,
+                                    "rotation": 0,
+                                    "size": {
+                                      "height": 1
+                                    },
+                                    "colors": [
+                                      {
+                                        "color": "$accent-blue",
+                                        "position": 0
+                                      },
+                                      {
+                                        "color": "#1F74EC80",
+                                        "position": 1
+                                      }
+                                    ]
+                                  },
+                                  "cornerRadius": [
+                                    4,
+                                    4,
+                                    0,
+                                    0
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "EWKpO",
+                              "name": "bar5Group",
+                              "width": "fill_container",
+                              "height": "fill_container",
+                              "gap": 4,
+                              "justifyContent": "center",
+                              "alignItems": "end",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "YXqr9",
+                                  "name": "bar5a",
+                                  "width": 14,
+                                  "height": 340,
+                                  "fill": {
+                                    "type": "gradient",
+                                    "gradientType": "linear",
+                                    "enabled": true,
+                                    "rotation": 0,
+                                    "size": {
+                                      "height": 1
+                                    },
+                                    "colors": [
+                                      {
+                                        "color": "$accent-purple",
+                                        "position": 0
+                                      },
+                                      {
+                                        "color": "#9566F280",
+                                        "position": 1
+                                      }
+                                    ]
+                                  },
+                                  "cornerRadius": [
+                                    4,
+                                    4,
+                                    0,
+                                    0
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "z5zQi",
+                                  "name": "bar5b",
+                                  "width": 14,
+                                  "height": 400,
+                                  "fill": {
+                                    "type": "gradient",
+                                    "gradientType": "linear",
+                                    "enabled": true,
+                                    "rotation": 0,
+                                    "size": {
+                                      "height": 1
+                                    },
+                                    "colors": [
+                                      {
+                                        "color": "$accent-blue",
+                                        "position": 0
+                                      },
+                                      {
+                                        "color": "#1F74EC80",
+                                        "position": 1
+                                      }
+                                    ]
+                                  },
+                                  "cornerRadius": [
+                                    4,
+                                    4,
+                                    0,
+                                    0
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "wSU8B",
+                              "name": "bar6Group",
+                              "width": "fill_container",
+                              "height": "fill_container",
+                              "gap": 4,
+                              "justifyContent": "center",
+                              "alignItems": "end",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "OUOZK",
+                                  "name": "bar6a",
+                                  "width": 14,
+                                  "height": 470,
+                                  "fill": {
+                                    "type": "gradient",
+                                    "gradientType": "linear",
+                                    "enabled": true,
+                                    "rotation": 0,
+                                    "size": {
+                                      "height": 1
+                                    },
+                                    "colors": [
+                                      {
+                                        "color": "$accent-purple",
+                                        "position": 0
+                                      },
+                                      {
+                                        "color": "#9566F280",
+                                        "position": 1
+                                      }
+                                    ]
+                                  },
+                                  "cornerRadius": [
+                                    4,
+                                    4,
+                                    0,
+                                    0
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "Z1jCy",
+                                  "name": "bar6b",
+                                  "width": 14,
+                                  "height": 340,
+                                  "fill": {
+                                    "type": "gradient",
+                                    "gradientType": "linear",
+                                    "enabled": true,
+                                    "rotation": 0,
+                                    "size": {
+                                      "height": 1
+                                    },
+                                    "colors": [
+                                      {
+                                        "color": "$accent-blue",
+                                        "position": 0
+                                      },
+                                      {
+                                        "color": "#1F74EC80",
+                                        "position": 1
+                                      }
+                                    ]
+                                  },
+                                  "cornerRadius": [
+                                    4,
+                                    4,
+                                    0,
+                                    0
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "c4wmT",
+                          "name": "X Axis Labels",
+                          "width": "fill_container",
+                          "justifyContent": "space_around",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "bkY5j",
+                              "name": "label1",
+                              "fill": "$text-muted",
+                              "content": "Out",
+                              "fontFamily": "Mulish",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "mKxyO",
+                              "name": "label2",
+                              "fill": "$text-muted",
+                              "content": "Nov",
+                              "fontFamily": "Mulish",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "SjdjK",
+                              "name": "label3",
+                              "fill": "$text-muted",
+                              "content": "Dez",
+                              "fontFamily": "Mulish",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "j2BCW",
+                              "name": "label4",
+                              "fill": "$text-muted",
+                              "content": "Jan",
+                              "fontFamily": "Mulish",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "KU4nB",
+                              "name": "label5",
+                              "fill": "$text-muted",
+                              "content": "Fev",
+                              "fontFamily": "Mulish",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "ajXYc",
+                              "name": "label6",
+                              "fill": "$text-primary",
+                              "content": "Mar",
+                              "fontFamily": "Mulish",
+                              "fontSize": 11,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "kYClz",
+                      "name": "Activities Table",
+                      "width": 480,
+                      "height": "fill_container",
+                      "fill": "$bg-glass",
+                      "cornerRadius": "$radius-card",
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "$border-glass"
+                      },
+                      "effect": {
+                        "type": "background_blur",
+                        "radius": 24
+                      },
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "YTCKZ",
+                          "name": "tableHeader",
+                          "width": "fill_container",
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": {
+                              "bottom": 1
+                            },
+                            "fill": "$border-glass"
+                          },
+                          "padding": [
+                            16,
+                            20
+                          ],
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "9YKV6",
+                              "name": "tableTitle",
+                              "fill": "$text-primary",
+                              "content": "Atividades Recentes",
+                              "fontFamily": "Libre Franklin",
+                              "fontSize": 16,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "Sfzyy",
+                              "name": "viewAll",
+                              "fill": "$accent-purple",
+                              "content": "Ver tudo",
+                              "fontFamily": "Mulish",
+                              "fontSize": 13,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "y7dwl",
+                          "name": "Table Body",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "layout": "vertical",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "Rre7h",
+                              "name": "Activity Row",
+                              "width": "fill_container",
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": {
+                                  "bottom": 1
+                                },
+                                "fill": "$border-subtle"
+                              },
+                              "gap": 12,
+                              "padding": [
+                                14,
+                                20
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "2rruR",
+                                  "name": "row1Avatar",
+                                  "width": 36,
+                                  "height": 36,
+                                  "fill": "#9566F230",
+                                  "cornerRadius": 18,
+                                  "layout": "vertical",
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "I4bK4",
+                                      "name": "row1AvatarText",
+                                      "fill": "$accent-purple",
+                                      "content": "MS",
+                                      "fontFamily": "Libre Franklin",
+                                      "fontSize": 11,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "2wuoy",
+                                  "name": "row1Info",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 2,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "hDekK",
+                                      "name": "row1Name",
+                                      "fill": "$text-primary",
+                                      "content": "Maria Santos",
+                                      "fontFamily": "Mulish",
+                                      "fontSize": 13,
+                                      "fontWeight": "600"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "UQWYW",
+                                      "name": "row1Action",
+                                      "fill": "$text-secondary",
+                                      "content": "Novo lead qualificado",
+                                      "fontFamily": "Mulish",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "myPqT",
+                                  "name": "row1Time",
+                                  "fill": "$text-muted",
+                                  "content": "2 min",
+                                  "fontFamily": "Mulish",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "sYUL1",
+                              "name": "Activity Row",
+                              "width": "fill_container",
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": {
+                                  "bottom": 1
+                                },
+                                "fill": "$border-subtle"
+                              },
+                              "gap": 12,
+                              "padding": [
+                                14,
+                                20
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "01Atr",
+                                  "name": "row2Avatar",
+                                  "width": 36,
+                                  "height": 36,
+                                  "fill": "#1F74EC30",
+                                  "cornerRadius": 18,
+                                  "layout": "vertical",
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "dqM9F",
+                                      "name": "row2AvatarText",
+                                      "fill": "$accent-blue",
+                                      "content": "JP",
+                                      "fontFamily": "Libre Franklin",
+                                      "fontSize": 11,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "QFrsY",
+                                  "name": "row2Info",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 2,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "y2nrU",
+                                      "name": "row2Name",
+                                      "fill": "$text-primary",
+                                      "content": "João Pereira",
+                                      "fontFamily": "Mulish",
+                                      "fontSize": 13,
+                                      "fontWeight": "600"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "Sn9va",
+                                      "name": "row2Action",
+                                      "fill": "$text-secondary",
+                                      "content": "Proposta enviada — R$ 45k",
+                                      "fontFamily": "Mulish",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "zLNbS",
+                                  "name": "row2Time",
+                                  "fill": "$text-muted",
+                                  "content": "15 min",
+                                  "fontFamily": "Mulish",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "voUcJ",
+                              "name": "Activity Row",
+                              "width": "fill_container",
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": {
+                                  "bottom": 1
+                                },
+                                "fill": "$border-subtle"
+                              },
+                              "gap": 12,
+                              "padding": [
+                                14,
+                                20
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "Sra4Y",
+                                  "name": "row3Avatar",
+                                  "width": 36,
+                                  "height": 36,
+                                  "fill": "#22C55E30",
+                                  "cornerRadius": 18,
+                                  "layout": "vertical",
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "0Hnpc",
+                                      "name": "row3AvatarText",
+                                      "fill": "$accent-green",
+                                      "content": "AC",
+                                      "fontFamily": "Libre Franklin",
+                                      "fontSize": 11,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "kJ164",
+                                  "name": "row3Info",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 2,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "Xa4Xr",
+                                      "name": "row3Name",
+                                      "fill": "$text-primary",
+                                      "content": "Ana Costa",
+                                      "fontFamily": "Mulish",
+                                      "fontSize": 13,
+                                      "fontWeight": "600"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "IaSIX",
+                                      "name": "row3Action",
+                                      "fill": "$text-secondary",
+                                      "content": "Venda fechada — R$ 32k",
+                                      "fontFamily": "Mulish",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "oQhuv",
+                                  "name": "row3Badge",
+                                  "fill": "#22C55E20",
+                                  "cornerRadius": 4,
+                                  "padding": [
+                                    3,
+                                    8
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "nh0nx",
+                                      "name": "row3BadgeText",
+                                      "fill": "$accent-green",
+                                      "content": "Ganho",
+                                      "fontFamily": "Mulish",
+                                      "fontSize": 10,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "Ibbxn",
+                              "name": "Activity Row",
+                              "width": "fill_container",
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": {
+                                  "bottom": 1
+                                },
+                                "fill": "$border-subtle"
+                              },
+                              "gap": 12,
+                              "padding": [
+                                14,
+                                20
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "JfGgv",
+                                  "name": "row4Avatar",
+                                  "width": 36,
+                                  "height": 36,
+                                  "fill": "#F59E0B30",
+                                  "cornerRadius": 18,
+                                  "layout": "vertical",
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "l8qOx",
+                                      "name": "row4AvatarText",
+                                      "fill": "$accent-yellow",
+                                      "content": "RL",
+                                      "fontFamily": "Libre Franklin",
+                                      "fontSize": 11,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "T2rSf",
+                                  "name": "row4Info",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 2,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "GuOV1",
+                                      "name": "row4Name",
+                                      "fill": "$text-primary",
+                                      "content": "Ricardo Lima",
+                                      "fontFamily": "Mulish",
+                                      "fontSize": 13,
+                                      "fontWeight": "600"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "EknCs",
+                                      "name": "row4Action",
+                                      "fill": "$text-secondary",
+                                      "content": "Follow-up agendado",
+                                      "fontFamily": "Mulish",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "i0YFT",
+                                  "name": "row4Time",
+                                  "fill": "$text-muted",
+                                  "content": "1h",
+                                  "fontFamily": "Mulish",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "Ut6dC",
+                              "name": "Activity Row",
+                              "width": "fill_container",
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": {
+                                  "bottom": 1
+                                },
+                                "fill": "$border-subtle"
+                              },
+                              "gap": 12,
+                              "padding": [
+                                14,
+                                20
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "FL2v8",
+                                  "name": "row5Avatar",
+                                  "width": 36,
+                                  "height": 36,
+                                  "fill": "#EF444430",
+                                  "cornerRadius": 18,
+                                  "layout": "vertical",
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "RfB10",
+                                      "name": "row5AvatarText",
+                                      "fill": "$accent-red",
+                                      "content": "FS",
+                                      "fontFamily": "Libre Franklin",
+                                      "fontSize": 11,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "MFoDi",
+                                  "name": "row5Info",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 2,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "HItFR",
+                                      "name": "row5Name",
+                                      "fill": "$text-primary",
+                                      "content": "Fernanda Silva",
+                                      "fontFamily": "Mulish",
+                                      "fontSize": 13,
+                                      "fontWeight": "600"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "f450K",
+                                      "name": "row5Action",
+                                      "fill": "$text-secondary",
+                                      "content": "Lead perdido — sem resposta",
+                                      "fontFamily": "Mulish",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "9eAVd",
+                                  "name": "row5Badge",
+                                  "fill": "#EF444420",
+                                  "cornerRadius": 4,
+                                  "padding": [
+                                    3,
+                                    8
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "z504a",
+                                      "name": "row5BadgeText",
+                                      "fill": "$accent-red",
+                                      "content": "Perdido",
+                                      "fontFamily": "Mulish",
+                                      "fontSize": 10,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "Jouog",
+                              "name": "Activity Row",
+                              "width": "fill_container",
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": {
+                                  "bottom": 1
+                                },
+                                "fill": "$border-subtle"
+                              },
+                              "gap": 12,
+                              "padding": [
+                                14,
+                                20
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "0CjDP",
+                                  "name": "row6Avatar",
+                                  "width": 36,
+                                  "height": 36,
+                                  "fill": "#9566F230",
+                                  "cornerRadius": 18,
+                                  "layout": "vertical",
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "vdBfE",
+                                      "name": "row6AvatarText",
+                                      "fill": "$accent-purple",
+                                      "content": "CO",
+                                      "fontFamily": "Libre Franklin",
+                                      "fontSize": 11,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "mzWdY",
+                                  "name": "row6Info",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 2,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "cypdE",
+                                      "name": "row6Name",
+                                      "fill": "$text-primary",
+                                      "content": "Carlos Oliveira",
+                                      "fontFamily": "Mulish",
+                                      "fontSize": 13,
+                                      "fontWeight": "600"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "NyYye",
+                                      "name": "row6Action",
+                                      "fill": "$text-secondary",
+                                      "content": "Reunião de demonstração",
+                                      "fontFamily": "Mulish",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "oaN78",
+                                  "name": "row6Time",
+                                  "fill": "$text-muted",
+                                  "content": "2h",
+                                  "fontFamily": "Mulish",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "snWzO",
+                              "name": "Activity Row",
+                              "width": "fill_container",
+                              "gap": 12,
+                              "padding": [
+                                14,
+                                20
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "prWEJ",
+                                  "name": "row7Avatar",
+                                  "width": 36,
+                                  "height": 36,
+                                  "fill": "#1F74EC30",
+                                  "cornerRadius": 18,
+                                  "layout": "vertical",
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "SsreH",
+                                      "name": "row7AvatarText",
+                                      "fill": "$accent-blue",
+                                      "content": "LM",
+                                      "fontFamily": "Libre Franklin",
+                                      "fontSize": 11,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "e3a12",
+                                  "name": "row7Info",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 2,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "EZD9N",
+                                      "name": "row7Name",
+                                      "fill": "$text-primary",
+                                      "content": "Lucia Mendes",
+                                      "fontFamily": "Mulish",
+                                      "fontSize": 13,
+                                      "fontWeight": "600"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "s4fM4",
+                                      "name": "row7Action",
+                                      "fill": "$text-secondary",
+                                      "content": "Proposta em análise — R$ 67k",
+                                      "fontFamily": "Mulish",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "y3rRf",
+                                  "name": "row7Badge",
+                                  "fill": "#F59E0B20",
+                                  "cornerRadius": 4,
+                                  "padding": [
+                                    3,
+                                    8
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "88Xnb",
+                                      "name": "row7BadgeText",
+                                      "fill": "$accent-yellow",
+                                      "content": "Análise",
+                                      "fontFamily": "Mulish",
+                                      "fontSize": 10,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variables": {
+    "accent-blue": {
+      "type": "color",
+      "value": "#1F74EC"
+    },
+    "accent-green": {
+      "type": "color",
+      "value": "#22C55E"
+    },
+    "accent-purple": {
+      "type": "color",
+      "value": "#9566F2"
+    },
+    "accent-red": {
+      "type": "color",
+      "value": "#EF4444"
+    },
+    "accent-yellow": {
+      "type": "color",
+      "value": "#F59E0B"
+    },
+    "bg-glass": {
+      "type": "color",
+      "value": "#2A1A3D80"
+    },
+    "bg-primary": {
+      "type": "color",
+      "value": "#12081E"
+    },
+    "bg-sidebar": {
+      "type": "color",
+      "value": "#270E5F"
+    },
+    "bg-surface": {
+      "type": "color",
+      "value": "#22182D"
+    },
+    "border-glass": {
+      "type": "color",
+      "value": "#FFFFFF14"
+    },
+    "border-subtle": {
+      "type": "color",
+      "value": "#FFFFFF0A"
+    },
+    "font-body": {
+      "type": "string",
+      "value": "Mulish"
+    },
+    "font-heading": {
+      "type": "string",
+      "value": "Libre Franklin"
+    },
+    "radius-button": {
+      "type": "number",
+      "value": 8
+    },
+    "radius-card": {
+      "type": "number",
+      "value": 12
+    },
+    "text-muted": {
+      "type": "color",
+      "value": "#6B617C"
+    },
+    "text-primary": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "text-secondary": {
+      "type": "color",
+      "value": "#A8A0B8"
+    }
+  }
+}

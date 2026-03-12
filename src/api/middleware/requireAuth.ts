@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { supabase } from "../supabase.js";
-import { TeamKey, TEAMS } from "../../config.js";
+import { TeamKey, TEAMS, getTeamConfigsFromTenant } from "../../config.js";
+import { getTenantById } from "../services/tenant.js";
 
 // All configured teams (those with a subdomain set)
 const ALL_CONFIGURED_TEAMS = (Object.keys(TEAMS) as TeamKey[]).filter(
@@ -79,7 +80,7 @@ export async function requireAuth(
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("status, role, teams, can_view_ranking")
+    .select("status, role, teams, can_view_ranking, tenant_id")
     .eq("id", user.id)
     .single();
 
@@ -137,10 +138,30 @@ export async function requireAuth(
     // No group permissions set
   }
 
-  // Determine teams: admin see all configured, users see their own
-  const teams: string[] = (profile.role === "admin" || profile.role === "superadmin")
-    ? ALL_CONFIGURED_TEAMS
-    : (profile.teams || []);
+  // Load tenant if user has one (or superadmin override via header)
+  let tenantId = profile.tenant_id || undefined;
+  const headerTenantId = req.headers['x-tenant-id'] as string | undefined;
+  if (profile.role === 'superadmin' && headerTenantId) {
+    tenantId = headerTenantId;
+  }
+
+  let tenant: any = undefined;
+  if (tenantId) {
+    tenant = await getTenantById(tenantId);
+  }
+
+  // Determine teams: use tenant team configs if available, else fallback to static config
+  let teams: string[];
+  if (tenant?.settings?.teams) {
+    const tenantTeamKeys = Object.keys(tenant.settings.teams);
+    teams = (profile.role === "admin" || profile.role === "superadmin")
+      ? tenantTeamKeys
+      : (profile.teams || []).filter((t: string) => tenantTeamKeys.includes(t));
+  } else {
+    teams = (profile.role === "admin" || profile.role === "superadmin")
+      ? ALL_CONFIGURED_TEAMS
+      : (profile.teams || []);
+  }
 
   const canViewRanking = profile.can_view_ranking ?? false;
 
@@ -153,6 +174,8 @@ export async function requireAuth(
     allowedGroups,
     pausedPipelines,
     canViewRanking,
+    tenantId,
+    tenant,
     expiresAt: Date.now() + AUTH_CACHE_TTL_MS,
   });
 
@@ -163,6 +186,8 @@ export async function requireAuth(
   req.allowedGroups = allowedGroups;
   req.pausedPipelines = pausedPipelines;
   req.canViewRanking = canViewRanking;
+  req.tenantId = tenantId;
+  req.tenant = tenant;
 
   next();
 }
