@@ -183,9 +183,16 @@ export function adminRouter() {
     }
 
     try {
-      const { data: profiles, error: profilesError } = await supabase
+      let profilesQuery = supabase
         .from("profiles")
-        .select("id, email, name, role, status, teams, can_view_ranking");
+        .select("id, email, name, role, status, teams, can_view_ranking, tenant_id");
+
+      // Filter by tenant — admin sees only their tenant's users
+      if (req.tenantId && req.userRole !== 'superadmin') {
+        profilesQuery = profilesQuery.eq("tenant_id", req.tenantId);
+      }
+
+      const { data: profiles, error: profilesError } = await profilesQuery;
 
       if (profilesError) {
         res.status(500).json({ error: profilesError.message });
