@@ -106,25 +106,25 @@ export function metricasRouter() {
   router.get("/summary", async (req: AuthRequest, res) => {
     try {
       const tenantId = req.tenantId;
-      if (!tenantId) {
-        res.status(400).json({ error: "Tenant não encontrado" });
-        return;
-      }
 
       const { from, to, fromTs, toTs } = parseDateRange(req.query);
-      console.log(`[metricas] summary: tenantId=${tenantId}, from=${from}, to=${to}, fromTs=${fromTs}, toTs=${toTs}`);
+      console.log(`[metricas] summary: tenantId=${tenantId || 'none'}, from=${from}, to=${to}, fromTs=${fromTs}, toTs=${toTs}`);
 
-      // 1. Buscar entries manuais (gasto ads)
-      const { data: entries } = await supabase
-        .from("metric_entries")
-        .select("*")
-        .eq("tenant_id", tenantId)
-        .gte("date", from)
-        .lte("date", to);
+      // 1. Buscar entries manuais (gasto ads) — só se tiver tenant
+      let entries: any[] = [];
+      if (tenantId) {
+        const { data } = await supabase
+          .from("metric_entries")
+          .select("*")
+          .eq("tenant_id", tenantId)
+          .gte("date", from)
+          .lte("date", to);
+        entries = data || [];
+      }
 
       // Build spend map: "pipeline_id:date" -> { gasto_ads, team }
       const spendMap = new Map<string, { gasto_ads: number; team: string }>();
-      for (const e of entries || []) {
+      for (const e of entries) {
         spendMap.set(`${e.pipeline_id}:${e.date}`, {
           gasto_ads: Number(e.gasto_ads),
           team: e.team,
