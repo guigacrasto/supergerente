@@ -67,9 +67,11 @@ export class KommoService {
     /** Called once on startup: loads the latest token from Supabase if available */
     public async loadStoredToken(): Promise<void> {
         try {
-            const stored = this.tenantId
-                ? await loadTokensFromTenant(this.tenantId)
-                : await loadTokens(this.team);
+            // Try per-team tokens first (supports multi-team tenants), then tenant-level fallback
+            let stored = await loadTokens(this.team);
+            if (!stored?.accessToken && this.tenantId) {
+                stored = await loadTokensFromTenant(this.tenantId);
+            }
             if (stored?.accessToken && stored.accessToken !== this.currentAccessToken) {
                 console.log(`[KommoService:${this.team}] Using stored access token from Supabase`);
                 this.setAccessToken(stored.accessToken);
@@ -86,9 +88,11 @@ export class KommoService {
 
     /** Exchange a refresh_token for a new access_token + refresh_token (with retry + backoff) */
     public async refreshAccessToken(): Promise<string> {
-        const stored = this.tenantId
-            ? await loadTokensFromTenant(this.tenantId)
-            : await loadTokens(this.team);
+        // Try per-team tokens first, then tenant-level fallback
+        let stored = await loadTokens(this.team);
+        if (!stored?.refreshToken && this.tenantId) {
+            stored = await loadTokensFromTenant(this.tenantId);
+        }
         if (!stored?.refreshToken) {
             throw new Error(`[${this.team}] No refresh token available. Please re-authorize via the admin panel.`);
         }
@@ -112,10 +116,10 @@ export class KommoService {
 
                 const { access_token, refresh_token, expires_in, server_time } = response.data;
                 const expiresAt = (server_time || Math.floor(Date.now() / 1000)) + (expires_in || 86400);
+                // Always save per-team; also save to tenant if available
+                await saveTokens(this.team, { accessToken: access_token, refreshToken: refresh_token, expiresAt });
                 if (this.tenantId) {
-                    await saveTokensToTenant(this.tenantId, { accessToken: access_token, refreshToken: refresh_token, expiresAt });
-                } else {
-                    await saveTokens(this.team, { accessToken: access_token, refreshToken: refresh_token, expiresAt });
+                    await saveTokensToTenant(this.tenantId, { accessToken: access_token, refreshToken: refresh_token, expiresAt }).catch(() => {});
                 }
                 this.setAccessToken(access_token);
                 console.log(`[KommoService:${this.team}] Token refreshed and saved. Expires at ${new Date(expiresAt * 1000).toISOString()}`);
