@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { Sidebar } from './Sidebar';
@@ -6,7 +7,15 @@ import { TopBar } from './TopBar';
 export function AppShell() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const requires2FASetup = useAuthStore((s) => s.requires2FASetup);
+  const refreshUser = useAuthStore((s) => s.refreshUser);
   const location = useLocation();
+
+  // Refresh user data (tenant, teams, permissions) on mount
+  useEffect(() => {
+    if (isAuthenticated) {
+      refreshUser();
+    }
+  }, [isAuthenticated, refreshUser]);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;

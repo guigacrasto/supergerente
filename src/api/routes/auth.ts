@@ -223,7 +223,7 @@ export function authRouter(): Router {
   router.get("/profile", requireAuth, async (req: AuthRequest, res) => {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("id, name, email, role, teams, phone, created_at, totp_enabled")
+      .select("id, name, email, role, teams, phone, created_at, totp_enabled, tenant_id, can_view_ranking")
       .eq("id", req.userId)
       .single();
 
@@ -232,7 +232,17 @@ export function authRouter(): Router {
       return;
     }
 
-    res.json(profile);
+    // Include tenant data for frontend refresh
+    let tenant = null;
+    if (profile.tenant_id) {
+      const { getTenantById } = await import("../services/tenant.js");
+      const t = await getTenantById(profile.tenant_id);
+      if (t) {
+        tenant = { id: t.id, name: t.name, slug: t.slug, primaryColor: t.primaryColor, logoUrl: t.logoUrl, hiddenPages: t.settings?.hiddenPages || [] };
+      }
+    }
+
+    res.json({ ...profile, tenantId: profile.tenant_id, tenant });
   });
 
   // PATCH /api/auth/profile (protegido)

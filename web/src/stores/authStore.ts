@@ -11,6 +11,7 @@ interface AuthState {
   requires2FASetup: boolean;
   login: (token: string, user: User) => void;
   logout: () => void;
+  refreshUser: () => Promise<void>;
   setActiveTenantId: (tenantId: string | null) => void;
   setPendingChallenge: (challengeToken: string) => void;
   clearPendingChallenge: () => void;
@@ -44,6 +45,33 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.setItem(STORAGE_KEYS.token, token);
     localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(user));
     set({ token, user, isAuthenticated: true, pendingChallenge: null, requires2FASetup: false });
+  },
+
+  refreshUser: async () => {
+    const token = localStorage.getItem(STORAGE_KEYS.token);
+    if (!token) return;
+    try {
+      const res = await fetch('/api/auth/profile', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const profile = await res.json();
+      const currentUser = useAuthStore.getState().user;
+      if (!currentUser) return;
+      const updated: User = {
+        ...currentUser,
+        name: profile.name,
+        role: profile.role,
+        teams: profile.teams || [],
+        tenantId: profile.tenantId || null,
+        tenant: profile.tenant || null,
+        can_view_ranking: profile.can_view_ranking ?? false,
+      };
+      localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(updated));
+      set({ user: updated });
+    } catch {
+      // silent — don't disrupt UX
+    }
   },
 
   logout: () => {
