@@ -50,7 +50,7 @@ export function insightsRouter() {
       try {
         const cfg = teamConfigs[team];
         const kommoService = new KommoService(cfg, team);
-        const metrics = await getCrmMetrics(team, kommoService, undefined, cfg.excludePipelineNames);
+        const metrics = await getCrmMetrics(team, kommoService, authReq.tenantId, cfg.excludePipelineNames);
 
         // Collect funis (pipeline names)
         for (const name of Object.values(metrics.pipelineNames)) {

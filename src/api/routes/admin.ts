@@ -42,7 +42,7 @@ export function adminRouter() {
         Object.entries(teamConfigs).map(async ([team, cfg]) => {
           try {
             const service = new KommoService(cfg, team);
-            const metrics = await getCrmMetrics(team, service, undefined, cfg.excludePipelineNames);
+            const metrics = await getCrmMetrics(team, service, req.tenantId, cfg.excludePipelineNames);
             for (const [idStr, name] of Object.entries(metrics.pipelineNames)) {
               allPipelines.push({ id: Number(idStr), name, team });
             }
@@ -159,7 +159,7 @@ export function adminRouter() {
         Object.entries(teamConfigs).map(async ([team, cfg]) => {
           try {
             const service = new KommoService(cfg, team);
-            const metrics = await getCrmMetrics(team, service, undefined, cfg.excludePipelineNames);
+            const metrics = await getCrmMetrics(team, service, req.tenantId, cfg.excludePipelineNames);
             const gruposSet = new Set(Object.values(metrics.userGroups));
             gruposByTeam[team] = Array.from(gruposSet).sort();
           } catch (err: any) {
