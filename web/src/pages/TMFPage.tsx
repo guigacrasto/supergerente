@@ -191,10 +191,10 @@ export function TMFPage() {
           <div className="flex flex-col gap-2 text-body-sm w-full">
             <p className="text-foreground font-medium">Regras de Classificação — Vendas do Dia</p>
             <p className="text-muted">
-              <span className="text-success font-medium">BT dia</span> — Vendas fechadas no mesmo dia útil (com corte às 17h BRT).
+              <span className="text-success font-medium">Venda dia</span> — Vendas fechadas no mesmo dia útil (com corte às 17h BRT).
             </p>
             <p className="text-muted">
-              <span className="text-warning font-medium">BT rmkt</span> — Vendas que levaram mais de 1 dia útil para fechar (remarketing).
+              <span className="text-warning font-medium">Venda rmkt</span> — Vendas que levaram mais de 1 dia útil para fechar (remarketing).
             </p>
             <div className="overflow-x-auto mt-1">
               <table className="text-body-sm text-muted border-collapse">
@@ -227,28 +227,28 @@ export function TMFPage() {
           loading={loading}
         />
         <KPICard
-          label="BT dia"
+          label="Venda dia"
           value={data?.totalFechamentoDia}
           icon={Zap}
           accent="success"
           loading={loading}
         />
         <KPICard
-          label="% BT dia"
+          label="% Venda dia"
           value={data?.pctFechamentoDia}
           icon={Percent}
           accent="success"
           loading={loading}
         />
         <KPICard
-          label="BT rmkt"
+          label="Venda rmkt"
           value={data?.totalRemarketing}
           icon={RefreshCw}
           accent="warning"
           loading={loading}
         />
         <KPICard
-          label="% BT rmkt"
+          label="% Venda rmkt"
           value={data?.pctRemarketing}
           icon={Percent}
           accent="info"
@@ -256,7 +256,7 @@ export function TMFPage() {
         />
       </div>
 
-      {/* Summary Table — BT dia / BT rmkt por DIA, SEMANA, MÊS */}
+      {/* Summary Table — Venda dia / Venda rmkt por DIA, SEMANA, MÊS */}
       <div className="overflow-x-auto rounded-card border border-glass-border bg-surface">
         <table className="w-full">
           <thead>
@@ -270,7 +270,7 @@ export function TMFPage() {
           <tbody>
             <tr className="hover:bg-surface-secondary/50 transition-colors">
               <td className="border-t border-glass-border px-4 py-3 text-body-md text-success font-medium">
-                BT dia
+                Venda dia
               </td>
               {summaryLoading ? (
                 <>
@@ -294,7 +294,7 @@ export function TMFPage() {
             </tr>
             <tr className="hover:bg-surface-secondary/50 transition-colors">
               <td className="border-t border-glass-border px-4 py-3 text-body-md text-warning font-medium">
-                BT rmkt
+                Venda rmkt
               </td>
               {summaryLoading ? (
                 <>
@@ -326,8 +326,8 @@ export function TMFPage() {
           <thead>
             <tr className="bg-surface-secondary text-muted text-body-sm">
               <th className="px-4 py-3 text-left font-medium">Nome</th>
-              <th className="px-4 py-3 text-right font-medium">BT dia</th>
-              <th className="px-4 py-3 text-right font-medium">BT rmkt</th>
+              <th className="px-4 py-3 text-right font-medium">Venda dia</th>
+              <th className="px-4 py-3 text-right font-medium">Venda rmkt</th>
               <th className="px-4 py-3 text-right font-medium">TMF</th>
             </tr>
           </thead>
