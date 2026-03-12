@@ -152,7 +152,7 @@ export function chatRouter() {
           .filter((t) => !!teamConfigs[t] && teamConfigs[t].subdomain)
           .map(async (t) => {
             const cfg = teamConfigs[t];
-            const kommoService = new KommoService(cfg, t);
+            const kommoService = new KommoService(cfg, t, authReq.tenantId);
             const crmMetrics = await getCrmMetrics(t, kommoService, authReq.tenantId, cfg.excludePipelineNames);
             const activity = await getActivityMetrics(t, kommoService, crmMetrics);
             return { team: t, label: cfg.label, crmMetrics, activity };

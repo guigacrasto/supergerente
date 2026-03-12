@@ -22,7 +22,7 @@ export function pipelinesRouter() {
           .map(async (team) => {
             try {
               const cfg = teamConfigs[team];
-              const kommoService = new KommoService(cfg, team);
+              const kommoService = new KommoService(cfg, team, authReq.tenantId);
               const excludeNames = cfg.excludePipelineNames;
               const pipelines = await kommoService.getPipelines();
               return pipelines

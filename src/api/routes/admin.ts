@@ -41,7 +41,7 @@ export function adminRouter() {
       await Promise.all(
         Object.entries(teamConfigs).map(async ([team, cfg]) => {
           try {
-            const service = new KommoService(cfg, team);
+            const service = new KommoService(cfg, team, req.tenantId);
             const metrics = await getCrmMetrics(team, service, req.tenantId, cfg.excludePipelineNames);
             for (const [idStr, name] of Object.entries(metrics.pipelineNames)) {
               allPipelines.push({ id: Number(idStr), name, team });
@@ -158,7 +158,7 @@ export function adminRouter() {
       await Promise.all(
         Object.entries(teamConfigs).map(async ([team, cfg]) => {
           try {
-            const service = new KommoService(cfg, team);
+            const service = new KommoService(cfg, team, req.tenantId);
             const metrics = await getCrmMetrics(team, service, req.tenantId, cfg.excludePipelineNames);
             const gruposSet = new Set(Object.values(metrics.userGroups));
             gruposByTeam[team] = Array.from(gruposSet).sort();
@@ -603,7 +603,7 @@ export function adminRouter() {
         return;
       }
 
-      const service = new KommoService(cfg, team);
+      const service = new KommoService(cfg, team, req.tenantId);
       await service.exchangeAuthCode(code);
 
       console.log(`[Admin] Token Kommo do time ${team} re-autorizado com sucesso`);

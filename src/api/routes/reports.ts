@@ -97,7 +97,7 @@ export function reportsRouter() {
     const results = await Promise.all(
       userTeams.filter((t) => !!teamConfigs[t] && teamConfigs[t].subdomain).map(async (team) => {
         const cfg = teamConfigs[team];
-        const kommoService = new KommoService(cfg, team);
+        const kommoService = new KommoService(cfg, team, req.tenantId);
         const raw = await getCrmMetrics(team, kommoService, req.tenantId, cfg.excludePipelineNames);
         const filtered = filterCrmMetrics(raw, {
           tags,
@@ -282,7 +282,7 @@ export function reportsRouter() {
         userTeams.filter((t) => !!teamConfigs[t] && teamConfigs[t].subdomain).map(async (team) => {
           try {
             const cfg = teamConfigs[team];
-            const kommoService = new KommoService(cfg, team);
+            const kommoService = new KommoService(cfg, team, req.tenantId);
             const raw = await getCrmMetrics(team, kommoService, req.tenantId, cfg.excludePipelineNames);
             const filtered = filterCrmMetrics(raw, {
               tags, tagMode,
@@ -1277,7 +1277,7 @@ export function reportsRouter() {
       const teamsData = await Promise.all(
         userTeams.filter((t) => !!teamConfigs[t] && teamConfigs[t].subdomain).map(async (team) => {
           const cfg = teamConfigs[team];
-          const kommoService = new KommoService(cfg, team);
+          const kommoService = new KommoService(cfg, team, req.tenantId);
           const raw = await getCrmMetrics(team, kommoService, req.tenantId, cfg.excludePipelineNames);
           const metrics = filterCrmMetrics(raw, {
             tags, tagMode,
@@ -1388,7 +1388,7 @@ export function reportsRouter() {
         const teamsData = await Promise.all(
           userTeams.filter((t) => !!teamConfigs[t] && teamConfigs[t].subdomain).map(async (team) => {
             const cfg = teamConfigs[team];
-            const kommoService = new KommoService(cfg, team);
+            const kommoService = new KommoService(cfg, team, req.tenantId);
             const raw = await getCrmMetrics(team, kommoService, req.tenantId, cfg.excludePipelineNames);
             const metrics = filterCrmMetrics(raw, {
               tags: [],
@@ -1501,7 +1501,7 @@ export function reportsRouter() {
         return;
       }
 
-      const kommoService = new KommoService(cfg, teamFilter);
+      const kommoService = new KommoService(cfg, teamFilter, req.tenantId);
       const metrics = await getCrmMetrics(teamFilter, kommoService, req.tenantId, cfg.excludePipelineNames);
       let predictions = calculatePredictions(metrics, teamFilter);
 

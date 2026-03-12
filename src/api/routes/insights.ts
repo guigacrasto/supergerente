@@ -26,7 +26,7 @@ export function insightsRouter() {
     const result: Record<string, KommoService> = {};
     for (const [key, cfg] of Object.entries(teamConfigs)) {
       if (cfg.subdomain) {
-        result[key] = new KommoService(cfg, key);
+        result[key] = new KommoService(cfg, key, req.tenantId);
       }
     }
     return result;
@@ -49,7 +49,7 @@ export function insightsRouter() {
     for (const team of targetTeams) {
       try {
         const cfg = teamConfigs[team];
-        const kommoService = new KommoService(cfg, team);
+        const kommoService = new KommoService(cfg, team, authReq.tenantId);
         const metrics = await getCrmMetrics(team, kommoService, authReq.tenantId, cfg.excludePipelineNames);
 
         // Collect funis (pipeline names)

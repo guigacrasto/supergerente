@@ -41,7 +41,7 @@ export function leadsRouter() {
       for (const team of userTeams) {
         const cfg = teamConfigs[team];
         if (!cfg || !cfg.subdomain) continue;
-        const kommoService = new KommoService(cfg, team);
+        const kommoService = new KommoService(cfg, team, authReq.tenantId);
         const pipelines = await kommoService.getPipelines();
         const found = pipelines.find((p: any) => p.id === parseInt(pipelineId as string));
         if (found) {
