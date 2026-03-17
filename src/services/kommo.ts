@@ -361,6 +361,18 @@ export class KommoService {
         }
     }
 
+    public async updateLeadResponsible(leadId: number, kommoUserId: number): Promise<void> {
+        await this.client.patch("/leads", [{ id: leadId, responsible_user_id: kommoUserId }]);
+    }
+
+    public async updateContactResponsible(contactId: number, kommoUserId: number): Promise<void> {
+        await this.client.patch("/contacts", [{ id: contactId, responsible_user_id: kommoUserId }]);
+    }
+
+    public async updateCompanyResponsible(companyId: number, kommoUserId: number): Promise<void> {
+        await this.client.patch("/companies", [{ id: companyId, responsible_user_id: kommoUserId }]);
+    }
+
     public async getLossReasons(): Promise<Array<{ id: number; name: string }>> {
         try {
             const response = await this.client.get("/leads/loss_reasons");

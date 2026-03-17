@@ -2,6 +2,7 @@ import { Router } from "express";
 import { supabase } from "../supabase.js";
 import { sendPushToUser } from "../services/push.js";
 import { sendEmail } from "../services/email.js";
+import { WhatsAppRouter } from "../../services/whatsapp-router.js";
 
 export function webhooksRouter() {
   const router = Router();
@@ -95,16 +96,36 @@ async function handleLeadCreated(lead: any): Promise<void> {
     .eq("role", "admin")
     .eq("status", "approved");
 
-  if (!admins) return;
+  if (admins) {
+    for (const admin of admins) {
+      await createNotification(
+        admin.id,
+        "lead_created",
+        `Novo Lead: ${leadName}`,
+        `Um novo lead "${leadName}" foi criado.`,
+        { lead_id: lead.id, pipeline_id: pipelineId }
+      );
+    }
+  }
 
-  for (const admin of admins) {
-    await createNotification(
-      admin.id,
-      "lead_created",
-      `Novo Lead: ${leadName}`,
-      `Um novo lead "${leadName}" foi criado.`,
-      { lead_id: lead.id, pipeline_id: pipelineId }
-    );
+  // Schedule WhatsApp routing for all tenants that have numbers registered
+  try {
+    const { data: tenantTeams } = await supabase
+      .from("whatsapp_numbers")
+      .select("tenant_id, team")
+      .eq("active", true);
+
+    if (tenantTeams && tenantTeams.length > 0) {
+      const seen = new Set<string>();
+      for (const row of tenantTeams) {
+        const key = `${row.tenant_id}:${row.team}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        await WhatsAppRouter.schedule(lead.id, pipelineId, row.tenant_id, row.team);
+      }
+    }
+  } catch (err: any) {
+    console.error("[Webhook] WhatsApp schedule error:", err.message);
   }
 }
 

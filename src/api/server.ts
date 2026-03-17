@@ -14,6 +14,8 @@ import { webhooksRouter } from "./routes/webhooks.js";
 import { notificationsRouter } from "./routes/notifications.js";
 import { superRouter } from "./routes/super.js";
 import { metricasRouter } from "./routes/metricas.js";
+import { whatsappRouter } from "./routes/whatsapp.js";
+import { WhatsAppRouter } from "../services/whatsapp-router.js";
 import { requireAuth } from "./middleware/requireAuth.js";
 import { isCacheReady, getTokenStatuses } from "./readiness.js";
 import { auditLog } from "./middleware/auditLog.js";
@@ -143,6 +145,12 @@ export function createServer() {
   app.use("/api/notifications", notificationsRouter());
   app.use("/api/metricas", requireAuth as any, metricasRouter());
   app.use("/api/super", requireAuth as any, superRouter);
+  app.use("/api/whatsapp", requireAuth as any, whatsappRouter());
+
+  // Catch-up: process any pending WhatsApp routing items from before restart
+  WhatsAppRouter.processPendingQueue().catch((err) =>
+    console.error("[Startup] WhatsApp catch-up error:", err.message)
+  );
 
   const webPath = join(__dirname, "../../web/dist");
   app.use(express.static(webPath));
