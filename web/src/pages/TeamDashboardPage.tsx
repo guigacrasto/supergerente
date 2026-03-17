@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useLabel } from '@/hooks/useLabels';
 import {
   TrendingUp,
   Users,
@@ -92,6 +93,7 @@ const REFRESH_INTERVAL_MS = 2 * 60 * 1000;
 export function TeamDashboardPage() {
   const { team } = useParams<{ team: string }>();
   const navigate = useNavigate();
+  const vendasLabel = useLabel('vendas');
   const [searchParams] = useSearchParams();
   const initialPipeline = searchParams.get('pipeline') ?? '';
   const [summary, setSummary] = useState<SummaryItem[]>([]);
@@ -520,11 +522,11 @@ export function TeamDashboardPage() {
         </Card>
       )}
 
-      {/* Top Vendas */}
+      {/* Top Sales */}
       {!loading && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <SalesRanking title="Top Vendas — Hoje" data={rankingHoje} />
-          <SalesRanking title="Top Vendas — Semana" data={rankingSemana} />
+          <SalesRanking title={`Top ${vendasLabel} — Hoje`} data={rankingHoje} />
+          <SalesRanking title={`Top ${vendasLabel} — Semana`} data={rankingSemana} />
         </div>
       )}
 

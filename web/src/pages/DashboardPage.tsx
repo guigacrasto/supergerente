@@ -6,6 +6,7 @@ import { stripFunilPrefix, buildTagParams } from '@/lib/utils';
 import { TEAM_LABELS } from '@/lib/constants';
 import { useFilterStore } from '@/stores/filterStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useLabel } from '@/hooks/useLabels';
 import { useSSE } from '@/hooks/useSSE';
 import { Card, CardHeader, CardTitle, Skeleton, LiveTimestamp, ExportPdfButton } from '@/components/ui';
 import { KPICard } from '@/components/features/dashboard/KPICard';
@@ -89,6 +90,7 @@ const REFRESH_INTERVAL_MS = 2 * 60 * 1000;
 
 export function DashboardPage() {
   const navigate = useNavigate();
+  const vendasLabel = useLabel('vendas');
   const setAgentFilter = useFilterStore((s) => s.setAgentFilter);
   const selectedTags = useFilterStore((s) => s.selectedTags);
   const tagMode = useFilterStore((s) => s.tagMode);
@@ -437,7 +439,7 @@ export function DashboardPage() {
         </div>
       ) : null}
 
-      {/* Top Vendas */}
+      {/* Top Sales */}
       {loading ? (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {[1, 2].map((i) => (
@@ -451,8 +453,8 @@ export function DashboardPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <SalesRanking title="Top Vendas — Hoje" data={rankingHoje} />
-          <SalesRanking title="Top Vendas — Semana" data={rankingSemana} />
+          <SalesRanking title={`Top ${vendasLabel} — Hoje`} data={rankingHoje} />
+          <SalesRanking title={`Top ${vendasLabel} — Semana`} data={rankingSemana} />
         </div>
       )}
 

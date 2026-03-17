@@ -121,7 +121,7 @@ export function authRouter(): Router {
         role: profile.role,
         teams: profile.teams || [],
         tenantId: profile.tenant_id || null,
-        tenant: tenant ? { id: tenant.id, name: tenant.name, slug: tenant.slug, primaryColor: tenant.primaryColor, logoUrl: tenant.logoUrl, hiddenPages: tenant.settings?.hiddenPages || [] } : null,
+        tenant: tenant ? { id: tenant.id, name: tenant.name, slug: tenant.slug, primaryColor: tenant.primaryColor, logoUrl: tenant.logoUrl, hiddenPages: tenant.settings?.hiddenPages || [], customLabels: tenant.settings?.customLabels || {} } : null,
         totpEnabled: profile.totp_enabled || false,
       },
       ...(requires2FASetup ? { requires2FASetup: true } : {}),
@@ -238,7 +238,7 @@ export function authRouter(): Router {
       const { getTenantById } = await import("../services/tenant.js");
       const t = await getTenantById(profile.tenant_id);
       if (t) {
-        tenant = { id: t.id, name: t.name, slug: t.slug, primaryColor: t.primaryColor, logoUrl: t.logoUrl, hiddenPages: t.settings?.hiddenPages || [] };
+        tenant = { id: t.id, name: t.name, slug: t.slug, primaryColor: t.primaryColor, logoUrl: t.logoUrl, hiddenPages: t.settings?.hiddenPages || [], customLabels: t.settings?.customLabels || {} };
       }
     }
 

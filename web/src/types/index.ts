@@ -7,6 +7,7 @@ export interface Tenant {
   kommoBaseUrl: string | null;
   isActive: boolean;
   hiddenPages?: string[];
+  customLabels?: Record<string, string>;
 }
 
 export interface User {

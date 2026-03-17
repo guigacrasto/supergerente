@@ -13,6 +13,7 @@ import {
   Pencil,
 } from 'lucide-react';
 import { api } from '@/lib/api';
+import { useLabel } from '@/hooks/useLabels';
 import { Skeleton, EmptyState } from '@/components/ui';
 import { KPICard } from '@/components/features/dashboard/KPICard';
 import { cn, formatCurrency } from '@/lib/utils';
@@ -165,6 +166,7 @@ function EditableGasto({
 }
 
 export function MetricasPage() {
+  const vendasLabel = useLabel('vendas');
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<SummaryResponse | null>(null);
   const defaults = getDefaultDateRange();
@@ -315,7 +317,7 @@ export function MetricasPage() {
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
           <KPICard label="Gasto Total" value={formatCurrency(totals.gasto)} icon={DollarSign} accent="danger" />
           <KPICard label="Leads" value={totals.leads.toLocaleString('pt-BR')} icon={Users} accent="primary" />
-          <KPICard label="Vendas" value={totals.vendas.toLocaleString('pt-BR')} icon={ShoppingCart} accent="success" />
+          <KPICard label={vendasLabel} value={totals.vendas.toLocaleString('pt-BR')} icon={ShoppingCart} accent="success" />
           <KPICard label="Receita" value={formatCurrency(totals.receita)} icon={Banknote} accent="success" />
           <KPICard label="CPL" value={formatCurrency(totals.cpl)} icon={Target} accent="warning" />
           <KPICard label="CAC" value={formatCurrency(totals.cac)} icon={UserCheck} accent="warning" />
@@ -346,7 +348,7 @@ export function MetricasPage() {
                 <th className="px-4 py-3 font-medium whitespace-nowrap">Time</th>
                 <th className="px-4 py-3 font-medium whitespace-nowrap">Gasto R$</th>
                 <th className="px-4 py-3 font-medium text-right whitespace-nowrap">Leads</th>
-                <th className="px-4 py-3 font-medium text-right whitespace-nowrap">Vendas</th>
+                <th className="px-4 py-3 font-medium text-right whitespace-nowrap">{vendasLabel}</th>
                 <th className="px-4 py-3 font-medium text-right whitespace-nowrap">Receita</th>
                 <th className="px-4 py-3 font-medium text-right whitespace-nowrap">CPL</th>
                 <th className="px-4 py-3 font-medium text-right whitespace-nowrap">CAC</th>

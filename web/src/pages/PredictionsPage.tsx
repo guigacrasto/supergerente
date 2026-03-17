@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { TrendingUp, Filter, RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api';
+import { useLabel } from '@/hooks/useLabels';
 import { Card, Badge, Skeleton, EmptyState, Button } from '@/components/ui';
 import { cn } from '@/lib/utils';
 
@@ -112,6 +113,7 @@ function PredictionCard({ prediction, subdomain }: { prediction: LeadPrediction;
 }
 
 export function PredictionsPage() {
+  const vendasLabel = useLabel('vendas');
   const [predictions, setPredictions] = useState<LeadPrediction[]>([]);
   const [loading, setLoading] = useState(true);
   const [team] = useState('azul');
@@ -150,7 +152,7 @@ export function PredictionsPage() {
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="font-heading text-heading-md">Previsão de Vendas</h1>
+            <h1 className="font-heading text-heading-md">Previsão de {vendasLabel}</h1>
             <span className="inline-flex items-center rounded-badge bg-warning/15 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-warning">
               Beta
             </span>

@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { CalendarDays, Clock, Zap, RefreshCw, Percent, Info } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
+import { useLabel } from '@/hooks/useLabels';
 import { useFilterStore } from '@/stores/filterStore';
 import { Skeleton, LiveTimestamp, ExportPdfButton } from '@/components/ui';
 import { KPICard } from '@/components/features/dashboard/KPICard';
@@ -70,6 +71,7 @@ function formatTMF(horas: number): string {
 export function TMFPage() {
   const exportRef = useRef<HTMLDivElement>(null);
   const user = useAuthStore((s) => s.user);
+  const vendasLabel = useLabel('vendas');
   const selectedFunil = useFilterStore((s) => s.selectedFunil);
   const [data, setData] = useState<TMFData | null>(null);
   const [selectedAgente, setSelectedAgente] = useState('');
@@ -189,12 +191,12 @@ export function TMFPage() {
         <div className="flex items-start gap-3">
           <Info className="h-5 w-5 text-accent-blue mt-0.5 flex-shrink-0" />
           <div className="flex flex-col gap-2 text-body-sm w-full">
-            <p className="text-foreground font-medium">Regras de Classificação — Vendas do Dia</p>
+            <p className="text-foreground font-medium">Regras de Classificação — {vendasLabel} do Dia</p>
             <p className="text-muted">
-              <span className="text-success font-medium">Venda dia</span> — Vendas fechadas no mesmo dia útil (com corte às 17h BRT).
+              <span className="text-success font-medium">{vendasLabel} dia</span> — {vendasLabel} fechadas no mesmo dia útil (com corte às 17h BRT).
             </p>
             <p className="text-muted">
-              <span className="text-warning font-medium">Venda rmkt</span> — Vendas que levaram mais de 1 dia útil para fechar (remarketing).
+              <span className="text-warning font-medium">{vendasLabel} rmkt</span> — {vendasLabel} que levaram mais de 1 dia útil para fechar (remarketing).
             </p>
             <div className="overflow-x-auto mt-1">
               <table className="text-body-sm text-muted border-collapse">

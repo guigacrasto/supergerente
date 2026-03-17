@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { CalendarDays, Users, TrendingUp, Target, Percent } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
+import { useLabel } from '@/hooks/useLabels';
 import { useFilterStore } from '@/stores/filterStore';
 import { LiveTimestamp, ExportPdfButton } from '@/components/ui';
 import { KPICard } from '@/components/features/dashboard/KPICard';
@@ -33,6 +34,7 @@ interface DailyResponse {
 export function DiarioPage() {
   const exportRef = useRef<HTMLDivElement>(null);
   const user = useAuthStore((s) => s.user);
+  const vendasLabel = useLabel('vendas');
   const selectedFunil = useFilterStore((s) => s.selectedFunil);
   const [data, setData] = useState<DailyMetrics[]>([]);
   const [funis, setFunis] = useState<string[]>([]);
@@ -130,7 +132,7 @@ export function DiarioPage() {
           loading={loading}
         />
         <KPICard
-          label="Vendas Dia"
+          label={`${vendasLabel} Dia`}
           value={totals.vendasDia}
           icon={TrendingUp}
           accent="success"
@@ -151,7 +153,7 @@ export function DiarioPage() {
           loading={loading}
         />
         <KPICard
-          label="Vendas Mês"
+          label={`${vendasLabel} Mês`}
           value={totals.vendasMes}
           icon={Target}
           accent="success"
