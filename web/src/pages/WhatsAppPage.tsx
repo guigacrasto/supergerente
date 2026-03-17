@@ -78,12 +78,12 @@ export function WhatsAppPage() {
   const fetchAllKommoUsers = useCallback(async () => {
     try {
       setLoadingUsers(true);
-      const [azulRes, amarelaRes] = await Promise.all([
+      const [azulRes, amarelaRes] = await Promise.allSettled([
         api.get<{ users: KommoUser[] }>('/whatsapp/kommo-users?team=azul'),
         api.get<{ users: KommoUser[] }>('/whatsapp/kommo-users?team=amarela'),
       ]);
-      setKommoUsersAzul(azulRes.data.users);
-      setKommoUsersAmarela(amarelaRes.data.users);
+      if (azulRes.status === 'fulfilled') setKommoUsersAzul(azulRes.value.data.users);
+      if (amarelaRes.status === 'fulfilled') setKommoUsersAmarela(amarelaRes.value.data.users);
     } catch (err) {
       console.error('[WhatsAppPage] Erro ao buscar agentes:', err);
     } finally {
