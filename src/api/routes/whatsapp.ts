@@ -69,6 +69,37 @@ export function whatsappRouter() {
     }
   });
 
+  // PATCH /api/whatsapp/numbers/:id — Update a number (agent, source, active)
+  router.patch("/numbers/:id", async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { kommo_source_name, kommo_user_id, active } = req.body;
+
+      const updates: Record<string, any> = { updated_at: new Date().toISOString() };
+      if (kommo_source_name !== undefined) updates.kommo_source_name = kommo_source_name || null;
+      if (kommo_user_id !== undefined) updates.kommo_user_id = kommo_user_id || null;
+      if (active !== undefined) updates.active = active;
+
+      let query = supabase
+        .from("whatsapp_numbers")
+        .update(updates)
+        .eq("id", id)
+        .eq("tenant_id", req.tenantId);
+
+      if (req.userRole !== "admin" && req.userRole !== "superadmin") {
+        query = query.eq("user_id", req.userId);
+      }
+
+      const { data, error } = await query.select().single();
+      if (error) throw error;
+
+      res.json({ number: data });
+    } catch (err: any) {
+      console.error("[WhatsApp] PATCH /numbers/:id error:", err.message);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   // DELETE /api/whatsapp/numbers/:id — Remove a number
   router.delete("/numbers/:id", async (req: any, res) => {
     try {

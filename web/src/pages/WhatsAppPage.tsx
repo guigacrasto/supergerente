@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { MessageCircle, Plus, Trash2, ArrowRight, RefreshCw } from 'lucide-react';
+import { MessageCircle, Plus, Trash2, ArrowRight, RefreshCw, Power, Pencil, Check, X } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Card, Badge, Skeleton, EmptyState, Button } from '@/components/ui';
 import { cn } from '@/lib/utils';
@@ -53,7 +53,8 @@ function formatDateBR(dateStr: string): string {
 export function WhatsAppPage() {
   const [numbers, setNumbers] = useState<WhatsAppNumber[]>([]);
   const [logs, setLogs] = useState<RoutingLog[]>([]);
-  const [kommoUsers, setKommoUsers] = useState<KommoUser[]>([]);
+  const [kommoUsersAzul, setKommoUsersAzul] = useState<KommoUser[]>([]);
+  const [kommoUsersAmarela, setKommoUsersAmarela] = useState<KommoUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loadingUsers, setLoadingUsers] = useState(false);
@@ -64,11 +65,25 @@ export function WhatsAppPage() {
   const [team, setTeam] = useState('azul');
   const [filterAgent, setFilterAgent] = useState('todos');
 
-  const fetchKommoUsers = useCallback(async (teamKey: string) => {
+  // Editing state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editAgent, setEditAgent] = useState('');
+  const [editSource, setEditSource] = useState('');
+
+  const getKommoUsers = (teamKey: string) =>
+    teamKey === 'amarela' ? kommoUsersAmarela : kommoUsersAzul;
+
+  const allKommoUsers = [...kommoUsersAzul, ...kommoUsersAmarela];
+
+  const fetchAllKommoUsers = useCallback(async () => {
     try {
       setLoadingUsers(true);
-      const res = await api.get<{ users: KommoUser[] }>(`/whatsapp/kommo-users?team=${teamKey}`);
-      setKommoUsers(res.data.users);
+      const [azulRes, amarelaRes] = await Promise.all([
+        api.get<{ users: KommoUser[] }>('/whatsapp/kommo-users?team=azul'),
+        api.get<{ users: KommoUser[] }>('/whatsapp/kommo-users?team=amarela'),
+      ]);
+      setKommoUsersAzul(azulRes.data.users);
+      setKommoUsersAmarela(amarelaRes.data.users);
     } catch (err) {
       console.error('[WhatsAppPage] Erro ao buscar agentes:', err);
     } finally {
@@ -94,8 +109,8 @@ export function WhatsAppPage() {
 
   useEffect(() => {
     fetchData();
-    fetchKommoUsers(team);
-  }, [fetchData, fetchKommoUsers, team]);
+    fetchAllKommoUsers();
+  }, [fetchData, fetchAllKommoUsers]);
 
   const handleAdd = async () => {
     if (!phone.trim()) return;
@@ -127,14 +142,46 @@ export function WhatsAppPage() {
     }
   };
 
-  // Helper to resolve Kommo user name from ID
+  const handleToggleActive = async (n: WhatsAppNumber) => {
+    try {
+      await api.patch(`/whatsapp/numbers/${n.id}`, { active: !n.active });
+      fetchData();
+    } catch (err) {
+      console.error('[WhatsAppPage] Erro ao alterar status:', err);
+    }
+  };
+
+  const startEditing = (n: WhatsAppNumber) => {
+    setEditingId(n.id);
+    setEditAgent(n.kommo_user_id ? String(n.kommo_user_id) : '');
+    setEditSource(n.kommo_source_name || '');
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditAgent('');
+    setEditSource('');
+  };
+
+  const saveEditing = async (n: WhatsAppNumber) => {
+    try {
+      await api.patch(`/whatsapp/numbers/${n.id}`, {
+        kommo_user_id: editAgent ? Number(editAgent) : null,
+        kommo_source_name: editSource.trim() || null,
+      });
+      setEditingId(null);
+      fetchData();
+    } catch (err) {
+      console.error('[WhatsAppPage] Erro ao editar:', err);
+    }
+  };
+
   const getAgentName = (kommoId: number | null) => {
     if (!kommoId) return '\u2014';
-    const user = kommoUsers.find((u) => u.id === kommoId);
+    const user = allKommoUsers.find((u) => u.id === kommoId);
     return user ? user.name : `#${kommoId}`;
   };
 
-  // Filtered numbers by agent
   const filteredNumbers = filterAgent === 'todos'
     ? numbers
     : numbers.filter((n) => String(n.kommo_user_id) === filterAgent);
@@ -151,7 +198,7 @@ export function WhatsAppPage() {
             <h1 className="font-heading text-heading-md">WhatsApp Routing</h1>
           </div>
           <p className="mt-1 text-body-md text-muted">
-            Cadastre numeros WhatsApp pessoais para redirecionar leads automaticamente ao agente correto
+            Cadastre números WhatsApp pessoais para redirecionar leads automaticamente ao agente correto
           </p>
         </div>
         <Button onClick={fetchData} variant="ghost" size="sm" loading={loading}>
@@ -162,7 +209,7 @@ export function WhatsAppPage() {
 
       {/* Add Number Card */}
       <Card className="!p-5">
-        <h2 className="font-heading text-heading-sm mb-4">Cadastrar Numero</h2>
+        <h2 className="font-heading text-heading-sm mb-4">Cadastrar Número</h2>
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex flex-col gap-1">
             <label className="text-body-sm text-muted">Telefone *</label>
@@ -178,7 +225,7 @@ export function WhatsAppPage() {
             <label className="text-body-sm text-muted">Nome da Fonte (Kommo)</label>
             <input
               type="text"
-              placeholder="WhatsApp - Joao"
+              placeholder="WhatsApp - João"
               value={sourceName}
               onChange={(e) => setSourceName(e.target.value)}
               className={cn(inputClass, 'w-56')}
@@ -191,7 +238,6 @@ export function WhatsAppPage() {
               onChange={(e) => {
                 setTeam(e.target.value);
                 setKommoUserId('');
-                fetchKommoUsers(e.target.value);
               }}
               className={cn(inputClass, 'w-32')}
             >
@@ -208,7 +254,7 @@ export function WhatsAppPage() {
               className={cn(inputClass, 'w-56')}
             >
               <option value="">{loadingUsers ? 'Carregando...' : 'Selecione o agente'}</option>
-              {kommoUsers.map((u) => (
+              {getKommoUsers(team).map((u) => (
                 <option key={u.id} value={u.id}>
                   {u.name} {u.email ? `(${u.email})` : ''}
                 </option>
@@ -251,8 +297,8 @@ export function WhatsAppPage() {
       ) : numbers.length === 0 ? (
         <EmptyState
           icon={MessageCircle}
-          title="Nenhum numero cadastrado"
-          description="Cadastre um numero WhatsApp acima para comecar o roteamento automatico."
+          title="Nenhum número cadastrado"
+          description="Cadastre um número WhatsApp acima para começar o roteamento automático."
         />
       ) : (
         <div className="rounded-card border border-glass-border bg-surface overflow-x-auto">
@@ -264,36 +310,111 @@ export function WhatsAppPage() {
                 <th className="px-4 py-3 font-medium">Agente</th>
                 <th className="px-4 py-3 font-medium">Time</th>
                 <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium text-right">Acoes</th>
+                <th className="px-4 py-3 font-medium text-right">Ações</th>
               </tr>
             </thead>
             <tbody>
-              {filteredNumbers.map((n) => (
-                <tr key={n.id} className="border-b border-glass-border/50 hover:bg-surface-secondary/40 transition-colors">
-                  <td className="px-4 py-3 text-foreground font-medium">{formatPhone(n.phone)}</td>
-                  <td className="px-4 py-3 text-foreground">{n.kommo_source_name || '\u2014'}</td>
-                  <td className="px-4 py-3 text-foreground">{getAgentName(n.kommo_user_id)}</td>
-                  <td className="px-4 py-3">
-                    <Badge className={n.team === 'azul' ? 'bg-accent-blue/15 text-accent-blue' : 'bg-warning/15 text-warning'}>
-                      {n.team}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge className={n.active ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}>
-                      {n.active ? 'Ativo' : 'Inativo'}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => handleDelete(n.id)}
-                      className="inline-flex items-center gap-1 rounded-button px-2 py-1 text-body-sm text-danger hover:bg-danger/10 transition-colors cursor-pointer"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                      Remover
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {filteredNumbers.map((n) => {
+                const isEditing = editingId === n.id;
+                const teamUsers = getKommoUsers(n.team);
+
+                return (
+                  <tr key={n.id} className="border-b border-glass-border/50 hover:bg-surface-secondary/40 transition-colors">
+                    <td className="px-4 py-3 text-foreground font-medium">{formatPhone(n.phone)}</td>
+                    <td className="px-4 py-3 text-foreground">
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          value={editSource}
+                          onChange={(e) => setEditSource(e.target.value)}
+                          placeholder="Nome da fonte"
+                          className={cn(inputClass, 'w-44')}
+                        />
+                      ) : (
+                        n.kommo_source_name || '\u2014'
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-foreground">
+                      {isEditing ? (
+                        <select
+                          value={editAgent}
+                          onChange={(e) => setEditAgent(e.target.value)}
+                          className={cn(inputClass, 'w-48')}
+                        >
+                          <option value="">Nenhum</option>
+                          {teamUsers.map((u) => (
+                            <option key={u.id} value={u.id}>
+                              {u.name}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        getAgentName(n.kommo_user_id)
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <Badge className={n.team === 'azul' ? 'bg-accent-blue/15 text-accent-blue' : 'bg-warning/15 text-warning'}>
+                        {n.team}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => handleToggleActive(n)}
+                        className="cursor-pointer"
+                        title={n.active ? 'Clique para inativar' : 'Clique para ativar'}
+                      >
+                        <Badge className={cn(
+                          'transition-colors',
+                          n.active ? 'bg-success/10 text-success hover:bg-success/20' : 'bg-danger/10 text-danger hover:bg-danger/20'
+                        )}>
+                          {n.active ? 'Ativo' : 'Inativo'}
+                        </Badge>
+                      </button>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="inline-flex items-center gap-1">
+                        {isEditing ? (
+                          <>
+                            <button
+                              onClick={() => saveEditing(n)}
+                              className="inline-flex items-center gap-1 rounded-button px-2 py-1 text-body-sm text-success hover:bg-success/10 transition-colors cursor-pointer"
+                              title="Salvar"
+                            >
+                              <Check className="h-3.5 w-3.5" />
+                              Salvar
+                            </button>
+                            <button
+                              onClick={cancelEditing}
+                              className="inline-flex items-center gap-1 rounded-button px-2 py-1 text-body-sm text-muted hover:bg-surface-secondary transition-colors cursor-pointer"
+                              title="Cancelar"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => startEditing(n)}
+                              className="inline-flex items-center gap-1 rounded-button px-2 py-1 text-body-sm text-primary hover:bg-primary/10 transition-colors cursor-pointer"
+                              title="Editar"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => handleDelete(n.id)}
+                              className="inline-flex items-center gap-1 rounded-button px-2 py-1 text-body-sm text-danger hover:bg-danger/10 transition-colors cursor-pointer"
+                              title="Remover"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -301,7 +422,7 @@ export function WhatsAppPage() {
 
       {/* Routing Logs */}
       <div>
-        <h2 className="font-heading text-heading-sm mb-3">Ultimos Roteamentos</h2>
+        <h2 className="font-heading text-heading-sm mb-3">Últimos Roteamentos</h2>
         {loading ? (
           <div className="rounded-card border border-glass-border bg-surface p-4 space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (
