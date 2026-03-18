@@ -19,6 +19,9 @@ interface WhatsAppNumber {
   kommo_source_name: string | null;
   kommo_user_id: number | null;
   active: boolean;
+  connection_status: string | null;
+  disconnected_at: string | null;
+  last_checked_at: string | null;
   created_at: string;
 }
 
@@ -310,6 +313,7 @@ export function WhatsAppPage() {
                 <th className="px-4 py-3 font-medium">Fonte Kommo</th>
                 <th className="px-4 py-3 font-medium">Agente</th>
                 <th className="px-4 py-3 font-medium">Time</th>
+                <th className="px-4 py-3 font-medium">Conexão</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium text-right">Ações</th>
               </tr>
@@ -357,6 +361,26 @@ export function WhatsAppPage() {
                       <Badge className={n.team === 'azul' ? 'bg-warning/15 text-warning' : 'bg-accent-blue/15 text-accent-blue'}>
                         {TEAM_LABELS[n.team] || n.team}
                       </Badge>
+                    </td>
+                    <td className="px-4 py-3">
+                      {n.connection_status === 'disconnected' ? (
+                        <Badge className="bg-danger/10 text-danger">
+                          Desconectado
+                        </Badge>
+                      ) : n.connection_status === 'connected' ? (
+                        <Badge className="bg-success/10 text-success">
+                          Conectado
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-muted/10 text-muted">
+                          Aguardando
+                        </Badge>
+                      )}
+                      {n.disconnected_at && n.connection_status === 'disconnected' && (
+                        <p className="text-[10px] text-danger/70 mt-0.5">
+                          desde {formatDateBR(n.disconnected_at)}
+                        </p>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <button

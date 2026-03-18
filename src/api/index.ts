@@ -6,6 +6,7 @@ import { markCacheReady, setTokenStatuses, TokenStatusEntry } from "./readiness.
 import { startAuditCleanup } from "./middleware/auditLog.js";
 import { cleanupExpiredChallenges } from "./services/totp.js";
 import { loadTokens } from "../services/token-store.js";
+import { WhatsAppHealthMonitor } from "../services/whatsapp-health-monitor.js";
 
 validateConfig();
 
@@ -112,4 +113,7 @@ app.listen(PORT, async () => {
   // Cleanup expired TOTP challenges every 10 minutes
   cleanupExpiredChallenges();
   setInterval(cleanupExpiredChallenges, 10 * 60 * 1000);
+
+  // Start WhatsApp health monitor (checks every 15min)
+  WhatsAppHealthMonitor.start();
 });

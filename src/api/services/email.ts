@@ -99,6 +99,83 @@ export async function sendTokenAlertEmail(
   }
 }
 
+export async function sendWhatsAppDisconnectedEmail(
+  to: string,
+  phone: string,
+  sourceName: string,
+  team: string,
+  agentName: string
+) {
+  try {
+    await resend.emails.send({
+      from: `${appName} Alerta <${from}>`,
+      to,
+      subject: `[ALERTA] WhatsApp desconectado — ${sourceName || phone}`,
+      html: `<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
+        <h2 style="color: #EF4444; margin-bottom: 16px;">WhatsApp Desconectado</h2>
+        <p style="color: #333; line-height: 1.6;">O numero WhatsApp cadastrado no ${appName} foi <strong>desconectado</strong> do Kommo e leads podem nao estar sendo recebidos.</p>
+        <div style="background: #FEF2F2; border-left: 4px solid #EF4444; padding: 16px; border-radius: 4px; margin: 16px 0;">
+          <p style="color: #333; margin: 0 0 8px 0;"><strong>Telefone:</strong> ${phone}</p>
+          <p style="color: #333; margin: 0 0 8px 0;"><strong>Fonte Kommo:</strong> ${sourceName || "—"}</p>
+          <p style="color: #333; margin: 0 0 8px 0;"><strong>Time:</strong> ${team}</p>
+          <p style="color: #333; margin: 0;"><strong>Agente:</strong> ${agentName}</p>
+        </div>
+        <p style="color: #333; line-height: 1.6;"><strong>O que fazer:</strong></p>
+        <ol style="color: #333; line-height: 1.8;">
+          <li>Acesse o painel do <a href="https://kommo.com" style="color: #9566F2;">Kommo</a></li>
+          <li>Va em Configuracoes → Canais de comunicacao</li>
+          <li>Reconecte o WhatsApp</li>
+          <li>Verifique se os leads estao entrando normalmente</li>
+        </ol>
+        <div style="text-align: center; margin: 24px 0;">
+          <a href="${appUrl}/whatsapp" style="display: inline-block; padding: 12px 32px; background-color: #9566F2; color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600;">Ver no ${appName}</a>
+        </div>
+        <p style="color: #666; font-size: 13px;">Este alerta sera reenviado a cada 1 hora enquanto o numero estiver desconectado.</p>
+        <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
+        <p style="color: #999; font-size: 12px;">Equipe ${appName} — Sistema de Monitoramento</p>
+      </div>`,
+      headers: {
+        "X-Priority": "1",
+        "X-MSMail-Priority": "High",
+        "Importance": "high",
+      },
+    });
+    console.log(`[WhatsAppAlert] Email enviado para ${to}`);
+  } catch (e: any) {
+    console.error(`[WhatsAppAlert] Falha ao enviar email para ${to}:`, e.message);
+  }
+}
+
+export async function sendWhatsAppReconnectedEmail(
+  to: string,
+  phone: string,
+  sourceName: string,
+  team: string
+) {
+  try {
+    await resend.emails.send({
+      from: `${appName} <${from}>`,
+      to,
+      subject: `WhatsApp reconectado — ${sourceName || phone}`,
+      html: `<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
+        <h2 style="color: #10B981; margin-bottom: 16px;">WhatsApp Reconectado</h2>
+        <p style="color: #333; line-height: 1.6;">O numero WhatsApp voltou ao normal no Kommo.</p>
+        <div style="background: #F0FDF4; border-left: 4px solid #10B981; padding: 16px; border-radius: 4px; margin: 16px 0;">
+          <p style="color: #333; margin: 0 0 8px 0;"><strong>Telefone:</strong> ${phone}</p>
+          <p style="color: #333; margin: 0 0 8px 0;"><strong>Fonte Kommo:</strong> ${sourceName || "—"}</p>
+          <p style="color: #333; margin: 0;"><strong>Time:</strong> ${team}</p>
+        </div>
+        <p style="color: #333; line-height: 1.6;">Os leads devem voltar a entrar normalmente.</p>
+        <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
+        <p style="color: #999; font-size: 12px;">Equipe ${appName} — Sistema de Monitoramento</p>
+      </div>`,
+    });
+    console.log(`[WhatsAppAlert] Email de reconexao enviado para ${to}`);
+  } catch (e: any) {
+    console.error(`[WhatsAppAlert] Falha ao enviar email de reconexao para ${to}:`, e.message);
+  }
+}
+
 export async function sendApprovalEmail(to: string, userName: string) {
   await resend.emails.send({
     from: `${appName} <${from}>`,
