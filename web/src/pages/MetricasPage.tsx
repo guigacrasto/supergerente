@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useLabel } from '@/hooks/useLabels';
+import { TEAM_LABELS } from '@/lib/constants';
 import { Skeleton, EmptyState } from '@/components/ui';
 import { KPICard } from '@/components/features/dashboard/KPICard';
 import { cn, formatCurrency } from '@/lib/utils';
@@ -370,7 +371,7 @@ export function MetricasPage() {
                       row.team === 'amarela' ? 'bg-accent-blue/15 text-accent-blue' :
                       'bg-primary/15 text-primary'
                     )}>
-                      {row.team}
+                      {TEAM_LABELS[row.team] || row.team}
                     </span>
                   </td>
                   <td className="px-4 py-3">

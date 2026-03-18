@@ -7,8 +7,8 @@ export const APP_DESCRIPTION =
 export const TEAMS = ['azul', 'amarela'] as const;
 
 export const TEAM_LABELS: Record<string, string> = {
-  azul: 'Time Azul',
-  amarela: 'Time Amarelo',
+  azul: 'Time Amarelo',
+  amarela: 'Time Azul',
 };
 
 export const ALERT_TYPE_LABELS: Record<string, string> = {

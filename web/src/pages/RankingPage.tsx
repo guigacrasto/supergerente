@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 import { cn } from '@/lib/utils';
 import { api } from '@/lib/api';
+import { TEAM_LABELS } from '@/lib/constants';
 import { useAuthStore } from '@/stores/authStore';
 import { Skeleton, LiveTimestamp, EmptyState, ExportPdfButton } from '@/components/ui';
 import { TimeFilter } from '@/components/features/filters/TimeFilter';
@@ -120,7 +121,7 @@ function TeamSelector({ teams, selected, onChange }: { teams: string[]; selected
                   : 'text-foreground hover:bg-surface-secondary'
               )}
             >
-              {team}
+              {TEAM_LABELS[team] || team}
             </button>
           ))}
         </div>

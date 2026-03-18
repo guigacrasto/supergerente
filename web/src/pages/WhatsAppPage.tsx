@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { MessageCircle, Plus, Trash2, ArrowRight, RefreshCw, Pencil, Check, X } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Card, Badge, Skeleton, EmptyState, Button } from '@/components/ui';
+import { TEAM_LABELS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 
 interface KommoUser {
@@ -241,8 +242,8 @@ export function WhatsAppPage() {
               }}
               className={cn(inputClass, 'w-32')}
             >
-              <option value="azul">Azul</option>
-              <option value="amarela">Amarela</option>
+              <option value="azul">{TEAM_LABELS.azul}</option>
+              <option value="amarela">{TEAM_LABELS.amarela}</option>
             </select>
           </div>
           <div className="flex flex-col gap-1">
@@ -354,7 +355,7 @@ export function WhatsAppPage() {
                     </td>
                     <td className="px-4 py-3">
                       <Badge className={n.team === 'azul' ? 'bg-warning/15 text-warning' : 'bg-accent-blue/15 text-accent-blue'}>
-                        {n.team}
+                        {TEAM_LABELS[n.team] || n.team}
                       </Badge>
                     </td>
                     <td className="px-4 py-3">
