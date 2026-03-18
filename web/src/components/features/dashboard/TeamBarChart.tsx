@@ -39,7 +39,7 @@ export function TeamBarChart({ team, label, agents, color }: TeamBarChartProps) 
       <CardHeader>
         <CardTitle
           className={
-            team === 'azul' ? 'text-accent-blue' : 'text-warning'
+            team === 'azul' ? 'text-warning' : 'text-accent-blue'
           }
         >
           {label} — Atendimentos

@@ -16,8 +16,8 @@ export function TeamKPICard({
   ativos,
   novosMes,
 }: TeamKPICardProps) {
-  const titleColor = team === 'azul' ? 'text-accent-blue' : 'text-warning';
-  const accentBorder = team === 'azul' ? 'border-l-accent-blue' : 'border-l-warning';
+  const titleColor = team === 'azul' ? 'text-warning' : 'text-accent-blue';
+  const accentBorder = team === 'azul' ? 'border-l-warning' : 'border-l-accent-blue';
 
   return (
     <Card className={`border-l-4 ${accentBorder}`}>

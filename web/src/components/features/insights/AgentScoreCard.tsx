@@ -39,7 +39,7 @@ export function AgentScoreCard({
   isSelected,
   onClick,
 }: AgentScoreCardProps) {
-  const teamColor = team === 'azul' ? 'border-l-accent-blue' : 'border-l-warning';
+  const teamColor = team === 'azul' ? 'border-l-warning' : 'border-l-accent-blue';
 
   return (
     <button

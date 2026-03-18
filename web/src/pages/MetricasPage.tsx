@@ -366,8 +366,8 @@ export function MetricasPage() {
                   <td className="px-4 py-3">
                     <span className={cn(
                       'inline-flex items-center rounded-badge px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider',
-                      row.team === 'azul' ? 'bg-accent-blue/15 text-accent-blue' :
-                      row.team === 'amarela' ? 'bg-warning/15 text-warning' :
+                      row.team === 'azul' ? 'bg-warning/15 text-warning' :
+                      row.team === 'amarela' ? 'bg-accent-blue/15 text-accent-blue' :
                       'bg-primary/15 text-primary'
                     )}>
                       {row.team}

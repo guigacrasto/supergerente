@@ -79,8 +79,8 @@ interface DashboardData {
 }
 
 const TEAM_COLORS: Record<string, string> = {
-  azul: '#1F74EC',
-  amarela: '#F9AA3C',
+  azul: '#F9AA3C',
+  amarela: '#1F74EC',
 };
 
 const PIPELINE_COLORS = [

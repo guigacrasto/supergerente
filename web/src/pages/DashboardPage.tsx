@@ -82,8 +82,8 @@ interface DashboardData {
 }
 
 const TEAM_COLORS: Record<string, string> = {
-  azul: '#1F74EC',
-  amarela: '#F9AA3C',
+  azul: '#F9AA3C',
+  amarela: '#1F74EC',
 };
 
 const REFRESH_INTERVAL_MS = 2 * 60 * 1000;
@@ -371,7 +371,7 @@ export function DashboardPage() {
               <CardHeader>
                 <CardTitle
                   className={
-                    team === 'azul' ? 'text-accent-blue' : 'text-warning'
+                    team === 'azul' ? 'text-warning' : 'text-accent-blue'
                   }
                 >
                   {label}

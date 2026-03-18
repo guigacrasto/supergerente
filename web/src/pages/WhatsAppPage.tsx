@@ -353,7 +353,7 @@ export function WhatsAppPage() {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <Badge className={n.team === 'azul' ? 'bg-accent-blue/15 text-accent-blue' : 'bg-warning/15 text-warning'}>
+                      <Badge className={n.team === 'azul' ? 'bg-warning/15 text-warning' : 'bg-accent-blue/15 text-accent-blue'}>
                         {n.team}
                       </Badge>
                     </td>
