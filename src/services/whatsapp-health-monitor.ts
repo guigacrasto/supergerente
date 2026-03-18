@@ -27,6 +27,13 @@ interface WhatsAppNumber {
   active: boolean;
 }
 
+interface SourceInfo {
+  id: number;
+  name: string;
+  external_id?: string;
+  services?: any[];
+}
+
 function formatPhone(phone: string): string {
   const d = phone.replace(/\D/g, "");
   if (d.length === 13) return `+${d.slice(0, 2)} (${d.slice(2, 4)}) ${d.slice(4, 9)}-${d.slice(9)}`;
@@ -73,7 +80,6 @@ export class WhatsAppHealthMonitor {
   }
 
   private static async checkTenant(tenant: Tenant): Promise<void> {
-    // Get all active numbers for this tenant
     const { data: numbers, error } = await supabase
       .from("whatsapp_numbers")
       .select("*")
@@ -100,12 +106,29 @@ export class WhatsAppHealthMonitor {
 
       try {
         const service = new KommoService(tc, team, tenant.id);
+
+        // Strategy 1: Check Kommo /sources endpoint
         const sources = await service.getSources();
-        const sourceNames = sources.map((s) => s.name.toLowerCase());
-        const sourceMap = new Map(sources.map((s) => [s.name.toLowerCase(), s]));
+        console.log(
+          `[WhatsAppHealth] ${tenant.slug}:${team} — /sources returned ${sources.length} entries:`,
+          sources.length > 0
+            ? sources.map((s) => `"${s.name}" (id:${s.id}, services:${JSON.stringify(s.services || [])})`).join(", ")
+            : "EMPTY"
+        );
+
+        const sourceMap = new Map<string, SourceInfo>(
+          sources.map((s) => [s.name.toLowerCase(), s])
+        );
+
+        // Strategy 2: If sources empty, check recent lead activity as fallback
+        let recentLeadSourceIds: Set<number> | null = null;
+        if (sources.length === 0) {
+          console.log(`[WhatsAppHealth] ${tenant.slug}:${team} — Sources API empty, checking recent leads...`);
+          recentLeadSourceIds = await this.getRecentLeadSourceIds(service, team, tenant.slug);
+        }
 
         for (const num of teamNumbers) {
-          await this.checkNumber(num, sourceNames, sourceMap, service, tenant);
+          await this.checkNumber(num, sourceMap, sources.length > 0, recentLeadSourceIds, service, tenant);
         }
       } catch (err: any) {
         console.error(`[WhatsAppHealth] API error for ${tenant.slug}:${team}:`, err.message);
@@ -116,61 +139,160 @@ export class WhatsAppHealthMonitor {
     }
   }
 
+  /**
+   * When /sources returns empty (common for WhatsApp managed by Amojo system),
+   * check recent leads to find active source IDs as a fallback signal.
+   */
+  private static async getRecentLeadSourceIds(
+    service: KommoService,
+    team: string,
+    tenantSlug: string
+  ): Promise<Set<number>> {
+    const sourceIds = new Set<number>();
+    try {
+      const threeHoursAgo = Math.floor(Date.now() / 1000) - 3 * 3600;
+      const recentLeads = await service.getLeads({
+        limit: 50,
+        filter: { created_at: { from: threeHoursAgo } },
+      });
+
+      for (const lead of recentLeads) {
+        const sourceId = (lead as any).source_id;
+        if (sourceId && typeof sourceId === "number") {
+          sourceIds.add(sourceId);
+        }
+      }
+
+      console.log(
+        `[WhatsAppHealth] ${tenantSlug}:${team} — ${recentLeads.length} recent leads, ` +
+        `${sourceIds.size} unique source IDs: [${Array.from(sourceIds).join(", ")}]`
+      );
+    } catch (err: any) {
+      console.log(`[WhatsAppHealth] ${tenantSlug}:${team} — Lead fallback check failed: ${err.message}`);
+    }
+    return sourceIds;
+  }
+
   private static async checkNumber(
     num: WhatsAppNumber,
-    sourceNames: string[],
-    sourceMap: Map<string, { id: number; name: string }>,
+    sourceMap: Map<string, SourceInfo>,
+    sourcesApiHasData: boolean,
+    recentLeadSourceIds: Set<number> | null,
     service: KommoService,
     tenant: Tenant
   ): Promise<void> {
     const now = new Date().toISOString();
     const sourceName = num.kommo_source_name?.toLowerCase() || "";
 
-    // Try to find the source in Kommo
+    // No source name configured — can't check, just update timestamp
+    if (!sourceName) {
+      await supabase
+        .from("whatsapp_numbers")
+        .update({ last_checked_at: now })
+        .eq("id", num.id);
+      return;
+    }
+
     let found = false;
     let matchedSourceId: number | null = num.kommo_source_id;
 
-    if (sourceName) {
-      // Match by source name (substring match, case-insensitive)
+    if (sourcesApiHasData) {
+      // === STRATEGY 1: Match by source name in /sources response ===
       for (const [name, source] of sourceMap) {
         if (name.includes(sourceName) || sourceName.includes(name)) {
           found = true;
           matchedSourceId = source.id;
+
+          // Check if source has error/disabled status in services array
+          if (source.services && Array.isArray(source.services)) {
+            const hasError = source.services.some(
+              (svc: any) =>
+                svc.status === "error" ||
+                svc.status === "disconnected" ||
+                svc.is_disabled === true
+            );
+            if (hasError) {
+              console.log(
+                `[WhatsAppHealth] Source "${name}" found but has error/disabled status — treating as disconnected`
+              );
+              found = false;
+            }
+          }
           break;
         }
       }
-    }
-
-    // If no source name configured or sources API returned empty, try account connectivity check
-    if (!sourceName || sourceNames.length === 0) {
-      try {
-        const account = await service.getAccountInfo();
-        found = !!account;
-      } catch {
-        found = false;
+    } else if (recentLeadSourceIds) {
+      // === STRATEGY 2: Sources API empty — use lead activity fallback ===
+      if (num.kommo_source_id && recentLeadSourceIds.has(num.kommo_source_id)) {
+        // We have a known source_id and it appears in recent leads → still active
+        found = true;
+        console.log(
+          `[WhatsAppHealth] Source detected via lead activity (source_id: ${num.kommo_source_id}) for ${formatPhone(num.phone)}`
+        );
+      } else if (num.kommo_source_id && recentLeadSourceIds.size > 0) {
+        // We have a known source_id but it's NOT in recent leads → suspicious
+        // However, low traffic could cause this — only flag if previously connected
+        if (num.connection_status === "connected") {
+          found = false;
+          console.log(
+            `[WhatsAppHealth] Source_id ${num.kommo_source_id} NOT in recent leads ` +
+            `(active: [${Array.from(recentLeadSourceIds).join(",")}]) — marking disconnected`
+          );
+        } else {
+          // Status was already unknown/disconnected — don't change
+          await supabase
+            .from("whatsapp_numbers")
+            .update({ last_checked_at: now })
+            .eq("id", num.id);
+          return;
+        }
+      } else {
+        // No known source_id OR no recent leads at all — can't determine
+        console.log(
+          `[WhatsAppHealth] Can't determine status for ${formatPhone(num.phone)} — ` +
+          `no source_id (${num.kommo_source_id}) and/or no recent leads`
+        );
+        await supabase
+          .from("whatsapp_numbers")
+          .update({ last_checked_at: now })
+          .eq("id", num.id);
+        return;
       }
+    } else {
+      // Both strategies failed — leave status unchanged
+      await supabase
+        .from("whatsapp_numbers")
+        .update({ last_checked_at: now })
+        .eq("id", num.id);
+      return;
     }
 
     const wasDisconnected = num.connection_status === "disconnected";
 
-    if (!found && sourceName) {
-      // SOURCE NOT FOUND — disconnected
+    if (!found) {
+      // === DISCONNECTED ===
       if (!wasDisconnected) {
-        console.log(`[WhatsAppHealth] DISCONNECTED: ${formatPhone(num.phone)} (${num.kommo_source_name})`);
+        console.log(
+          `[WhatsAppHealth] DISCONNECTED: ${formatPhone(num.phone)} (${num.kommo_source_name})`
+        );
         await this.markDisconnected(num, now);
         await this.alertDisconnection(num, tenant);
       } else {
         // Already disconnected — check cooldown for re-alert
         const lastAlert = num.last_alert_at ? new Date(num.last_alert_at).getTime() : 0;
         if (Date.now() - lastAlert >= ALERT_COOLDOWN_MS) {
-          console.log(`[WhatsAppHealth] Still disconnected, re-alerting: ${formatPhone(num.phone)}`);
+          console.log(
+            `[WhatsAppHealth] Still disconnected, re-alerting: ${formatPhone(num.phone)}`
+          );
           await this.alertDisconnection(num, tenant);
         }
       }
-    } else if (found) {
-      // SOURCE FOUND — connected
+    } else {
+      // === CONNECTED ===
       if (wasDisconnected) {
-        console.log(`[WhatsAppHealth] RECONNECTED: ${formatPhone(num.phone)} (${num.kommo_source_name})`);
+        console.log(
+          `[WhatsAppHealth] RECONNECTED: ${formatPhone(num.phone)} (${num.kommo_source_name})`
+        );
         await this.markConnected(num, matchedSourceId, now);
         await this.alertReconnection(num, tenant);
       } else {

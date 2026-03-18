@@ -373,15 +373,21 @@ export class KommoService {
         await this.client.patch("/companies", [{ id: companyId, responsible_user_id: kommoUserId }]);
     }
 
-    public async getSources(): Promise<Array<{ id: number; name: string; external_id?: string; services?: any[] }>> {
+    public async getSources(): Promise<Array<{ id: number; name: string; external_id?: string; services?: any[]; type?: string }>> {
         try {
             const response = await this.client.get("/sources");
             const sources = response.data?._embedded?.sources || [];
+            console.log(`[KommoService:${this.team}] /sources raw count: ${sources.length}`,
+                sources.length > 0
+                    ? sources.map((s: any) => `{id:${s.id}, name:"${s.name}", type:"${s.type || "?"}", services:${(s.services || []).length}}`).join(", ")
+                    : "(empty response)"
+            );
             return sources.map((s: any) => ({
                 id: s.id,
                 name: s.name || "",
                 external_id: s.external_id,
                 services: s.services,
+                type: s.type,
             }));
         } catch (error: any) {
             console.error(`[KommoService:${this.team}] Error fetching sources:`, error?.response?.status || error.message);
