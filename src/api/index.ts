@@ -8,6 +8,7 @@ import { cleanupExpiredChallenges } from "./services/totp.js";
 import { loadTokens } from "../services/token-store.js";
 import { WhatsAppHealthMonitor } from "../services/whatsapp-health-monitor.js";
 import { WhatsAppRouter } from "../services/whatsapp-router.js";
+import { startDailyBackup } from "../services/daily-backup.js";
 
 validateConfig();
 
@@ -120,4 +121,7 @@ app.listen(PORT, async () => {
 
   // Start WhatsApp routing hourly recheck (retries failed/no_match items)
   WhatsAppRouter.startHourlyRecheck();
+
+  // Start daily backup of leads to Google Sheets + email CSV (6h BRT)
+  startDailyBackup();
 });

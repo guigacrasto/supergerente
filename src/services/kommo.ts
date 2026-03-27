@@ -240,7 +240,7 @@ export class KommoService {
         try {
             const response = await this.client.get(`/leads/${id}`, {
                 params: {
-                    with: "contacts"
+                    with: "contacts,source_id"
                 }
             });
             return response.data;
@@ -428,7 +428,7 @@ export class KommoService {
                     params: {
                         limit: limit,
                         page: page,
-                        with: "custom_fields_values,contacts",
+                        with: "custom_fields_values,contacts,source_id",
                         filter: params.filter,
                         sort: params.sort
                     }

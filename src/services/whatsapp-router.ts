@@ -7,8 +7,6 @@ const ROUTING_DELAY_MS = 5 * 60 * 1000; // 5 minutes — first attempt
 const RETRY_DELAY_MS = 2 * 60 * 1000; // 2 minutes — between retries
 const MAX_ATTEMPTS = 3;
 const RECHECK_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
-const SOURCE_PATTERN = /fonte|source|canal|origin|channel/i;
-
 interface QueueItem {
   id: string;
   tenant_id: string;
@@ -186,8 +184,6 @@ export class WhatsAppRouter {
       throw new Error(`lead_fetch_failed: ${err.message}`);
     }
 
-    const sourceName = WhatsAppRouter.extractSourceName(lead);
-
     const { data: numbers } = await supabase
       .from("whatsapp_numbers")
       .select("*")
@@ -200,22 +196,27 @@ export class WhatsAppRouter {
       return;
     }
 
-    // Match by source name
-    let matchedNumber = sourceName
-      ? numbers.find((n: any) => n.kommo_source_name && sourceName.toLowerCase().includes(n.kommo_source_name.toLowerCase()))
-      : null;
+    // Primary match: by source_id (most reliable for WhatsApp channels)
+    let matchedNumber: any = null;
+    const leadSourceId = lead.source_id;
 
-    // Fallback: match by phone
-    if (!matchedNumber) {
-      const contactPhone = WhatsAppRouter.extractContactPhone(lead);
-      if (contactPhone) {
-        const normalizedPhone = WhatsAppRouter.normalizePhone(contactPhone);
-        matchedNumber = numbers.find((n: any) => WhatsAppRouter.normalizePhone(n.phone) === normalizedPhone);
+    if (leadSourceId) {
+      matchedNumber = numbers.find((n: any) => n.kommo_source_id === leadSourceId);
+    }
+
+    // Fallback: match by kommo_user_id (for ambiguous sources that share a user)
+    if (!matchedNumber && leadSourceId) {
+      // Check if any number's kommo_user_id is the current responsible — if so, already correct
+      const currentResponsible = lead.responsible_user_id;
+      const assignedToRegisteredNumber = numbers.find((n: any) => n.kommo_user_id === currentResponsible);
+      if (assignedToRegisteredNumber) {
+        // Lead is already with a registered agent — skip
+        await WhatsAppRouter.markProcessed(item.id, "skipped", { reason: "already_assigned_registered" });
+        return;
       }
     }
 
     if (!matchedNumber) {
-      // Return "no_match" so caller can decide to retry
       return "no_match";
     }
 
@@ -253,10 +254,11 @@ export class WhatsAppRouter {
     }
 
     // Add note to the lead conversation in Kommo
+    const sourceLabel = matchedNumber.kommo_source_name || matchedNumber.phone;
     try {
       await service.addNote(
         lead_id,
-        `SuperGerente roteou este lead do agente #${fromUserId} para o agente #${targetKommoUserId} (fonte: ${sourceName || matchedNumber.kommo_source_name || matchedNumber.phone})`
+        `[SuperGerente] Roteou lead do agente #${fromUserId} para #${targetKommoUserId} (fonte: ${sourceLabel}, phone: ${matchedNumber.phone})`
       );
     } catch (err: any) {
       console.warn(`[WhatsAppRouter] Failed to add note to lead ${lead_id}:`, err.message);
@@ -269,9 +271,9 @@ export class WhatsAppRouter {
       lead_name: lead.name || `Lead ${lead_id}`,
       from_user_id: fromUserId,
       to_user_id: targetKommoUserId,
-      to_user_name: matchedNumber.kommo_source_name || matchedNumber.phone,
+      to_user_name: sourceLabel,
       phone_matched: matchedNumber.phone,
-      source_name: sourceName || "unknown",
+      source_name: leadSourceId ? `source_id:${leadSourceId}` : "unknown",
     });
 
     console.log(`[WhatsAppRouter] Routed lead ${lead_id}: user ${fromUserId} -> ${targetKommoUserId} (phone: ${matchedNumber.phone})`);
@@ -429,35 +431,6 @@ export class WhatsAppRouter {
     for (const item of pending) {
       await WhatsAppRouter.processQueueItem(item.id);
     }
-  }
-
-  private static extractSourceName(lead: any): string | null {
-    const cfValues = lead.custom_fields_values;
-    if (!cfValues || !Array.isArray(cfValues)) return null;
-
-    for (const cf of cfValues) {
-      if (SOURCE_PATTERN.test(cf.field_name || "")) {
-        return cf.values?.[0]?.value?.toString() || null;
-      }
-    }
-    return null;
-  }
-
-  private static extractContactPhone(lead: any): string | null {
-    const contacts = lead._embedded?.contacts || [];
-    for (const contact of contacts) {
-      const cfs = contact.custom_fields_values || [];
-      for (const cf of cfs) {
-        if (cf.field_code === "PHONE" || /phone|telefone|celular/i.test(cf.field_name || "")) {
-          return cf.values?.[0]?.value?.toString() || null;
-        }
-      }
-    }
-    return null;
-  }
-
-  private static normalizePhone(phone: string): string {
-    return phone.replace(/\D/g, "").replace(/^0+/, "");
   }
 
   private static async markProcessed(
