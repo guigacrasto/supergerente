@@ -9,6 +9,7 @@ import { loadTokens } from "../services/token-store.js";
 import { WhatsAppHealthMonitor } from "../services/whatsapp-health-monitor.js";
 import { WhatsAppRouter } from "../services/whatsapp-router.js";
 import { startDailyBackup } from "../services/daily-backup.js";
+import { startLeadRemanejamento } from "../services/lead-remanejamento.js";
 
 validateConfig();
 
@@ -124,4 +125,7 @@ app.listen(PORT, async () => {
 
   // Start daily backup of leads to Google Sheets + email CSV (6h BRT)
   startDailyBackup();
+
+  // Start lead remanejamento automation (4h BRT daily)
+  startLeadRemanejamento();
 });
