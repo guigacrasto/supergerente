@@ -1,10 +1,29 @@
 /**
- * Backup diário automático de leads do Kommo → Google Sheets + Email CSV
- * Roda às 6h BRT (9h UTC) todos os dias
+ * Backup diário de leads:
+ * 1. Puxa TODOS os leads do Kommo (azul + amarela)
+ * 2. Gera CSV
+ * 3. Atualiza Google Sheets
+ * 4. Envia email com CSV anexado para 3 destinatários
+ *
+ * Rodar: npx tsx scripts/daily-backup-leads.ts
  */
+import dotenv from "dotenv";
+dotenv.config();
+import { createClient } from "@supabase/supabase-js";
 import { google } from "googleapis";
 import { Resend } from "resend";
-import { supabase } from "../api/supabase.js";
+import path from "path";
+import { fileURLToPath } from "url";
+import fs from "fs";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_KEY!, {
+  auth: { autoRefreshToken: false, persistSession: false },
+});
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "noreply@supergerente.com";
 
 const RECIPIENTS = [
   "guilherme@onigroup.com.br",
@@ -26,8 +45,6 @@ const HEADERS = [
   "Criado em", "Atualizado em",
 ];
 
-const TARGET_HOUR_UTC = 9; // 6h BRT = 9h UTC
-
 async function getToken(team: string) {
   const subdomain = team === "amarela"
     ? (process.env.KOMMO_AMARELA_SUBDOMAIN || "")
@@ -42,13 +59,14 @@ async function getToken(team: string) {
 async function fetchAllLeads(subdomain: string, accessToken: string) {
   const allLeads: any[] = [];
   for (let page = 1; page <= 1000; page++) {
+    if (page % 50 === 1) console.log(`  Fetching leads page ${page}...`);
     try {
       const res = await fetch(
         `https://${subdomain}.kommo.com/api/v4/leads?with=contacts,companies,source_id&limit=250&page=${page}`,
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
       if (res.status === 204) break;
-      if (!res.ok) break;
+      if (!res.ok) { console.log(`  API error: ${res.status}`); break; }
       const text = await res.text();
       if (!text) break;
       const data = JSON.parse(text);
@@ -57,22 +75,19 @@ async function fetchAllLeads(subdomain: string, accessToken: string) {
       allLeads.push(...leads);
       if (leads.length < 250) break;
       await new Promise(r => setTimeout(r, 200));
-    } catch {
+    } catch (e: any) {
+      console.log(`  Fetch error page ${page}: ${e.message}`);
       break;
     }
   }
   return allLeads;
 }
 
-/**
- * Busca TODOS os contatos com custom_fields_values (PHONE/EMAIL).
- * `?with=contacts` em /leads só retorna {id, is_main} — não traz custom fields.
- * Precisa buscar /contacts separado e joinar por id.
- */
 type ContactInfo = { name: string; phone: string; email: string };
 async function fetchAllContacts(subdomain: string, accessToken: string): Promise<Map<number, ContactInfo>> {
   const map = new Map<number, ContactInfo>();
   for (let page = 1; page <= 1000; page++) {
+    if (page % 50 === 1) console.log(`  Fetching contacts page ${page}...`);
     try {
       const res = await fetch(
         `https://${subdomain}.kommo.com/api/v4/contacts?with=custom_fields_values&limit=250&page=${page}`,
@@ -101,15 +116,11 @@ async function fetchAllContacts(subdomain: string, accessToken: string): Promise
   return map;
 }
 
-/**
- * Busca TODAS as empresas com custom_fields_values.
- * Muitos leads têm os dados reais (nome/email/telefone) na empresa vinculada
- * em vez do contato.
- */
 type CompanyInfo = { name: string; phone: string; email: string };
 async function fetchAllCompanies(subdomain: string, accessToken: string): Promise<Map<number, CompanyInfo>> {
   const map = new Map<number, CompanyInfo>();
   for (let page = 1; page <= 1000; page++) {
+    if (page % 50 === 1) console.log(`  Fetching companies page ${page}...`);
     try {
       const res = await fetch(
         `https://${subdomain}.kommo.com/api/v4/companies?with=custom_fields_values&limit=250&page=${page}`,
@@ -181,6 +192,10 @@ function formatDate(ts: number): string {
   return new Date(ts * 1000).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
 }
 
+function extractTags(lead: any): string {
+  return (lead._embedded?.tags || []).map((t: any) => t.name).join(", ");
+}
+
 function buildRows(
   leads: any[],
   userMap: Map<number, string>,
@@ -212,7 +227,7 @@ function buildRows(
       statusMap.get(lead.status_id) || `#${lead.status_id}`,
       lead.price ? String(lead.price) : "",
       lead.source_id ? String(lead.source_id) : "",
-      (lead._embedded?.tags || []).map((t: any) => t.name).join(", "),
+      extractTags(lead),
       formatDate(lead.created_at),
       formatDate(lead.updated_at),
     ];
@@ -221,19 +236,20 @@ function buildRows(
 
 function rowsToCsv(rows: string[][]): string {
   const escape = (v: string) => {
-    if (v.includes(",") || v.includes('"') || v.includes("\n")) return `"${v.replace(/"/g, '""')}"`;
+    if (v.includes(",") || v.includes('"') || v.includes("\n")) {
+      return `"${v.replace(/"/g, '""')}"`;
+    }
     return v;
   };
   const lines = [HEADERS.map(escape).join(",")];
   for (const row of rows) lines.push(row.map(escape).join(","));
-  return "\uFEFF" + lines.join("\n");
+  return "\uFEFF" + lines.join("\n"); // BOM for Excel compatibility
 }
 
 async function getSheetsClient() {
-  const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON || "{}");
-  if (!credentials.client_email) return null;
+  const keyPath = path.resolve(__dirname, "../google-service-account.json");
   const auth = new google.auth.GoogleAuth({
-    credentials,
+    keyFile: keyPath,
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
   });
   return google.sheets({ version: "v4", auth });
@@ -275,20 +291,54 @@ async function writeToSheet(sheets: any, spreadsheetId: string, rows: string[][]
   });
 }
 
-async function runBackup() {
-  console.log("[DailyBackup] Iniciando backup de leads...");
-  const startTime = Date.now();
+async function sendEmail(csvBuffers: { team: string; csv: string; count: number }[]) {
+  const today = new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
 
-  const resend = new Resend(process.env.RESEND_API_KEY);
-  const fromEmail = process.env.RESEND_FROM_EMAIL || "noreply@supergerente.com";
+  const attachments = csvBuffers.map(({ team, csv }) => ({
+    filename: `leads-${team}-${today.replace(/\//g, "-")}.csv`,
+    content: Buffer.from(csv, "utf-8").toString("base64"),
+    type: "text/csv" as const,
+  }));
+
+  const summary = csvBuffers
+    .map(({ team, count }) => `• <b>${team.toUpperCase()}</b>: ${count.toLocaleString("pt-BR")} leads`)
+    .join("<br>");
+
+  const { error } = await resend.emails.send({
+    from: `SuperGerente Backup <${FROM_EMAIL}>`,
+    to: RECIPIENTS,
+    subject: `📊 Backup Leads Kommo — ${today}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; padding: 20px;">
+        <h2 style="color: #9566F2;">Backup Diário de Leads</h2>
+        <p>Segue em anexo o backup completo dos leads do Kommo.</p>
+        <p><b>Data:</b> ${today}</p>
+        <p>${summary}</p>
+        <br>
+        <p style="color: #666; font-size: 12px;">Enviado automaticamente pelo SuperGerente.</p>
+      </div>
+    `,
+    attachments,
+  });
+
+  if (error) {
+    console.error("  Erro ao enviar email:", error);
+    return false;
+  }
+  return true;
+}
+
+async function main() {
+  console.log("=== BACKUP DIÁRIO DE LEADS ===\n");
+
   const sheets = await getSheetsClient();
   const csvBuffers: { team: string; csv: string; count: number }[] = [];
 
   for (const team of ["azul", "amarela"]) {
-    console.log(`[DailyBackup] Processando ${team}...`);
+    console.log(`\n--- ${team.toUpperCase()} ---`);
     const token = await getToken(team);
     if (!token.subdomain || !token.accessToken) {
-      console.log(`[DailyBackup] ${team}: sem token, pulando`);
+      console.log("  Token não encontrado, pulando...");
       continue;
     }
 
@@ -300,82 +350,36 @@ async function runBackup() {
       fetchAllCompanies(token.subdomain, token.accessToken),
     ]);
 
-    console.log(`[DailyBackup] ${team}: ${allLeads.length} leads | ${contactMap.size} contacts | ${companyMap.size} companies`);
+    console.log(`  ${allLeads.length} leads | ${contactMap.size} contatos | ${companyMap.size} empresas`);
+
     const rows = buildRows(allLeads, userMap, pipelineMap, statusMap, contactMap, companyMap);
 
     // Google Sheets
-    if (sheets && SHEETS[team]) {
-      try {
-        await writeToSheet(sheets, SHEETS[team], rows);
-        console.log(`[DailyBackup] ${team}: Google Sheets atualizado`);
-      } catch (e: any) {
-        console.error(`[DailyBackup] ${team}: erro ao atualizar Sheets:`, e.message);
-      }
+    const spreadsheetId = SHEETS[team];
+    if (spreadsheetId) {
+      console.log(`  Atualizando Google Sheets...`);
+      await writeToSheet(sheets, spreadsheetId, rows);
+      console.log(`  ✅ Planilha atualizada!`);
     }
 
     // CSV
-    csvBuffers.push({ team, csv: rowsToCsv(rows), count: allLeads.length });
+    const csv = rowsToCsv(rows);
+    csvBuffers.push({ team, csv, count: allLeads.length });
+    console.log(`  ✅ CSV gerado (${(csv.length / 1024 / 1024).toFixed(1)} MB)`);
   }
 
   // Email
-  if (csvBuffers.length > 0 && process.env.RESEND_API_KEY) {
-    const today = new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
-    const summary = csvBuffers
-      .map(({ team, count }) => `• <b>${team.toUpperCase()}</b>: ${count.toLocaleString("pt-BR")} leads`)
-      .join("<br>");
-
-    try {
-      await resend.emails.send({
-        from: `SuperGerente Backup <${fromEmail}>`,
-        to: RECIPIENTS,
-        subject: `Backup Leads Kommo — ${today}`,
-        html: `
-          <div style="font-family: Arial, sans-serif; padding: 20px;">
-            <h2 style="color: #9566F2;">Backup Diário de Leads</h2>
-            <p>Segue em anexo o backup completo dos leads do Kommo.</p>
-            <p><b>Data:</b> ${today}</p>
-            <p>${summary}</p>
-            <br>
-            <p style="color: #666; font-size: 12px;">Enviado automaticamente pelo SuperGerente.</p>
-          </div>
-        `,
-        attachments: csvBuffers.map(({ team, csv }) => ({
-          filename: `leads-${team}-${today.replace(/\//g, "-")}.csv`,
-          content: Buffer.from(csv, "utf-8").toString("base64"),
-          type: "text/csv" as const,
-        })),
-      });
-      console.log(`[DailyBackup] Email enviado para ${RECIPIENTS.length} destinatários`);
-    } catch (e: any) {
-      console.error("[DailyBackup] Erro ao enviar email:", e.message);
+  if (csvBuffers.length > 0) {
+    console.log(`\nEnviando email para ${RECIPIENTS.length} destinatários...`);
+    const ok = await sendEmail(csvBuffers);
+    if (ok) {
+      console.log(`✅ Email enviado para: ${RECIPIENTS.join(", ")}`);
+    } else {
+      console.log("❌ Falha ao enviar email");
     }
   }
 
-  const duration = Math.round((Date.now() - startTime) / 1000);
-  console.log(`[DailyBackup] Concluído em ${duration}s`);
+  console.log("\n✅ BACKUP COMPLETO!");
 }
 
-function msUntilNextRun(): number {
-  const now = new Date();
-  const next = new Date(now);
-  next.setUTCHours(TARGET_HOUR_UTC, 0, 0, 0);
-  if (next.getTime() <= now.getTime()) {
-    next.setUTCDate(next.getUTCDate() + 1);
-  }
-  return next.getTime() - now.getTime();
-}
-
-export function startDailyBackup(): void {
-  const ms = msUntilNextRun();
-  const hours = Math.round(ms / 3600000 * 10) / 10;
-  console.log(`[DailyBackup] Próximo backup em ${hours}h (6h BRT)`);
-
-  setTimeout(() => {
-    runBackup().catch(e => console.error("[DailyBackup] Erro:", e.message));
-
-    // Repetir a cada 24h
-    setInterval(() => {
-      runBackup().catch(e => console.error("[DailyBackup] Erro:", e.message));
-    }, 24 * 60 * 60 * 1000);
-  }, ms);
-}
+main().catch(console.error);

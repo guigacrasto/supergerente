@@ -4,6 +4,24 @@ Todas as alterações notáveis do projeto são documentadas aqui.
 
 ---
 
+## [2026-04-08] — Fix Backup Diário de Leads: dados de contato/empresa
+
+### Corrigido
+- **CSV de backup vinha com Nome/Telefone/Email vazios** (`src/services/daily-backup.ts` + `scripts/daily-backup-leads.ts`)
+  - **Causa raiz**: `?with=contacts` na API `/leads` do Kommo só retorna stubs `{id, is_main, _links}` — NÃO traz `custom_fields_values`. A função `extractContactField(lead, "PHONE")` sempre retornava string vazia porque lia de `lead._embedded.contacts[].custom_fields_values` (sempre undefined).
+  - **Fix**: Agora busca `/contacts?with=custom_fields_values` e `/companies?with=custom_fields_values` separado, monta `Map<id, {name, phone, email}>` e joina com os leads.
+- **CSV não trazia dados da empresa vinculada ao lead**, onde estão os dados reais da pessoa em muitos leads (especialmente na conta amarela).
+
+### Alterado
+- **Novas colunas no CSV** (19 colunas, antes 13):
+  - `ID Lead`, `Nome Lead`
+  - `ID Contato`, `Nome Contato`, `Telefone Contato`, `Email Contato`
+  - `ID Empresa`, `Nome Empresa`, `Telefone Empresa`, `Email Empresa`
+  - `Responsável ID`, `Responsável`, `Pipeline`, `Status`, `Valor (R$)`, `Source ID`, `Tags`, `Criado em`, `Atualizado em`
+- **Validação**: amostra 15 leads AZUL → 13/15 com dados; AMARELA → 14/15 com dados (os 1-2 sem dados são leads sem contato vinculado).
+
+---
+
 ## [2026-04-01] — Lead Remanejamento Automation
 
 ### Adicionado
