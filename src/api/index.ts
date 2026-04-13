@@ -126,6 +126,6 @@ app.listen(PORT, async () => {
   // Start daily backup of leads to Google Sheets + email CSV (6h BRT)
   startDailyBackup();
 
-  // Start lead remanejamento automation (4h BRT daily)
-  startLeadRemanejamento();
+  // Lead remanejamento automation — DESATIVADO a pedido do usuario (2026-04-13)
+  // startLeadRemanejamento();
 });

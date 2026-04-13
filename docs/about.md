@@ -44,11 +44,31 @@ Express Server (Railway)
 | `password_reset_tokens` | Tokens de reset de senha |
 | `pipeline_visibility` | Visibilidade de pipelines |
 
-### Multi-Team
+### Multi-Tenant
 
-- **Equipe Azul**: Conta Kommo primária (obrigatória)
-- **Equipe Amarela**: Conta Kommo secundária (opcional)
-- Cada equipe tem suas próprias métricas, funis e agentes
+O sistema é multi-tenant. Cada tenant tem credenciais Kommo, configurações e usuários **isolados**.
+
+**REGRA: Tenants têm features DIFERENTES entre si.** Configurações, labels, automações e páginas visíveis são específicas por tenant. Uma mudança para um tenant NÃO se aplica automaticamente a outro. Sempre verificar o tenant-alvo antes de qualquer alteração.
+
+| Tenant | ID | Slug | Contas Kommo | Admin | Notas |
+|--------|-----|------|-------------|-------|-------|
+| **GAME** | `1e29dae5-38f2-4ac4-91c3-9189606f36b0` | `game` | `ferramentasempresa001` (azul) + `iadeoperacoes` (amarela) | guilherme@onigroup.com.br | Tenant original. customLabels: vendas→"BT" |
+| **Embalaqui** | `bf393e84-2151-4d6e-8b90-7a02c534ad9c` | `embalaqui` | `marketinglojaembalaquicombr` (principal) | embalaqui@onigroup.com.br | hiddenPages: /renda, /profissao, /ddd. dddProibidoEnabled: true |
+
+**Superadmin**: admin@onigroup.com.br (acessa todos os tenants via header `x-tenant-id`)
+
+**Logins para testar cada tenant:**
+- GAME: `guilherme@onigroup.com.br`
+- Embalaqui: `embalaqui@onigroup.com.br`
+
+### Configurações por Tenant (settings JSON)
+
+| Setting | Tipo | Descrição |
+|---------|------|-----------|
+| `teams` | `Record<string, TeamConfig>` | Credenciais Kommo por equipe |
+| `hiddenPages` | `string[]` | Páginas ocultas na sidebar |
+| `customLabels` | `Record<string, string>` | Labels customizados (ex: vendas→"BT") |
+| `dddProibidoEnabled` | `boolean` | Automação de fechar leads com DDD proibido |
 
 ### White-Label
 

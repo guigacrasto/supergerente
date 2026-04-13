@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Building2, Users, Shield, Activity } from 'lucide-react';
+import { Building2, Users, Shield, Activity, UserPlus } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
 import { Skeleton, EmptyState } from '@/components/ui';
 import { TenantTable } from '@/components/features/super/TenantTable';
 import { TenantForm } from '@/components/features/super/TenantForm';
+import { PendingUsersTable } from '@/components/features/super/PendingUsersTable';
 import type { Tenant } from '@/types';
 
 interface TenantWithCount extends Tenant {
@@ -15,6 +16,7 @@ interface SuperStats {
   totalTenants: number;
   activeTenants: number;
   totalUsers: number;
+  pendingUsers: number;
 }
 
 function KpiCard({
@@ -104,7 +106,7 @@ export function SuperAdminPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           icon={Building2}
           label="Total Tenants"
@@ -126,7 +128,17 @@ export function SuperAdminPage() {
           loading={loadingStats}
           color="bg-info/10 text-info"
         />
+        <KpiCard
+          icon={UserPlus}
+          label="Pendentes"
+          value={stats?.pendingUsers ?? 0}
+          loading={loadingStats}
+          color="bg-warning/10 text-warning"
+        />
       </div>
+
+      {/* Pending Users */}
+      <PendingUsersTable onAssigned={() => setRefreshKey((k) => k + 1)} />
 
       {/* Tenant Table */}
       <TenantTable

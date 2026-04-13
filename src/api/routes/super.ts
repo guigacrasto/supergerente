@@ -87,6 +87,51 @@ router.patch('/tenants/:id', async (req: AuthRequest, res) => {
   }
 });
 
+// GET /api/super/pending-users — Users without tenant
+router.get('/pending-users', async (_req: AuthRequest, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, name, email, status, created_at')
+      .is('tenant_id', null)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    res.json({ users: data || [] });
+  } catch (err: any) {
+    console.error('[Super] Erro ao listar pending users:', err.message);
+    res.status(500).json({ error: 'Erro ao listar usuários pendentes' });
+  }
+});
+
+// PATCH /api/super/users/:id/assign-tenant — Assign tenant to user
+router.patch('/users/:id/assign-tenant', async (req: AuthRequest, res) => {
+  try {
+    const { tenantId } = req.body;
+    if (!tenantId) {
+      res.status(400).json({ error: 'tenantId é obrigatório' });
+      return;
+    }
+
+    const tenant = await getTenantById(tenantId);
+    if (!tenant) {
+      res.status(404).json({ error: 'Tenant não encontrado' });
+      return;
+    }
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ tenant_id: tenantId })
+      .eq('id', req.params.id);
+
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err: any) {
+    console.error('[Super] Erro ao atribuir tenant:', err.message);
+    res.status(500).json({ error: 'Erro ao atribuir tenant' });
+  }
+});
+
 // GET /api/super/stats — Global stats
 router.get('/stats', async (_req: AuthRequest, res) => {
   try {
@@ -97,10 +142,16 @@ router.get('/stats', async (_req: AuthRequest, res) => {
       .from('profiles')
       .select('*', { count: 'exact', head: true });
 
+    const { count: pendingCount } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .is('tenant_id', null);
+
     res.json({
       totalTenants: tenants.length,
       activeTenants: active,
       totalUsers: userCount || 0,
+      pendingUsers: pendingCount || 0,
     });
   } catch (err: any) {
     res.status(500).json({ error: 'Erro ao buscar estatísticas' });
